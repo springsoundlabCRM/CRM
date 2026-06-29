@@ -418,7 +418,7 @@
   /* ---------- Оверлей под выезжающее меню ---------- */
   .sidebar-overlay{
     display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
-    z-index:39;opacity:0;transition:opacity .25s ease;
+    z-index:49;opacity:0;transition:opacity .25s ease;
     backdrop-filter:blur(1px);
   }
   .sidebar-overlay.show{display:block;opacity:1}
@@ -428,7 +428,7 @@
     display:none;align-items:center;justify-content:center;
     width:34px;height:34px;min-width:34px;border-radius:9px;
     background:var(--bg3);border:1px solid var(--border2);color:var(--text);
-    font-size:16px;cursor:pointer;flex-shrink:0;margin-right:2px;
+    font-size:16px;cursor:pointer;flex-shrink:0;margin-left:4px;margin-right:6px;
     -webkit-tap-highlight-color:transparent;
   }
   .hamburger-btn:active{background:var(--card2)}
@@ -503,7 +503,7 @@
   /* ================= ПЛАНШЕТ / МАЛЫЙ ЭКРАН (≤880px) ================= */
   @media (max-width:880px){
     .sidebar{
-      position:fixed;top:0;left:0;height:100%;height:100dvh;z-index:40;
+      position:fixed;top:0;left:0;height:100%;height:100dvh;z-index:50;
       transform:translateX(-100%);transition:transform .25s ease;
       box-shadow:8px 0 30px rgba(0,0,0,.35);
       padding-top:env(safe-area-inset-top, 0px);
@@ -595,10 +595,24 @@
     /* ===== РАСПИСАНИЕ (КАЛЕНДАРЬ): всё на одном экране, без скролла,
        7 дней видно целиком, часы не обрезаны ===== */
     #page-schedule .topbar{
-      flex-wrap:nowrap;overflow:hidden;padding:6px 8px;min-height:46px;gap:4px;
+      flex-wrap:nowrap;padding:6px 8px;min-height:46px;gap:4px;overflow:visible;
     }
-    #page-schedule .topbar .btn{padding:6px 8px;font-size:10.5px;gap:0}
-    #page-schedule .zoom-controls-top{display:none!important}
+    #page-schedule .topbar .btn{padding:6px 8px;font-size:10.5px;gap:3px}
+    #page-schedule .zoom-controls-top{display:flex!important;gap:3px}
+    /* Кнопка Меню в расписании */
+    .schedule-menu-btn{
+      display:none;align-items:center;gap:5px;
+      font-size:11px;font-weight:600;flex-shrink:0;
+      background:var(--bg3)!important;border-color:var(--border2)!important;
+      margin-right:2px;
+    }
+    @media(max-width:880px){
+      .schedule-menu-btn{display:flex!important}
+    }
+    @media(max-width:600px){
+      .sched-reset-label{display:none}
+      .schedule-menu-label{display:none}
+    }
     .cal-head{grid-template-columns:26px repeat(7,1fr)}
     .cal-body{grid-template-columns:26px repeat(7,1fr)}
     #calView{overflow-x:hidden}
@@ -770,15 +784,23 @@
 
     <!-- SCHEDULE (КАЛЕНДАРЬ) -->
     <div id="page-schedule" class="hidden">
-      <div class="topbar">
-        <div class="topbar-title">Расписание <span class="topbar-subtitle" id="calPeriodLabel">—</span></div>
-        <button class="btn btn-ghost" onclick="shiftCalWeek(-1)">◀ Пред.</button>
-        <button class="btn btn-ghost" onclick="resetCalendarView()">Сегодня</button>
-        <button class="btn btn-ghost" onclick="shiftCalWeek(1)">След. ▶</button>
-        <div class="zoom-controls-top" style="display:flex;gap:4px;margin-left:8px;">
+      <div class="topbar" id="scheduleTopbar">
+        <!-- Кнопка Меню (только мобильная, вставляется через JS тоже, но здесь явно для расписания) -->
+        <button class="btn btn-ghost schedule-menu-btn" id="scheduleMenuBtn" onclick="toggleMobileSidebar()" title="Открыть меню" style="display:none">
+          <i class="fa-solid fa-bars"></i> <span class="schedule-menu-label">Меню</span>
+        </button>
+        <!-- Навигация по неделям -->
+        <button class="btn btn-ghost" onclick="shiftCalWeek(-1)" title="Предыдущая неделя">◀</button>
+        <button class="btn btn-ghost" onclick="resetCalendarView()" title="Сбросить к сегодня"><i class="fa-solid fa-rotate-left"></i> <span class="sched-reset-label">Сбросить</span></button>
+        <button class="btn btn-ghost" onclick="shiftCalWeek(1)" title="Следующая неделя">▶</button>
+        <!-- Зум -->
+        <div class="zoom-controls-top" style="display:flex;gap:4px;">
           <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(1)" title="Увеличить"><i class="fa-solid fa-plus"></i></button>
           <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить"><i class="fa-solid fa-minus"></i></button>
         </div>
+        <!-- Период -->
+        <span class="topbar-title" style="flex:1;text-align:center;font-size:13px" id="calPeriodLabel">—</span>
+        <!-- Добавить урок -->
         <button class="btn btn-primary" onclick="openModal('lesson')">+ Урок</button>
       </div>
       <div class="content" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
@@ -2027,12 +2049,18 @@ function toggleMoreSheet(){ enterQuickMenuEditMode(); }
 function closeMoreSheet(){ closeQuickMenuPicker(); }
 function insertHamburgers(){
   document.querySelectorAll('.topbar').forEach(tb=>{
+    // Расписание — у него своя кнопка меню (scheduleMenuBtn), пропускаем
+    if(tb.closest('#page-schedule')) return;
     if(tb.querySelector('.hamburger-btn')) return;
     const btn = document.createElement('button');
     btn.className = 'hamburger-btn';
     btn.setAttribute('aria-label','Открыть меню');
     btn.innerHTML = '☰';
-    btn.onclick = toggleMobileSidebar;
+    btn.style.marginLeft = '4px'; // небольшой отступ от левого края
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      toggleMobileSidebar();
+    });
     tb.insertBefore(btn, tb.firstChild);
   });
 }
@@ -2040,13 +2068,8 @@ function insertHamburgers(){
    (◀ Пред. → ◀, Сегодня → Сегодня, След. ▶ → ▶, + Урок → +),
    чтобы весь топбар расписания помещался в одну строку без скролла. */
 function adaptScheduleTopbar(){
-  const isPhone = window.innerWidth <= 600;
-  const prevBtn = document.querySelector('#page-schedule .topbar button[onclick="shiftCalWeek(-1)"]');
-  const nextBtn = document.querySelector('#page-schedule .topbar button[onclick="shiftCalWeek(1)"]');
-  const lessonBtn = document.querySelector('#page-schedule .topbar button[onclick="openModal(\'lesson\')"]');
-  if(prevBtn) prevBtn.textContent = isPhone ? '◀' : '◀ Пред.';
-  if(nextBtn) nextBtn.textContent = isPhone ? '▶' : 'След. ▶';
-  if(lessonBtn) lessonBtn.textContent = isPhone ? '+' : '+ Урок';
+  // Кнопки расписания теперь используют иконки — текст не нужно укорачивать
+  // Функция оставлена для совместимости
 }
 function closeOverlay(){
   closeMobileSidebar();
