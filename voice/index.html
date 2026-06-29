@@ -500,7 +500,7 @@
     .sidebar.mobile-open{transform:translateX(0)}
     .hamburger-btn{display:flex}
     .main{width:100%}
-    .content{padding:16px}
+    .content{padding:16px;padding-bottom:70px}
     .topbar{padding:0 14px;height:54px;gap:8px}
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
@@ -509,7 +509,6 @@
     #dashTriColumn{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr}
     .input-row{grid-template-columns:1fr 1fr}
-    .content{padding-bottom:84px}
   }
 
   /* ================= ТЕЛЕФОН (≤600px) ================= */
@@ -517,7 +516,8 @@
     body{font-size:13px}
     .app{flex-direction:column}
     .sidebar{width:78vw;max-width:300px;min-width:0}
-    .content{padding:12px;padding-bottom:100px}
+    .content{padding:12px;padding-bottom:70px}
+    #page-schedule .content{padding-bottom:0!important}
     .topbar{
       flex-wrap:nowrap;height:auto;min-height:50px;padding:8px 10px;
       gap:6px;overflow-x:visible;
@@ -591,7 +591,8 @@
 
   /* ================= УЗКИЙ ТЕЛЕФОН (≤380px) ================= */
   @media (max-width:380px){
-    .content{padding:10px;padding-bottom:100px}
+    .content{padding:10px;padding-bottom:70px}
+    #page-schedule .content{padding-bottom:0!important}
     .stat-value{font-size:18px}
     .stat-card{padding:10px}
     .student-header{gap:8px}
