@@ -454,6 +454,41 @@
   .bn-sheet-item:active{background:var(--bg3)}
   .bn-sheet-item .icon{font-size:18px;width:22px;text-align:center}
 
+  /* ---------- Режим редактирования "Быстрого меню" ---------- */
+  .bottom-nav.edit-mode{background:var(--card2);box-shadow:0 -4px 18px rgba(167,139,250,.18) inset;gap:0}
+  .bn-edit-item{
+    display:flex;align-items:center;gap:1px;flex:1;min-width:0;
+    -webkit-tap-highlight-color:transparent;user-select:none;
+  }
+  .bn-edit-center{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;color:var(--text2);font-size:8.5px;font-weight:500;flex:1;min-width:0;
+    padding:6px 2px 5px;border-radius:9px;cursor:pointer;position:relative;
+    border:1.5px dashed var(--border2);background:var(--bg3);
+  }
+  .bn-edit-center .bn-icon{font-size:16px;line-height:1}
+  .bn-edit-center .bn-remove{
+    position:absolute;top:-6px;right:-2px;width:17px;height:17px;border-radius:50%;
+    background:var(--red);color:#fff;font-size:9px;display:flex;align-items:center;
+    justify-content:center;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.4);
+  }
+  .bn-move-arrow{
+    flex-shrink:0;width:18px;height:34px;display:flex;align-items:center;justify-content:center;
+    color:var(--text2);font-size:16px;font-weight:700;cursor:pointer;border-radius:6px;
+    -webkit-tap-highlight-color:transparent;user-select:none;
+  }
+  .bn-move-arrow:active{background:var(--bg3);color:var(--accent)}
+  .bn-move-arrow.bn-move-disabled{opacity:.2;pointer-events:none}
+  .qm-edit-bar{
+    display:none;position:fixed;left:0;right:0;top:0;z-index:46;
+    background:var(--accent);border-bottom:1px solid rgba(167,139,250,.3);
+    color:#fff;font-size:11.5px;font-weight:500;padding:10px 12px;
+    padding-top:calc(10px + env(safe-area-inset-top));
+    align-items:center;justify-content:space-between;gap:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.25);
+  }
+  .qm-edit-bar .btn-primary{background:#fff;color:var(--accent2);flex-shrink:0}
+
   /* ================= ПЛАНШЕТ / МАЛЫЙ ЭКРАН (≤880px) ================= */
   @media (max-width:880px){
     .sidebar{
@@ -485,13 +520,25 @@
     .content{padding:12px;padding-bottom:88px}
     .topbar{
       flex-wrap:nowrap;height:auto;min-height:50px;padding:8px 10px;
-      gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+      gap:6px;overflow-x:visible;
     }
-    .topbar::-webkit-scrollbar{display:none}
-    .topbar-title{font-size:13.5px;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    /* Названия разделов в топбаре скрываем на мобильном —
+       раздел и так понятен из нижнего/бокового меню.
+       Приветствие на дашборде (#greetTitle) — исключение, его оставляем. */
+    .topbar-title:not(#greetTitle){display:none}
+    .topbar-subtitle{display:none}
     .topbar .btn{flex-shrink:0}
     .btn{padding:7px 10px;font-size:11.5px}
     .btn-sm{padding:5px 8px}
+
+    /* Топбары на телефоне: гамбургер слева, остальное прижато к правому краю */
+    .topbar{justify-content:flex-end}
+    .topbar > .hamburger-btn{margin-right:auto;flex-shrink:0}
+
+    /* Дашборд — особый случай: после гамбургера идёт приветствие (растягивается),
+       а кнопки действий "+ Урок" / "+ Ученик" прижимаются к правому краю */
+    #page-dashboard .topbar > div:first-of-type{flex:1;min-width:0;margin-right:0}
+    #page-dashboard .topbar > .hamburger-btn{margin-right:0}
 
     /* Заголовочные статы — 2 в ряд, компактнее */
     .stat-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px;margin-bottom:16px}
@@ -529,26 +576,35 @@
     .tab-row::-webkit-scrollbar{display:none}
     .tab{padding:6px 12px;font-size:11.5px}
 
-    /* Расписание / неделя — горизонтальный скролл */
+    /* Расписание / неделя (вид "по дням" вне календаря) — горизонтальный скролл */
     .schedule-grid{overflow-x:auto;grid-template-columns:repeat(7,minmax(140px,1fr))}
 
-    /* Календарь — компактнее на телефоне */
-    .cal-head{grid-template-columns:32px repeat(7,minmax(64px,1fr))}
-    .cal-body{grid-template-columns:32px repeat(7,minmax(64px,1fr))}
-    #calView{overflow-x:auto}
-    .cal-day-hd{padding:6px 2px}
-    .cal-day-hd-name{font-size:8px}
-    .cal-day-hd-num{font-size:13px}
-    .cal-event-name{font-size:9px}
-
-    /* Топбар расписания — кнопки помещаются построчно со скроллом */
-    #page-schedule .topbar .topbar-title{flex:0 0 auto}
+    /* ===== РАСПИСАНИЕ (КАЛЕНДАРЬ): всё на одном экране, без скролла,
+       7 дней видно целиком, часы не обрезаны ===== */
+    #page-schedule .topbar{
+      flex-wrap:nowrap;overflow:hidden;padding:6px 8px;min-height:46px;gap:4px;
+    }
+    #page-schedule .topbar .btn{padding:6px 8px;font-size:10.5px;gap:0}
+    #page-schedule .zoom-controls-top{display:none!important}
+    .cal-head{grid-template-columns:26px repeat(7,1fr)}
+    .cal-body{grid-template-columns:26px repeat(7,1fr)}
+    #calView{overflow-x:hidden}
+    .cal-day-hd{padding:5px 1px}
+    .cal-day-hd-name{font-size:7.5px;letter-spacing:0}
+    .cal-day-hd-num{font-size:12px}
+    .cal-day-hd-num.today{width:22px;height:22px}
+    .cal-time-label{font-size:9.5px;right:0;left:0;text-align:center;font-weight:700}
+    .cal-event{left:1px;right:1px;padding:2px 3px 2px 4px}
+    .cal-event-name{font-size:8px}
+    .cal-event-svc{display:none}
 
     /* Карточка ученика (детальная) */
     .skill-name{width:84px;font-size:11px}
 
     /* Нижняя навигация включается */
     .bottom-nav{display:flex}
+    .qm-edit-bar.show{display:flex}
+    #quickMenuSettingsSection{display:block!important}
     .sidebar-footer{padding-bottom:14px}
     .toast{bottom:calc(72px + env(safe-area-inset-bottom));right:12px;left:12px;justify-content:center;text-align:center}
   }
@@ -558,13 +614,19 @@
     .content{padding:10px;padding-bottom:86px}
     .stat-value{font-size:18px}
     .stat-card{padding:10px}
-    .topbar-title{font-size:12.5px}
     .student-header{gap:8px}
     .student-avatar{width:32px;height:32px;font-size:12px}
     .student-name{font-size:12px}
     .bn-item{font-size:8.5px}
     .bn-item .bn-icon{font-size:16px}
+    .bn-edit-center{font-size:7.5px;padding:5px 1px 4px}
+    .bn-edit-center .bn-icon{font-size:14px}
+    .bn-move-arrow{width:14px;font-size:14px}
     .skill-name{width:70px;font-size:10px}
+    #page-schedule .topbar .btn{padding:5px 6px;font-size:9.5px}
+    .cal-head{grid-template-columns:22px repeat(7,1fr)}
+    .cal-body{grid-template-columns:22px repeat(7,1fr)}
+    .cal-time-label{font-size:8.5px;right:0;left:0;text-align:center}
   }
 
   /* ---------- Сенсорные улучшения (применяются везде на тач-устройствах) ---------- */
@@ -831,6 +893,17 @@
           </div>
         </div>
 
+        <div class="settings-section" id="quickMenuSettingsSection" style="display:none">
+          <div class="settings-section-title">Мобильное меню</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Быстрое меню снизу</div>
+              <div class="settings-row-sub">Выберите любые 5 разделов и порядок для нижней панели</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="enterQuickMenuEditMode()">✎ Настроить</button>
+          </div>
+        </div>
+
         <div class="settings-section">
           <div class="settings-section-title">Внешний вид</div>
           <div class="settings-row">
@@ -857,31 +930,14 @@
   </main>
 </div>
 
-<!-- НИЖНЯЯ НАВИГАЦИЯ (только мобильные) -->
-<nav class="bottom-nav" id="bottomNav">
-  <div class="bn-item" data-page="dashboard" onclick="showPage('dashboard')">
-    <span class="bn-icon">🏠</span><span>Главное</span>
-  </div>
-  <div class="bn-item" data-page="schedule" onclick="showPage('schedule')">
-    <span class="bn-icon">📅</span><span>План</span>
-  </div>
-  <div class="bn-item" data-page="students" onclick="showPage('students')">
-    <span class="bn-icon">🎓</span><span>Ученики</span>
-  </div>
-  <div class="bn-item" data-page="finances" onclick="showPage('finances')">
-    <span class="bn-icon">💰</span><span>Финансы</span>
-  </div>
-  <div class="bn-item" id="bnMoreBtn" onclick="toggleMoreSheet()">
-    <span class="bn-icon">⋯</span><span>Ещё</span>
-  </div>
-</nav>
+<!-- НИЖНЕЕ "БЫСТРОЕ МЕНЮ" (только мобильные, настраиваемое) -->
+<nav class="bottom-nav" id="bottomNav"></nav>
 
-<div class="bn-more-sheet" id="bnMoreSheet">
+<!-- Шторка выбора раздела для слота быстрого меню (режим редактирования) -->
+<div class="bn-more-sheet" id="qmPickSheet">
   <div class="bn-sheet-handle"></div>
-  <div class="bn-sheet-item" onclick="closeMoreSheet();showPage('homework')"><span class="icon">📝</span> Задания</div>
-  <div class="bn-sheet-item" onclick="closeMoreSheet();showPage('progress')"><span class="icon">📈</span> Прогресс</div>
-  <div class="bn-sheet-item" onclick="closeMoreSheet();showPage('settings')"><span class="icon">⚙️</span> Настройки</div>
-  <div class="bn-sheet-item" style="color:var(--red)" onclick="closeMoreSheet();doLogout()"><span class="icon">⎋</span> Выйти из аккаунта</div>
+  <div style="font-size:13px;font-weight:600;margin-bottom:10px;padding:0 4px">Выберите раздел для этой кнопки</div>
+  <div id="qmPickList"></div>
 </div>
 
 <!-- MODAL -->
@@ -1270,7 +1326,8 @@ function renderCalendar() {
     const slot = document.createElement('div');
     slot.className = 'cal-time-slot';
     slot.style.height = zoom + 'px';
-    slot.innerHTML = `<span class="cal-time-label">${String(h).padStart(2,'0')}:00</span>`;
+    const timeLabel = (isMobileDevice || window.innerWidth<=600) ? String(h) : (String(h).padStart(2,'0')+':00');
+    slot.innerHTML = `<span class="cal-time-label">${timeLabel}</span>`;
     timeCol.appendChild(slot);
   }
   body.appendChild(timeCol);
@@ -1731,19 +1788,16 @@ function showPage(name){
   const navMap={dashboard:'dashboard',schedule:'schedule',students:'students','student-detail':'students',finances:'finances',homework:'homework',progress:'progress',settings:'settings'};
   const navName=navMap[name];
   document.querySelectorAll('.nav-item').forEach(i=>{ if(i.getAttribute('data-page')===navName) i.classList.add('active'); });
-  document.querySelectorAll('.bn-item').forEach(i=>i.classList.remove('active'));
-  document.querySelectorAll('.bn-item').forEach(i=>{ if(i.getAttribute('data-page')===navName) i.classList.add('active'); });
-  const moreBtn = document.getElementById('bnMoreBtn');
-  if(moreBtn) moreBtn.classList.toggle('active', ['homework','progress','settings'].includes(navName));
   if(name==='dashboard') renderDashboard();
-  if(name==='schedule') showSchedule();
+  if(name==='schedule') { showSchedule(); adaptScheduleTopbar(); }
   if(name==='students') renderStudents();
   if(name==='finances') renderFinances();
   if(name==='homework') renderHomework();
   if(name==='progress') renderProgress();
   if(name==='settings') renderSettingsPage();
   closeMobileSidebar();
-  closeMoreSheet();
+  closeQuickMenuPicker();
+  renderBottomNav();
   const contentEl = document.querySelector('#page-'+name+' .content');
   if(contentEl) contentEl.scrollTop = 0;
 }
@@ -1764,21 +1818,167 @@ function toggleMobileSidebar(){
   if(sb.classList.contains('mobile-open')) closeMobileSidebar();
   else openMobileSidebar();
 }
-function toggleMoreSheet(){
-  const sheet = document.getElementById('bnMoreSheet');
-  if(sheet.classList.contains('show')) closeMoreSheet();
-  else openMoreSheet();
+/* ============================================================
+   НИЖНЕЕ "БЫСТРОЕ МЕНЮ" — полностью настраиваемое (5 слотов)
+   ============================================================ */
+const QUICK_MENU_SECTIONS = {
+  dashboard:  {icon:'🏠', label:'Главное'},
+  schedule:   {icon:'📅', label:'Расписание'},
+  students:   {icon:'🎓', label:'Ученики'},
+  finances:   {icon:'💰', label:'Финансы'},
+  homework:   {icon:'📝', label:'Задания'},
+  progress:   {icon:'📈', label:'Прогресс'},
+  settings:   {icon:'⚙️', label:'Настройки'},
+};
+const QUICK_MENU_DEFAULT = ['dashboard','schedule','students','finances','settings'];
+let quickMenuEditMode = false;
+let qmLongPressTimer = null;
+let qmPendingSlotIndex = null;
+
+function getQuickMenu(){
+  if(!DB.quickMenuSlots || !Array.isArray(DB.quickMenuSlots) || DB.quickMenuSlots.length!==5){
+    DB.quickMenuSlots = QUICK_MENU_DEFAULT.slice();
+  }
+  return DB.quickMenuSlots;
 }
-function openMoreSheet(){
-  document.getElementById('bnMoreSheet').classList.add('show');
+function saveQuickMenu(slots){
+  DB.quickMenuSlots = slots;
+  saveDB();
+}
+
+function renderBottomNav(){
+  const host = document.getElementById('bottomNav');
+  if(!host) return;
+  const slots = getQuickMenu();
+  const activePage = (document.querySelector('[id^="page-"]:not(.hidden)')||{}).id;
+  const navMap={'page-dashboard':'dashboard','page-schedule':'schedule','page-students':'students','page-student-detail':'students','page-finances':'finances','page-homework':'homework','page-progress':'progress','page-settings':'settings'};
+  const activeKey = navMap[activePage];
+
+  let html = '';
+  slots.forEach((key, idx)=>{
+    const sec = key ? QUICK_MENU_SECTIONS[key] : null;
+    const isActive = !quickMenuEditMode && sec && key===activeKey;
+    if(quickMenuEditMode){
+      html += '<div class="bn-item bn-edit-item" data-idx="'+idx+'">'
+        + (idx>0 ? '<span class="bn-move-arrow bn-move-left" onclick="qmMoveSlot(event,'+idx+',-1)">‹</span>' : '<span class="bn-move-arrow bn-move-disabled">‹</span>')
+        + '<span class="bn-edit-center" onclick="openQuickMenuPicker('+idx+')">'
+        + (sec ? '<span class="bn-icon">'+sec.icon+'</span><span>'+sec.label+'</span>' : '<span class="bn-icon" style="opacity:.5">➕</span><span style="opacity:.6">Пусто</span>')
+        + (sec ? '<span class="bn-remove" onclick="removeQuickMenuSlot(event,'+idx+')">✕</span>' : '')
+        + '</span>'
+        + (idx<slots.length-1 ? '<span class="bn-move-arrow bn-move-right" onclick="qmMoveSlot(event,'+idx+',1)">›</span>' : '<span class="bn-move-arrow bn-move-disabled">›</span>')
+        + '</div>';
+    } else {
+      html += '<div class="bn-item'+(isActive?' active':'')+'" data-page="'+(key||'')+'" '
+        + 'onclick="bnItemClick(event,\''+(key||'')+'\')" '
+        + 'onpointerdown="qmStartLongPress(event)" onpointerup="qmCancelLongPress()" onpointerleave="qmCancelLongPress()" onpointercancel="qmCancelLongPress()">'
+        + (sec ? '<span class="bn-icon">'+sec.icon+'</span><span>'+sec.label+'</span>' : '<span class="bn-icon" style="opacity:.4">➕</span><span style="opacity:.5">—</span>')
+        + '</div>';
+    }
+  });
+  host.innerHTML = html;
+  host.classList.toggle('edit-mode', quickMenuEditMode);
+
+  // Полоса управления режимом редактирования (кнопка "Сохранить"), отдельно от слотов
+  let editBar = document.getElementById('qmEditBar');
+  if(quickMenuEditMode){
+    if(!editBar){
+      editBar = document.createElement('div');
+      editBar.id = 'qmEditBar';
+      editBar.className = 'qm-edit-bar';
+      document.body.appendChild(editBar);
+    }
+    editBar.innerHTML = '<span>✎ Настройка быстрого меню — нажмите на кнопку, чтобы заменить раздел, стрелками поменяйте порядок</span>'
+      + '<button class="btn btn-primary btn-sm" onclick="exitQuickMenuEditMode(true)">Сохранить</button>';
+    editBar.classList.add('show');
+  } else if(editBar){
+    editBar.classList.remove('show');
+  }
+}
+
+function bnItemClick(e, key){
+  if(quickMenuEditMode) return;
+  if(!key) { enterQuickMenuEditMode(); return; }
+  showPage(key);
+}
+
+function qmStartLongPress(e){
+  qmCancelLongPress();
+  qmLongPressTimer = setTimeout(()=>{ enterQuickMenuEditMode(); }, 550);
+}
+function qmCancelLongPress(){
+  if(qmLongPressTimer){ clearTimeout(qmLongPressTimer); qmLongPressTimer=null; }
+}
+
+function enterQuickMenuEditMode(){
+  quickMenuEditMode = true;
+  closeMobileSidebar();
+  renderBottomNav();
+}
+function exitQuickMenuEditMode(save){
+  quickMenuEditMode = false;
+  if(save){ saveDB(); toast('Быстрое меню сохранено ✓'); }
+  renderBottomNav();
+}
+
+function removeQuickMenuSlot(e, idx){
+  e.stopPropagation();
+  const slots = getQuickMenu().slice();
+  slots[idx] = null;
+  saveQuickMenu(slots);
+  renderBottomNav();
+}
+
+function openQuickMenuPicker(idx){
+  qmPendingSlotIndex = idx;
+  const list = document.getElementById('qmPickList');
+  const slots = getQuickMenu();
+  let html = '';
+  Object.keys(QUICK_MENU_SECTIONS).forEach(key=>{
+    const sec = QUICK_MENU_SECTIONS[key];
+    const usedAt = slots.indexOf(key);
+    const usedElsewhere = usedAt !== -1 && usedAt !== idx;
+    html += '<div class="bn-sheet-item" style="'+(usedElsewhere?'opacity:.4':'')+'" onclick="pickQuickMenuSection(\''+key+'\')">'
+      + '<span class="icon">'+sec.icon+'</span> '+sec.label
+      + (usedElsewhere ? '<span style="margin-left:auto;font-size:10px;color:var(--text3)">уже добавлено</span>' : '')
+      + '</div>';
+  });
+  html += '<div class="bn-sheet-item" style="color:var(--red)" onclick="removeQuickMenuSlot(event,'+idx+');closeQuickMenuPicker()"><span class="icon">✕</span> Убрать кнопку (оставить пустой слот)</div>';
+  list.innerHTML = html;
+  document.getElementById('qmPickSheet').classList.add('show');
   document.getElementById('sidebarOverlay').classList.add('show');
 }
-function closeMoreSheet(){
-  document.getElementById('bnMoreSheet').classList.remove('show');
+function closeQuickMenuPicker(){
+  document.getElementById('qmPickSheet').classList.remove('show');
   if(!document.getElementById('sidebar').classList.contains('mobile-open')){
     document.getElementById('sidebarOverlay').classList.remove('show');
   }
 }
+function pickQuickMenuSection(key){
+  if(qmPendingSlotIndex===null) return;
+  const slots = getQuickMenu().slice();
+  // если этот раздел уже стоит в другом слоте — освобождаем тот слот (без дублей)
+  const existingIdx = slots.indexOf(key);
+  if(existingIdx !== -1) slots[existingIdx] = null;
+  slots[qmPendingSlotIndex] = key;
+  saveQuickMenu(slots);
+  closeQuickMenuPicker();
+  renderBottomNav();
+}
+
+function qmMoveSlot(e, idx, dir){
+  e.stopPropagation();
+  const slots = getQuickMenu().slice();
+  const targetIdx = idx + dir;
+  if(targetIdx < 0 || targetIdx >= slots.length) return;
+  const tmp = slots[idx];
+  slots[idx] = slots[targetIdx];
+  slots[targetIdx] = tmp;
+  saveQuickMenu(slots);
+  renderBottomNav();
+}
+
+function toggleMoreSheet(){ enterQuickMenuEditMode(); }
+function closeMoreSheet(){ closeQuickMenuPicker(); }
 function insertHamburgers(){
   document.querySelectorAll('.topbar').forEach(tb=>{
     if(tb.querySelector('.hamburger-btn')) return;
@@ -1790,9 +1990,22 @@ function insertHamburgers(){
     tb.insertBefore(btn, tb.firstChild);
   });
 }
+/* На телефоне сокращаем текст кнопок навигации расписания
+   (◀ Пред. → ◀, Сегодня → Сегодня, След. ▶ → ▶, + Урок → +),
+   чтобы весь топбар расписания помещался в одну строку без скролла. */
+function adaptScheduleTopbar(){
+  const isPhone = window.innerWidth <= 600;
+  const prevBtn = document.querySelector('#page-schedule .topbar button[onclick="shiftCalWeek(-1)"]');
+  const nextBtn = document.querySelector('#page-schedule .topbar button[onclick="shiftCalWeek(1)"]');
+  const lessonBtn = document.querySelector('#page-schedule .topbar button[onclick="openModal(\'lesson\')"]');
+  if(prevBtn) prevBtn.textContent = isPhone ? '◀' : '◀ Пред.';
+  if(nextBtn) nextBtn.textContent = isPhone ? '▶' : 'След. ▶';
+  if(lessonBtn) lessonBtn.textContent = isPhone ? '+' : '+ Урок';
+}
 function closeOverlay(){
   closeMobileSidebar();
-  closeMoreSheet();
+  closeQuickMenuPicker();
+  if(quickMenuEditMode) exitQuickMenuEditMode(true);
 }
 
 /* ============================================================
@@ -2828,10 +3041,13 @@ function initApp(){
   renderSidebar();
   insertHamburgers();
   showPage('dashboard');
+  adaptScheduleTopbar();
   isMobileDevice = window.innerWidth <= 768;
   window.addEventListener('resize', function(){
     isMobileDevice = window.innerWidth <= 768;
-    if(window.innerWidth > 880){ closeMobileSidebar(); closeMoreSheet(); }
+    if(window.innerWidth > 880){ closeMobileSidebar(); closeQuickMenuPicker(); if(quickMenuEditMode) exitQuickMenuEditMode(true); }
+    adaptScheduleTopbar();
+    if(calendarEverInited && !document.getElementById('page-schedule').classList.contains('hidden')) renderCalendar();
   });
 }
 if(typeof window!=='undefined'){
