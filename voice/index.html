@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>VoiceLoft CRM — Студия вокала</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -94,6 +94,164 @@
   .tag-pink{background:var(--pink-bg);color:var(--pink)}
   .tag-grey{background:var(--bg3);color:var(--text3)}
   .bday-tag{background:linear-gradient(135deg,rgba(244,114,182,.18),rgba(167,139,250,.18));color:var(--pink);border:1px solid rgba(244,114,182,.3)}
+  /* ===== КАЛЕНДАРЬ ===== */
+  .cal-head {
+    display: grid;
+    grid-template-columns: 56px repeat(7, 1fr);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .cal-head-time {
+    border-right: 1px solid var(--border);
+  }
+  .cal-day-hd {
+    padding: 8px 6px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .cal-day-hd-name {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .cal-day-hd-num {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 2px;
+    color: var(--text);
+  }
+  .cal-day-hd-num.today {
+    background: var(--accent);
+    color: #ffffff !important;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px auto 0;
+  }
+  .cal-body {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 56px repeat(7, 1fr);
+    -webkit-overflow-scrolling: touch;
+  }
+  .cal-time-col {
+    border-right: 1px solid var(--border);
+  }
+  .cal-time-slot {
+    position: relative;
+    height: 60px;
+  }
+  .cal-time-label {
+    position: absolute;
+    top: 0;
+    right: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text2);
+    font-weight: 700;
+    line-height: 1;
+    padding-top: 2px;
+  }
+  .cal-day-col {
+    border-right: 1px solid var(--border);
+    position: relative;
+    min-height: 1440px;
+  }
+  .cal-day-col:last-child {
+    border-right: none;
+  }
+  .cal-hour-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+  }
+  .cal-event {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    border-radius: 6px;
+    padding: 4px 6px 4px 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: .15s;
+    z-index: 2;
+  }
+  .cal-event:hover {
+    filter: brightness(1.15);
+    z-index: 10;
+  }
+  .cal-event-name {
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cal-event-svc {
+    font-size: 9px;
+    opacity: .8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cal-now-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--red);
+    z-index: 5;
+  }
+  .cal-now-dot {
+    position: absolute;
+    left: -4px;
+    top: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+  .cal-drag-ghost {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 20;
+    border: 2px dashed transparent;
+  }
+  .cal-drag-ghost-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  @media(max-width:768px) {
+    .cal-head {
+      grid-template-columns: 36px repeat(7, 1fr);
+    }
+    .cal-body {
+      grid-template-columns: 36px repeat(7, 1fr);
+    }
+    .cal-event-svc {
+      display: none;
+    }
+  }
+  /* ===== КОНЕЦ КАЛЕНДАРЯ ===== */
   .schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:24px}
   .day-col{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px;min-height:160px}
   .day-col.today{border-color:var(--accent)}
@@ -284,17 +442,24 @@
       </div>
     </div>
 
-    <!-- SCHEDULE -->
+    <!-- SCHEDULE (КАЛЕНДАРЬ) -->
     <div id="page-schedule" class="hidden">
       <div class="topbar">
-        <div class="topbar-title">Расписание <span class="topbar-subtitle" id="weekLabel">—</span></div>
-        <button class="btn btn-ghost" onclick="shiftWeek(-1)">◀ Пред.</button>
-        <button class="btn btn-ghost" onclick="shiftWeek(0)">Сегодня</button>
-        <button class="btn btn-ghost" onclick="shiftWeek(1)">След. ▶</button>
+        <div class="topbar-title">Расписание <span class="topbar-subtitle" id="calPeriodLabel">—</span></div>
+        <button class="btn btn-ghost" onclick="shiftCalWeek(-1)">◀ Пред.</button>
+        <button class="btn btn-ghost" onclick="resetCalendarView()">Сегодня</button>
+        <button class="btn btn-ghost" onclick="shiftCalWeek(1)">След. ▶</button>
+        <div class="zoom-controls-top" style="display:flex;gap:4px;margin-left:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(1)" title="Увеличить"><i class="fa-solid fa-plus"></i></button>
+          <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить"><i class="fa-solid fa-minus"></i></button>
+        </div>
         <button class="btn btn-primary" onclick="openModal('lesson')">+ Урок</button>
       </div>
-      <div class="content">
-        <div class="schedule-grid" id="scheduleGrid"></div>
+      <div class="content" style="padding:0;overflow:hidden;">
+        <div id="calView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;height:100%;">
+          <div class="cal-head" id="calHead"></div>
+          <div class="cal-body" id="calBody"></div>
+        </div>
       </div>
     </div>
 
@@ -416,9 +581,12 @@
 
 <div id="toastHost"></div>
 
+<!-- Подключаем Font Awesome для иконок календаря -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <script>
 /* ============================================================
-   VoiceLoft CRM — слой данных (localStorage, без Firebase)
+   VoiceLoft CRM — слой данных (localStorage)
    ============================================================ */
 const STORAGE_KEY = 'voiceloft_crm_data_v1';
 const MN = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -501,7 +669,7 @@ function toast(msg, color){
 }
 
 /* ============================================================
-   ДЕМО-ДАННЫЕ (создаются один раз при первом запуске)
+   ДЕМО-ДАННЫЕ
    ============================================================ */
 function seedDB(){
   const teacherId = uid('t');
@@ -641,17 +809,8 @@ function studentProgress(studentId){
   return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
 }
 
-/* Долги из прошлых месяцев, не закрытые — переносятся в текущий период ("Перенос") */
-function isCarryoverDebt(l){
-  const d = parseISO(l.date); if(!d) return false;
-  const now = new Date();
-  if(d.getFullYear() > now.getFullYear()) return false;
-  if(d.getFullYear() === now.getFullYear() && d.getMonth() >= now.getMonth()) return false;
-  return lessonDebt(l) > 0;
-}
-
 function monthIncome(year, month){
-  let paid=0, debt=0, pendingSubs=0;
+  let paid=0, debt=0;
   lessonsOfTeacher().forEach(l=>{
     const d=parseISO(l.date); if(!d) return;
     if(d.getFullYear()!==year || d.getMonth()!==month) return;
@@ -685,7 +844,336 @@ function yearIncomeSeries(year){
 }
 
 /* ============================================================
-   ОБЩИЕ КОМПОНЕНТЫ КАРТОЧЕК
+   КАЛЕНДАРЬ — ЯДРО (перенесено из SSL CRM)
+   ============================================================ */
+let calDate = new Date();
+let calWeekOffset = 0;
+let currentHourHeight = 60;
+let currentHourHeightMobile = 60;
+const MIN_HOUR_HEIGHT = 30;
+const MAX_HOUR_HEIGHT = 120;
+let pinchStartDistance = 0;
+let pinchStartHeight = 60;
+let isPinching = false;
+let animationFrameRequest = null;
+const SENSITIVITY = 2.5;
+let isMobileDevice = false;
+let calInitialized = false;
+let calScrollSaved = 0;
+
+const HOURS_START = 7;
+const HOURS_END = 24;
+
+function getEffectiveZoom() { return isMobileDevice ? currentHourHeightMobile : currentHourHeight; }
+function setEffectiveZoom(val) {
+  if(isMobileDevice) { currentHourHeightMobile = Math.min(Math.max(val, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT); }
+  else { currentHourHeight = Math.min(Math.max(val, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT); }
+}
+
+function saveZoomToProfile() {
+  // Сохраняем в localStorage для текущего учителя (сохраняем в объекте учителя)
+  const teacher = getCurrentTeacher();
+  if(teacher && teacher.id) {
+    teacher.hourHeight = getEffectiveZoom();
+    teacher.hourHeightMobile = isMobileDevice ? currentHourHeightMobile : null;
+    saveDB();
+  }
+}
+
+function getWeekDays() {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const diffToMon = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diffToMon + calWeekOffset * 7);
+  monday.setHours(0,0,0,0);
+  const days = [];
+  for(let i=0; i<7; i++){ const d=new Date(monday); d.setDate(monday.getDate()+i); days.push(d); }
+  return days;
+}
+
+function dateStr(d){ return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); }
+
+function updateCalPeriodLabel() {
+  const label = document.getElementById('calPeriodLabel');
+  if(!label) return;
+  const days = getWeekDays();
+  const first = days[0];
+  const last = days[6];
+  if(isMobileDevice) {
+    if(first.getMonth()===last.getMonth()) {
+      label.textContent = `${first.getDate()}–${last.getDate()} ${MNSh[first.getMonth()]}`;
+    } else {
+      label.textContent = `${first.getDate()} ${MNSh[first.getMonth()]} – ${last.getDate()} ${MNSh[last.getMonth()]}`;
+    }
+  } else {
+    if(first.getMonth()===last.getMonth()) {
+      label.textContent = `${first.getDate()}–${last.getDate()} ${MNSh[first.getMonth()]} ${first.getFullYear()}`;
+    } else if(first.getFullYear()===last.getFullYear()) {
+      label.textContent = `${first.getDate()} ${MNSh[first.getMonth()]} – ${last.getDate()} ${MNSh[last.getMonth()]}`;
+    } else {
+      label.textContent = `${first.getDate()} ${MNSh[first.getMonth()]} ${first.getFullYear()} – ${last.getDate()} ${MNSh[last.getMonth()]} ${last.getFullYear()}`;
+    }
+  }
+}
+
+function shiftCalWeek(delta) {
+  calWeekOffset += delta;
+  renderCalendar();
+}
+
+function resetCalendarView() {
+  const now = new Date();
+  calDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  calWeekOffset = 0;
+  renderCalendar();
+}
+
+function zoomCalendar(delta) {
+  const step = 8;
+  const currentZoom = getEffectiveZoom();
+  let newHeight = currentZoom + delta * step;
+  newHeight = Math.min(Math.max(newHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+  if(newHeight === currentZoom) return;
+  setEffectiveZoom(newHeight);
+  renderCalendar();
+  saveZoomToProfile();
+}
+
+function renderCalendar() {
+  const days = getWeekDays();
+  updateCalPeriodLabel();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const head = document.getElementById('calHead');
+  head.innerHTML = '<div class="cal-head-time"></div>';
+  const DAY_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const zoom = getEffectiveZoom();
+  days.forEach((d,i) => {
+    const isToday = d.getTime() === today.getTime();
+    const numEl = isToday ? `<div class="cal-day-hd-num today">${d.getDate()}</div>` : `<div class="cal-day-hd-num">${d.getDate()}</div>`;
+    head.innerHTML += `<div class="cal-day-hd"><div class="cal-day-hd-name">${DAY_NAMES[i]}</div>${numEl}</div>`;
+  });
+  const body = document.getElementById('calBody');
+  if(calInitialized && body.scrollTop > 0) calScrollSaved = body.scrollTop;
+  body.innerHTML = '';
+  const timeCol = document.createElement('div');
+  timeCol.className = 'cal-time-col';
+  for(let h=HOURS_START; h<HOURS_END; h++){
+    const slot = document.createElement('div');
+    slot.className = 'cal-time-slot';
+    slot.style.height = zoom + 'px';
+    slot.innerHTML = `<span class="cal-time-label">${String(h).padStart(2,'0')}:00</span>`;
+    timeCol.appendChild(slot);
+  }
+  body.appendChild(timeCol);
+
+  // Получаем уроки текущего учителя
+  const lessons = lessonsOfTeacher();
+  const byDate = {};
+  lessons.forEach(l => {
+    if(l.date && l.time) {
+      if(!byDate[l.date]) byDate[l.date] = [];
+      byDate[l.date].push(l);
+    }
+  });
+
+  days.forEach(d => {
+    const ds = dateStr(d);
+    const col = document.createElement('div');
+    col.className = 'cal-day-col';
+    col.style.minHeight = ((HOURS_END - HOURS_START) * zoom) + 'px';
+    for(let h=0; h<(HOURS_END-HOURS_START); h++){
+      const line = document.createElement('div');
+      line.className = 'cal-hour-line';
+      line.style.top = (h * zoom) + 'px';
+      col.appendChild(line);
+    }
+    const nowD = new Date();
+    if(d.getTime() === today.getTime()){
+      const nowMins = nowD.getHours() * 60 + nowD.getMinutes();
+      const topPx = ((nowMins/60) - HOURS_START) * zoom;
+      if(topPx >=0 && topPx <= (HOURS_END-HOURS_START)*zoom){
+        const nl = document.createElement('div');
+        nl.className = 'cal-now-line';
+        nl.style.top = topPx + 'px';
+        nl.innerHTML = '<div class="cal-now-dot"></div>';
+        col.appendChild(nl);
+      }
+    }
+    const events = (byDate[ds] || []).sort((a,b) => a.time.localeCompare(b.time));
+    const placed = [];
+    events.forEach(ev => {
+      const [hh, mm] = (ev.time || '00:00').split(':').map(Number);
+      const startMin = hh * 60 + mm;
+      const dur = ev.duration || 60;
+      const endMin = startMin + dur;
+      const top = ((startMin/60) - HOURS_START) * zoom;
+      const height = Math.max((dur/60)*zoom - 4, 20);
+      if(top < 0 && top+height < 0) return;
+      if(top > (HOURS_END-HOURS_START)*zoom) return;
+      let subcol=0;
+      while(placed[subcol] && placed[subcol] > startMin) subcol++;
+      placed[subcol] = endMin;
+      const totalCols = Math.max(placed.filter(x=>x!==undefined).length, 1);
+      const colW = 90 / totalCols;
+      const colLeft = 3 + subcol * (colW + 1);
+      // Цвет ученика
+      const student = studentById(ev.studentId);
+      const color = student ? student.color : GRADIENTS[0];
+      const evName = escapeHTML(student ? student.name : '—');
+      const evSvc = escapeHTML(ev.format || 'Урок');
+      const evEl = document.createElement('div');
+      evEl.className = 'cal-event';
+      evEl.style.top = Math.max(0, top) + 'px';
+      evEl.style.height = height + 'px';
+      evEl.style.left = colLeft + '%';
+      evEl.style.width = colW + '%';
+      evEl.style.background = 'rgba(167,139,250,0.18)';
+      if(student) {
+        // Извлекаем цвет из градиента (берём первый цвет)
+        const gradMatch = color.match(/#[0-9a-f]{6}/i);
+        const hex = gradMatch ? gradMatch[0] : '#a78bfa';
+        evEl.style.background = hex + '33';
+        evEl.style.borderLeft = '4px solid ' + hex;
+      } else {
+        evEl.style.background = 'rgba(167,139,250,0.18)';
+        evEl.style.borderLeft = '4px solid #a78bfa';
+      }
+      // Статус
+      const statusColor = ev.status === 'done' ? 'var(--green)' : ev.status === 'planned' ? 'var(--amber)' : 'var(--red)';
+      evEl.style.borderLeft = '4px solid ' + statusColor;
+      evEl.innerHTML = `<div class="cal-event-name" style="color:var(--text)">${evName}</div><div class="cal-event-svc" style="color:var(--text);opacity:.78">${evSvc}</div>`;
+      evEl.onclick = function(e) {
+        e.stopPropagation();
+        openModal('lesson', { lessonId: ev.id });
+      };
+      col.appendChild(evEl);
+    });
+
+    // Drag-to-create (упрощённо, только клик)
+    (function setupDragCreate(col, ds) {
+      // Обработка клика по пустому месту
+      col.addEventListener('click', function(e) {
+        if(e.target.closest('.cal-event')) return;
+        const rect = this.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const totalHeight = (HOURS_END - HOURS_START) * zoom;
+        let hour = Math.floor((y / totalHeight) * (HOURS_END - HOURS_START)) + HOURS_START;
+        hour = Math.min(Math.max(hour, HOURS_START), HOURS_END - 1);
+        const timeStr = String(hour).padStart(2,'0') + ':00';
+        // Открываем модалку создания урока с предзаполненной датой и временем
+        openModal('lesson', { date: ds, time: timeStr });
+      });
+    })(col, ds);
+
+    body.appendChild(col);
+  });
+
+  setTimeout(() => {
+    if(!calInitialized) {
+      const scrollTo = (HOURS_START === 7 ? 0 : HOURS_START) * zoom;
+      body.scrollTop = Math.max(0, scrollTo);
+      calInitialized = true;
+    } else {
+      body.scrollTop = calScrollSaved;
+    }
+  }, 50);
+}
+
+// --- Обработчики свайпа для переключения недель ---
+let swipeStartX = 0, swipeStartY = 0, swipeActive = false, swipeHandled = false;
+const SWIPE_MIN_DISTANCE = 60;
+const SWIPE_MAX_VERTICAL = 45;
+const SIDEBAR_EDGE_ZONE = 40;
+
+function handleTouchStart(e) {
+  if(e.touches.length === 2) {
+    e.preventDefault();
+    const touch1 = e.touches[0], touch2 = e.touches[1];
+    pinchStartDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+    pinchStartHeight = getEffectiveZoom();
+    isPinching = true;
+    swipeActive = false;
+    return;
+  }
+  if(e.touches.length === 1 && !isPinching) {
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+    if(swipeStartX < SIDEBAR_EDGE_ZONE) {
+      swipeActive = false;
+      swipeHandled = true;
+      return;
+    }
+    swipeActive = true;
+    swipeHandled = false;
+  }
+}
+
+function handleTouchMove(e) {
+  if(isPinching && e.touches.length === 2) {
+    e.preventDefault();
+    const touch1 = e.touches[0], touch2 = e.touches[1];
+    const currentDist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+    if(pinchStartDistance === 0) return;
+    const ratio = currentDist / pinchStartDistance;
+    let newHeight = pinchStartHeight * (1 + (ratio - 1) * SENSITIVITY);
+    newHeight = Math.min(Math.max(newHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+    if(Math.abs(newHeight - getEffectiveZoom()) > 0.5) {
+      setEffectiveZoom(Math.round(newHeight));
+      if(animationFrameRequest === null) {
+        animationFrameRequest = requestAnimationFrame(() => {
+          animationFrameRequest = null;
+          renderCalendar();
+        });
+      }
+    }
+    return;
+  }
+  if(swipeActive && !swipeHandled && e.touches.length === 1) {
+    const dx = e.touches[0].clientX - swipeStartX;
+    const dy = e.touches[0].clientY - swipeStartY;
+    if(Math.abs(dx) > SWIPE_MIN_DISTANCE && Math.abs(dy) < SWIPE_MAX_VERTICAL) {
+      swipeHandled = true;
+      if(dx > 0) shiftCalWeek(-1);
+      else shiftCalWeek(1);
+    }
+  }
+}
+
+function handleTouchEnd(e) {
+  if(isPinching) {
+    isPinching = false;
+    if(animationFrameRequest !== null) {
+      cancelAnimationFrame(animationFrameRequest);
+      animationFrameRequest = null;
+    }
+    saveZoomToProfile();
+    renderCalendar();
+  }
+  swipeActive = false;
+  swipeHandled = false;
+}
+
+// Инициализация календаря при первом показе
+function initCalendar() {
+  const calView = document.getElementById('calView');
+  if(calView) {
+    calView.addEventListener('touchstart', handleTouchStart, { passive: false });
+    calView.addEventListener('touchmove', handleTouchMove, { passive: false });
+    calView.addEventListener('touchend', handleTouchEnd, { passive: false });
+  }
+  // Восстанавливаем zoom из профиля учителя
+  const teacher = getCurrentTeacher();
+  if(teacher) {
+    if(teacher.hourHeight) currentHourHeight = Math.min(Math.max(teacher.hourHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+    if(teacher.hourHeightMobile) currentHourHeightMobile = Math.min(Math.max(teacher.hourHeightMobile, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+  }
+  isMobileDevice = window.innerWidth <= 768;
+  renderCalendar();
+}
+
+/* ============================================================
+   ОБЩИЕ КОМПОНЕНТЫ КАРТОЧЕК (без изменений)
    ============================================================ */
 function paymentTagHTML(l){
   if(l.viaSubscription) return '<span class="tag tag-purple">🎫 Абонемент</span>';
@@ -841,29 +1329,16 @@ function renderIncomeChart(){
 }
 
 /* ============================================================
-   РАСПИСАНИЕ
+   РАСПИСАНИЕ — переключатель на календарь
    ============================================================ */
-function shiftWeek(dir){
-  if(dir===0){ scheduleWeekStart = startOfWeek(new Date()); }
-  else { scheduleWeekStart = addDays(scheduleWeekStart, dir*7); }
-  renderSchedule();
-}
-function renderSchedule(){
-  const grid=document.getElementById('scheduleGrid'); grid.innerHTML='';
-  const start=scheduleWeekStart;
-  const end=addDays(start,6);
-  document.getElementById('weekLabel').textContent = 'Неделя '+pad2(start.getDate())+'–'+pad2(end.getDate())+' '+MN[end.getMonth()].toLowerCase();
-  const todayStr = todayISO();
-  for(let i=0;i<7;i++){
-    const d=addDays(start,i);
-    const iso=toISODate(d);
-    const isToday = iso===todayStr;
-    const col=document.createElement('div');
-    col.className='day-col'+(isToday?' today':'');
-    const dayLessons = lessonsOfTeacher().filter(l=>l.date===iso).sort((a,b)=>a.time<b.time?-1:1);
-    col.innerHTML = '<div class="day-name'+(isToday?' today-name':'')+'">'+DOW[i]+' '+pad2(d.getDate())+(isToday?' <span class="pulse"></span>':'')+'</div>'
-      + (dayLessons.length? dayLessons.map(l=>lessonCardHTML(l)).join('') : '<div style="font-size:11px;color:var(--text3);padding:8px 0">Нет уроков</div>');
-    grid.appendChild(col);
+// При показе страницы расписания инициализируем календарь
+let calendarInited = false;
+function showSchedule() {
+  if(!calendarInited) {
+    initCalendar();
+    calendarInited = true;
+  } else {
+    renderCalendar();
   }
 }
 
@@ -945,7 +1420,7 @@ function showPage(name){
   const navName=navMap[name];
   document.querySelectorAll('.nav-item').forEach(i=>{ if(i.getAttribute('data-page')===navName) i.classList.add('active'); });
   if(name==='dashboard') renderDashboard();
-  if(name==='schedule') renderSchedule();
+  if(name==='schedule') showSchedule();
   if(name==='students') renderStudents();
   if(name==='finances') renderFinances();
   if(name==='homework') renderHomework();
@@ -953,7 +1428,7 @@ function showPage(name){
 }
 
 /* ============================================================
-   КАРТОЧКА УЧЕНИКА — ВКЛАДКИ
+   КАРТОЧКА УЧЕНИКА — ВКЛАДКИ (без изменений)
    ============================================================ */
 function renderDetailProfile(){
   const s = studentById(currentStudentId); if(!s) return;
@@ -1259,6 +1734,14 @@ function renderFinances(){
   });
 }
 
+function isCarryoverDebt(l){
+  const d = parseISO(l.date); if(!d) return false;
+  const now = new Date();
+  if(d.getFullYear() > now.getFullYear()) return false;
+  if(d.getFullYear() === now.getFullYear() && d.getMonth() >= now.getMonth()) return false;
+  return lessonDebt(l) > 0;
+}
+
 /* ============================================================
    ЗАДАНИЯ (страница)
    ============================================================ */
@@ -1297,13 +1780,11 @@ function renderProgress(){
     '<div class="skill-row"><span class="skill-name">'+skillLabels[k]+'</span><div class="skill-bar"><div class="skill-fill" style="width:'+avg[k]+'%;background:'+skillColors[k]+'"></div></div><span style="font-size:11px;color:var(--text2);margin-left:8px;width:32px">'+avg[k]+'%</span></div>'
   ).join('') || '<div class="empty-state">Нет данных</div>';
 
-  // Топ прогресса — по среднему уровню навыков
   const ranked = myStudents.map(s=>({s, p:studentProgress(s.id)})).sort((a,b)=>b.p-a.p).slice(0,4);
   document.getElementById('topProgressBox').innerHTML = ranked.length ? ranked.map(r=>
     '<div class="finance-row" style="background:var(--bg3);cursor:pointer" onclick="openStudent(studentById(\''+r.s.id+'\'))"><div class="student-avatar" style="background:'+r.s.color+';width:32px;height:32px;font-size:12px">'+r.s.initials+'</div><div class="finance-name"><div>'+escapeHTML(r.s.name)+'</div><div class="finance-sub">'+r.p+'% средний уровень</div></div><span class="tag tag-green">'+r.p+'%</span></div>'
   ).join('') : '<div class="empty-state">Нет учеников</div>';
 
-  // Требуют внимания — долги, ДЗ не сдано 2+, частые "не пришёл"
   const attention = [];
   myStudents.forEach(s=>{
     const todo = homeworkOfStudent(s.id).filter(h=>h.status==='todo').length;
@@ -1353,7 +1834,7 @@ function openMonthInfo(idx, paid, debt){
 }
 
 /* ============================================================
-   МОДАЛЬНЫЕ ОКНА
+   МОДАЛЬНЫЕ ОКНА (с поддержкой редактирования урока)
    ============================================================ */
 let modalCtx = {};
 
@@ -1395,23 +1876,43 @@ function saveStudentForm(){
   if(!document.getElementById('page-dashboard').classList.contains('hidden')) renderDashboard();
 }
 
+/* ----- Модалка урока (с поддержкой редактирования) ----- */
 function buildLessonModal(ctx){
   ctx = ctx||{};
-  const sub = ctx.studentId ? activeSubscriptionOf(ctx.studentId) : null;
-  return '<div class="modal-title">Запланировать урок <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-l-student" onchange="onLessonStudentChange()">'+studentOptionsHTML(ctx.studentId)+'</select></div>'
-    +'<div class="input-row"><div class="input-group"><label class="input-label">Дата</label><input class="input" id="f-l-date" type="date" value="'+todayISO()+'"></div>'
-    +'<div class="input-group"><label class="input-label">Время</label><input class="input" id="f-l-time" type="time" value="15:00"></div></div>'
-    +'<div class="input-row"><div class="input-group"><label class="input-label">Длительность</label><select class="input" id="f-l-dur"><option value="30">30 мин</option><option value="45">45 мин</option><option value="60" selected>60 мин</option></select></div>'
-    +'<div class="input-group"><label class="input-label">Формат</label><select class="input" id="f-l-format"><option value="online">Онлайн</option><option value="offline">Офлайн</option></select></div></div>'
-    +'<div class="input-group"><label class="input-label">Что планируем</label><textarea class="input" id="f-l-plan" rows="2" placeholder="Упражнения на микст..."></textarea></div>'
+  const lessonId = ctx.lessonId || null;
+  let lesson = null;
+  if(lessonId) {
+    lesson = DB.lessons.find(l=>l.id===lessonId);
+  }
+  const studentId = lesson ? lesson.studentId : (ctx.studentId || (studentsOfTeacher()[0]||{}).id);
+  const sub = lesson ? null : activeSubscriptionOf(studentId);
+  const defaultDate = lesson ? lesson.date : (ctx.date || todayISO());
+  const defaultTime = lesson ? lesson.time : (ctx.time || '15:00');
+  const defaultDur = lesson ? lesson.duration : 60;
+  const defaultFormat = lesson ? lesson.format : 'offline';
+  const defaultPrice = lesson ? lesson.price : 1500;
+  const defaultPaid = lesson ? lesson.paid : 0;
+  const defaultStatus = lesson ? lesson.status : 'planned';
+  const defaultPlan = lesson ? lesson.plan : '';
+  const isEdit = !!lesson;
+
+  return '<div class="modal-title">'+(isEdit?'Редактировать урок':'Запланировать урок')+' <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<input type="hidden" id="f-l-lesson-id" value="'+(lesson?lesson.id:'')+'">'
+    +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-l-student" onchange="onLessonStudentChange()">'+studentOptionsHTML(studentId)+'</select></div>'
+    +'<div class="input-row"><div class="input-group"><label class="input-label">Дата</label><input class="input" id="f-l-date" type="date" value="'+defaultDate+'"></div>'
+    +'<div class="input-group"><label class="input-label">Время</label><input class="input" id="f-l-time" type="time" value="'+defaultTime+'"></div></div>'
+    +'<div class="input-row"><div class="input-group"><label class="input-label">Длительность</label><select class="input" id="f-l-dur"><option value="30" '+(defaultDur===30?'selected':'')+'>30 мин</option><option value="45" '+(defaultDur===45?'selected':'')+'>45 мин</option><option value="60" '+(defaultDur===60?'selected':'')+'>60 мин</option></select></div>'
+    +'<div class="input-group"><label class="input-label">Формат</label><select class="input" id="f-l-format"><option value="online" '+(defaultFormat==='online'?'selected':'')+'>Онлайн</option><option value="offline" '+(defaultFormat==='offline'?'selected':'')+'>Офлайн</option></select></div></div>'
+    +'<div class="input-group"><label class="input-label">Что планируем</label><textarea class="input" id="f-l-plan" rows="2" placeholder="Упражнения на микст...">'+escapeHTML(defaultPlan)+'</textarea></div>'
     +'<div id="f-l-sub-note" style="font-size:11px;color:var(--text3);margin-bottom:10px">'+(sub?'🎫 У ученика активен абонемент — урок будет списан с него автоматически.':'')+'</div>'
     +'<div class="input-group" id="f-l-price-wrap" style="'+(sub?'display:none':'')+'">'
-    +'<label class="input-label">Стоимость урока (₽)</label><input class="input" id="f-l-price" type="number" placeholder="1500" value="1500">'
-    +'<div class="input-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Оплата</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none">Не оплачено</option><option value="full">Оплачено полностью</option><option value="partial">Частично</option></select></div>'
-    +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;display:none"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500"></div></div>'
+    +'<label class="input-label">Стоимость урока (₽)</label><input class="input" id="f-l-price" type="number" placeholder="1500" value="'+defaultPrice+'">'
+    +'<div class="input-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Статус оплаты</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none" '+(defaultPaid===0?'selected':'')+'>Не оплачено</option><option value="full" '+(defaultPaid>=defaultPrice?'selected':'')+'>Оплачено полностью</option><option value="partial" '+(defaultPaid>0&&defaultPaid<defaultPrice?'selected':'')+'>Частично</option></select></div>'
+    +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;'+(defaultPaid>0&&defaultPaid<defaultPrice?'':'display:none')+'"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500" value="'+(defaultPaid>0&&defaultPaid<defaultPrice?defaultPaid:'')+'"></div></div>'
     +'</div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveLessonForm()">Сохранить урок</button>';
+    +'<div class="input-group"><label class="input-label">Статус урока</label><select class="input" id="f-l-status"><option value="planned" '+(defaultStatus==='planned'?'selected':'')+'>Запланирован</option><option value="done" '+(defaultStatus==='done'?'selected':'')+'>Проведён</option><option value="noshow" '+(defaultStatus==='noshow'?'selected':'')+'>Не пришёл</option><option value="cancelled" '+(defaultStatus==='cancelled'?'selected':'')+'>Отменён</option></select></div>'
+    + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="if(confirm(\'Удалить урок?\')){deleteLesson(\''+lesson.id+'\');closeModal();}">🗑 Удалить урок</button>' : '')
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>';
 }
 function onLessonStudentChange(){
   const sid = document.getElementById('f-l-student').value;
@@ -1424,6 +1925,7 @@ function onLessonPayTypeChange(){
   document.getElementById('f-l-partial-wrap').style.display = v==='partial' ? '' : 'none';
 }
 function saveLessonForm(){
+  const lessonId = document.getElementById('f-l-lesson-id').value || null;
   const studentId = document.getElementById('f-l-student').value;
   if(!studentId){ toast('Выберите ученика','red'); return; }
   const date = document.getElementById('f-l-date').value || todayISO();
@@ -1431,9 +1933,40 @@ function saveLessonForm(){
   const duration = Number(document.getElementById('f-l-dur').value)||60;
   const format = document.getElementById('f-l-format').value;
   const plan = document.getElementById('f-l-plan').value.trim();
+  const status = document.getElementById('f-l-status').value;
   const sub = activeSubscriptionOf(studentId);
-  const id = uid('l');
-  let lesson = { id, studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status:'planned', plan, workedOn:'', createdAt: todayISO() };
+
+  if(lessonId) {
+    // Редактирование существующего урока
+    const lesson = DB.lessons.find(l=>l.id===lessonId);
+    if(!lesson){ toast('Урок не найден','red'); return; }
+    // Обновляем поля
+    lesson.studentId = studentId;
+    lesson.date = date;
+    lesson.time = time;
+    lesson.duration = duration;
+    lesson.format = format;
+    lesson.plan = plan;
+    lesson.status = status;
+    // Цена/оплата
+    if(!lesson.viaSubscription){
+      const price = Number(document.getElementById('f-l-price').value)||0;
+      const payType = document.getElementById('f-l-paytype').value;
+      let paid = 0;
+      if(payType==='full') paid = price;
+      else if(payType==='partial') paid = Math.min(price, Number(document.getElementById('f-l-partial').value)||0);
+      lesson.price = price;
+      lesson.paid = paid;
+    }
+    saveDB();
+    closeModal();
+    toast('Урок обновлён ✓');
+    refreshAllVisible();
+    return;
+  }
+
+  // Создание нового урока
+  let lesson = { id:uid('l'), studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status, plan, workedOn:'', createdAt: todayISO() };
   if(sub){
     lesson.viaSubscription = true; lesson.subscriptionId = sub.id; lesson.price = sub.pricePerLesson; lesson.paid = sub.pricePerLesson;
     sub.usedLessons += 1;
@@ -1446,7 +1979,7 @@ function saveLessonForm(){
     if(payType==='full') paid = price;
     else if(payType==='partial') paid = Math.min(price, Number(document.getElementById('f-l-partial').value)||0);
     lesson.price = price; lesson.paid = paid; lesson.viaSubscription = false;
-    if(paid>0) DB.payments.push({ id:uid('p'), studentId, lessonId:id, date: todayISO(), amount:paid, type:'lesson', note:'Оплата урока '+formatRu(date) });
+    if(paid>0) DB.payments.push({ id:uid('p'), studentId, lessonId:lesson.id, date: todayISO(), amount:paid, type:'lesson', note:'Оплата урока '+formatRu(date) });
   }
   DB.lessons.push(lesson);
   saveDB();
@@ -1470,7 +2003,6 @@ function buildPaymentModal(ctx){
     +'<div class="input-group"><label class="input-label">Комментарий</label><input class="input" id="f-pay-note" placeholder="Необязательно"></div></div>'
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="savePaymentForm()">Зафиксировать платёж</button>';
 }
-// вызывается из openModal() сразу после вставки HTML в DOM (т.к. инлайн <script> в innerHTML не исполняется)
 function onPayStudentChangeInit(studentId, preselectLessonId){
   renderPayLessonSelect(studentId, preselectLessonId);
 }
@@ -1719,6 +2251,11 @@ function switchTeacher(id){
   toast('Активен профиль: '+t.name);
   renderSidebar();
   showPage('dashboard');
+  // Переинициализируем календарь для нового учителя
+  if(!document.getElementById('page-schedule').classList.contains('hidden')){
+    calendarInited = false;
+    showSchedule();
+  }
 }
 function addTeacherForm(){
   const name = document.getElementById('f-t-name').value.trim();
@@ -1797,7 +2334,7 @@ function closeModal(e){
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 
 /* ============================================================
-   ПОСЕЩАЕМОСТЬ
+   ПОСЕЩАЕМОСТЬ / УДАЛЕНИЕ УРОКОВ
    ============================================================ */
 function markAttendance(lessonId, status){
   const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
@@ -1826,7 +2363,7 @@ function deleteLesson(lessonId){
 }
 
 /* ============================================================
-   WHATSAPP — НАПОМИНАНИЕ ОДНОЙ КНОПКОЙ
+   WHATSAPP — НАПОМИНАНИЕ
    ============================================================ */
 function buildWaLink(phone, text){
   const digits = digitsOnly(phone);
@@ -1858,7 +2395,7 @@ function sendWhatsAppForStudent(studentId){
 }
 
 /* ============================================================
-   ОБНОВЛЕНИЕ ВИДИМОЙ СТРАНИЦЫ ПОСЛЕ ЛЮБОГО ИЗМЕНЕНИЯ ДАННЫХ
+   ОБНОВЛЕНИЕ ВИДИМОЙ СТРАНИЦЫ ПОСЛЕ ИЗМЕНЕНИЙ
    ============================================================ */
 function refreshAllVisible(){
   renderSidebar();
@@ -1867,7 +2404,7 @@ function refreshAllVisible(){
     const el = document.getElementById('page-'+p);
     if(el && !el.classList.contains('hidden')){
       if(p==='dashboard') renderDashboard();
-      else if(p==='schedule') renderSchedule();
+      else if(p==='schedule') { if(calendarInited) renderCalendar(); else showSchedule(); }
       else if(p==='students') renderStudents();
       else if(p==='student-detail') renderStudentDetailAll();
       else if(p==='finances') renderFinances();
@@ -1885,6 +2422,8 @@ function initApp(){
   loadDB();
   renderSidebar();
   showPage('dashboard');
+  // Инициализация календаря произойдёт при первом переходе на расписание
+  isMobileDevice = window.innerWidth <= 768;
 }
 if(typeof window!=='undefined'){
   if(document.readyState==='loading'){
