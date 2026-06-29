@@ -553,9 +553,9 @@
     .tab{padding:6px 12px;font-size:11.5px}
     .schedule-grid{overflow-x:auto;grid-template-columns:repeat(7,minmax(140px,1fr))}
     #page-schedule .topbar{
-      flex-wrap:nowrap;padding:6px 8px;min-height:46px;gap:4px;overflow:visible;
+      flex-wrap:nowrap;padding:6px 8px;min-height:46px;gap:6px;overflow:visible;
     }
-    #page-schedule .topbar .btn{padding:6px 8px;font-size:10.5px;gap:3px}
+    #page-schedule .topbar .btn{padding:6px 8px;font-size:11px;gap:3px}
     #page-schedule .zoom-controls-top{display:flex!important;gap:3px}
     .schedule-menu-btn{
       display:none;align-items:center;gap:5px;
@@ -668,8 +668,9 @@
     <nav class="nav">
       <div class="nav-section">
         <div class="nav-label">Главное</div>
-        <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">🏠</span> Дашборд</div>
-        <div class="nav-item" data-page="schedule" onclick="showPage('schedule')"><span class="icon">📅</span> Расписание</div>
+        <!-- Расписание теперь первое -->
+        <div class="nav-item active" data-page="schedule" onclick="showPage('schedule')"><span class="icon">📅</span> Расписание</div>
+        <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">🏠</span> Дашборд</div>
         <div class="nav-item" data-page="students" onclick="showPage('students')"><span class="icon">🎓</span> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
       </div>
       <div class="nav-section">
@@ -700,7 +701,7 @@
 
   <main class="main">
     <!-- DASHBOARD -->
-    <div id="page-dashboard">
+    <div id="page-dashboard" class="hidden">
       <div class="topbar">
         <div><span class="topbar-title" id="greetTitle">Добрый день 👋</span><span class="topbar-subtitle" id="todayLabel"></span></div>
         <button class="btn btn-ghost" onclick="openModal('lesson')">+ Урок</button>
@@ -735,29 +736,31 @@
       </div>
     </div>
 
-    <!-- SCHEDULE (КАЛЕНДАРЬ) – ИСПРАВЛЕННАЯ ВЕРХНЯЯ ПАНЕЛЬ -->
-    <div id="page-schedule" class="hidden">
-      <div class="topbar" id="scheduleTopbar">
+    <!-- SCHEDULE (КАЛЕНДАРЬ) – переработанная верхняя панель -->
+    <div id="page-schedule">
+      <div class="topbar" id="scheduleTopbar" style="padding:4px 16px; gap:8px; flex-wrap:nowrap;">
         <!-- Левая часть: гамбургер (только иконка) + зум -->
-        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-          <button class="btn btn-ghost schedule-menu-btn" id="scheduleMenuBtn" onclick="toggleMobileSidebar()" title="Открыть меню" style="display:none">
-            <i class="fa-solid fa-bars"></i>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <button class="btn btn-ghost schedule-menu-btn" id="scheduleMenuBtn" onclick="toggleMobileSidebar()" title="Открыть меню" style="display:none; padding:6px 10px;">
+            <i class="fa-solid fa-bars" style="font-size:18px;"></i>
           </button>
           <div class="zoom-controls-top" style="display:flex;gap:4px;">
-            <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(1)" title="Увеличить"><i class="fa-solid fa-plus"></i></button>
-            <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить"><i class="fa-solid fa-minus"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(1)" title="Увеличить" style="padding:6px 10px; font-size:14px;"><i class="fa-solid fa-plus"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить" style="padding:6px 10px; font-size:14px;"><i class="fa-solid fa-minus"></i></button>
           </div>
         </div>
 
         <!-- Центр: подпись периода -->
-        <span class="topbar-title" style="flex:1;text-align:center;font-size:13px" id="calPeriodLabel">—</span>
+        <span class="topbar-title" style="flex:1; text-align:center; font-size:15px; font-weight:600; letter-spacing:0.3px;" id="calPeriodLabel">—</span>
 
         <!-- Правая часть: навигация, сброс, + Урок -->
-        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-          <button class="btn btn-ghost" onclick="shiftCalWeek(-1)" title="Предыдущая неделя"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="btn btn-ghost" onclick="resetCalendarView()" title="Сбросить к сегодня"><i class="fa-solid fa-rotate-left"></i> <span class="sched-reset-label">Сбросить</span></button>
-          <button class="btn btn-ghost" onclick="shiftCalWeek(1)" title="Следующая неделя"><i class="fa-solid fa-chevron-right"></i></button>
-          <button class="btn btn-primary" onclick="openModal('lesson')">+ Урок</button>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <button class="btn btn-ghost" onclick="shiftCalWeek(-1)" title="Предыдущая неделя" style="padding:6px 10px;"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="btn btn-ghost" onclick="resetCalendarView()" title="Сбросить к сегодня" style="padding:6px 10px; gap:4px;">
+            <i class="fa-solid fa-rotate-left"></i> <span class="sched-reset-label">Сбросить</span>
+          </button>
+          <button class="btn btn-ghost" onclick="shiftCalWeek(1)" title="Следующая неделя" style="padding:6px 10px;"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="btn btn-primary" onclick="openModal('lesson')" style="padding:6px 14px; font-size:13px;">+ Урок</button>
         </div>
       </div>
       <div class="content" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
@@ -1836,7 +1839,7 @@ const QUICK_MENU_SECTIONS = {
   progress:   {icon:'📈', label:'Прогресс'},
   settings:   {icon:'⚙️', label:'Настройки'},
 };
-const QUICK_MENU_DEFAULT = ['dashboard','schedule','students','finances','settings'];
+const QUICK_MENU_DEFAULT = ['schedule','dashboard','students','finances','settings'];
 let quickMenuEditMode = false;
 let qmLongPressTimer = null;
 let qmPendingSlotIndex = null;
@@ -3021,7 +3024,8 @@ function initApp(){
     });
     tb.insertBefore(btn, tb.firstChild);
   });
-  showPage('dashboard');
+  // По умолчанию показываем расписание (первое в меню)
+  showPage('schedule');
   isMobileDevice = window.innerWidth <= 768;
   window.addEventListener('resize', function(){
     isMobileDevice = window.innerWidth <= 768;
