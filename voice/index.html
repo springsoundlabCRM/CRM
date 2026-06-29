@@ -2,8 +2,19 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>VoiceLoft CRM — Студия вокала</title>
+
+<!-- PWA / Android + iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VoiceLoft CRM">
+<meta name="theme-color" content="#0f0f14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0f0f6" media="(prefers-color-scheme: light)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="VoiceLoft CRM">
+<meta name="apple-touch-fullscreen" content="yes">
+<link rel="manifest" id="manifestLink">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
@@ -492,9 +503,11 @@
   /* ================= ПЛАНШЕТ / МАЛЫЙ ЭКРАН (≤880px) ================= */
   @media (max-width:880px){
     .sidebar{
-      position:fixed;top:0;left:0;height:100%;z-index:40;
+      position:fixed;top:0;left:0;height:100%;height:100dvh;z-index:40;
       transform:translateX(-100%);transition:transform .25s ease;
       box-shadow:8px 0 30px rgba(0,0,0,.35);
+      padding-top:env(safe-area-inset-top, 0px);
+      box-sizing:border-box;
     }
     .sidebar.mobile-open{transform:translateX(0)}
     .hamburger-btn{display:flex}
@@ -636,6 +649,39 @@
     }
     .nav-item{padding:10px 10px}
     .swatch{width:26px;height:26px}
+  }
+
+  /* ===== ДОПОЛНИТЕЛЬНЫЕ ПРАВКИ ДЛЯ PWA ===== */
+  @media all and (display-mode: standalone) {
+    body {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      padding: 0;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: 0;
+    }
+    .topbar {
+      padding-top: 0;
+    }
+    .sidebar {
+      padding-top: env(safe-area-inset-top, 0px);
+      box-sizing: border-box;
+    }
+    .main {
+      height: 100dvh;
+      height: -webkit-fill-available;
+      padding-bottom: 0;
+    }
+    .content {
+      height: 100%;
+    }
+    /* Bottom nav учитывает safe-area снизу в PWA */
+    .bottom-nav {
+      padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    }
   }
 </style>
 </head>
@@ -3049,7 +3095,106 @@ function initApp(){
     adaptScheduleTopbar();
     if(calendarEverInited && !document.getElementById('page-schedule').classList.contains('hidden')) renderCalendar();
   });
+
+  // ===== СВАЙП ДЛЯ БОКОВОГО МЕНЮ + КЛИК ВНЕ МЕНЮ =====
+  // Открытие: свайп вправо от левого края экрана (зона 40px)
+  // Закрытие: свайп влево по открытому меню ИЛИ клик вне меню
+  let _sbTouchStartX = 0, _sbTouchStartY = 0;
+  const _SB_EDGE_ZONE = 40;
+  document.addEventListener('touchstart', function(e) {
+    if (e.changedTouches.length > 0) {
+      _sbTouchStartX = e.changedTouches[0].clientX;
+      _sbTouchStartY = e.changedTouches[0].clientY;
+    }
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    if (e.changedTouches.length > 0) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const diffX = _sbTouchStartX - touchEndX;
+      const diffY = Math.abs(_sbTouchStartY - touchEndY);
+      const sidebar = document.getElementById('sidebar');
+      // Закрыть меню: свайп влево > 50px, горизонтальный
+      if (sidebar && sidebar.classList.contains('mobile-open')) {
+        if (diffX > 50 && diffX > diffY) closeMobileSidebar();
+      }
+      // Открыть меню: свайп вправо от левого края
+      if (sidebar && !sidebar.classList.contains('mobile-open')) {
+        const swipeRight = touchEndX - _sbTouchStartX;
+        if (_sbTouchStartX < _SB_EDGE_ZONE && swipeRight > 50 && swipeRight > diffY) {
+          openMobileSidebar();
+        }
+      }
+    }
+  }, { passive: true });
+  // Клик вне меню — закрыть
+  document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const hamburger = document.querySelector('.hamburger-btn');
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+      if (!sidebar.contains(e.target) && (!hamburger || !hamburger.contains(e.target))) {
+        closeMobileSidebar();
+      }
+    }
+  });
 }
+
+// ===== PWA: ДИНАМИЧЕСКИЙ МАНИФЕСТ =====
+(function injectManifest() {
+  try {
+    const startUrl = window.location.href.split('?')[0];
+    const fullStartUrl = startUrl + (startUrl.includes('?') ? '&' : '?') + 'from=pwa';
+    const manifest = {
+      name: "VoiceLoft CRM",
+      short_name: "VoiceLoft",
+      description: "Студия вокала CRM",
+      start_url: fullStartUrl,
+      scope: window.location.pathname || "/",
+      display: "standalone",
+      orientation: "portrait",
+      background_color: "#0f0f14",
+      theme_color: "#0f0f14",
+      icons: [{
+        src: "https://raw.githubusercontent.com/springsoundlab/springsoundlab/main/logo%20dly%20prilidcheniz.jpg",
+        sizes: "192x192",
+        type: "image/jpeg",
+        purpose: "any maskable"
+      }, {
+        src: "https://raw.githubusercontent.com/springsoundlab/springsoundlab/main/logo%20dly%20prilidcheniz.jpg",
+        sizes: "512x512",
+        type: "image/jpeg",
+        purpose: "any maskable"
+      }]
+    };
+    const manifestStr = JSON.stringify(manifest);
+    const base64 = btoa(unescape(encodeURIComponent(manifestStr)));
+    const dataUri = "data:application/json;charset=utf-8;base64," + base64;
+    const link = document.getElementById('manifestLink');
+    if (link) {
+      link.href = dataUri;
+    } else {
+      const newLink = document.createElement('link');
+      newLink.id = 'manifestLink';
+      newLink.rel = 'manifest';
+      newLink.href = dataUri;
+      document.head.appendChild(newLink);
+    }
+    // Адаптация theme-color под тему
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      const dark = '#0f0f14', light = '#f0f0f6';
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      metaTheme.content = prefersDark ? dark : light;
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        metaTheme.content = e.matches ? dark : light;
+      });
+    }
+    console.log('✅ PWA manifest injected');
+  } catch(e) {
+    console.warn('⚠️ PWA manifest injection failed:', e);
+  }
+})();
+
 if(typeof window!=='undefined'){
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded', initApp);
