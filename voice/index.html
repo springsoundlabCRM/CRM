@@ -66,7 +66,6 @@
   .sb-role{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
   .sb-logout-icon{font-size:14px;color:var(--text3);flex-shrink:0;transition:color .15s}
   .sb-user-block:hover .sb-logout-icon{color:var(--red)}
-  /* ===== НАСТРОЙКИ ===== */
   .settings-section{margin-bottom:24px}
   .settings-section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
   .settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px}
@@ -85,12 +84,9 @@
   .logout-btn{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:var(--red-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);color:var(--red);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font)}
   .logout-btn:hover{background:var(--red);color:#fff}
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-  /* Все страницы кроме расписания — flex-колонка с прокруткой */
   [id^="page-"]{display:flex;flex-direction:column;height:100%;overflow:hidden}
   [id^="page-"].hidden{display:none!important}
-  /* Расписание — жёсткий overflow:hidden (календарь сам скроллит) */
   #page-schedule{overflow:hidden}
-  /* Контент — скроллится */
   .content{flex:1;overflow-y:auto;padding:24px;-webkit-overflow-scrolling:touch}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
   .topbar-title{font-size:15px;font-weight:600;flex:1}
@@ -140,7 +136,6 @@
   .tag-pink{background:var(--pink-bg);color:var(--pink)}
   .tag-grey{background:var(--bg3);color:var(--text3)}
   .bday-tag{background:linear-gradient(135deg,rgba(244,114,182,.18),rgba(167,139,250,.18));color:var(--pink);border:1px solid rgba(244,114,182,.3)}
-  /* ===== КАЛЕНДАРЬ ===== */
   .cal-head {
     display: grid;
     grid-template-columns: 56px repeat(7, 1fr);
@@ -297,7 +292,6 @@
       display: none;
     }
   }
-  /* ===== КОНЕЦ КАЛЕНДАРЯ ===== */
   .schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:24px}
   .day-col{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px;min-height:160px}
   .day-col.today{border-color:var(--accent)}
@@ -409,13 +403,7 @@
     .detail-panel{grid-template-columns:1fr}
   }
 
-  /* ================================================================
-     МОБИЛЬНАЯ АДАПТАЦИЯ
-     Брейкпоинты: 880px (планшет/мал. ноутбук), 600px (телефон),
-     380px (узкий телефон)
-     ================================================================ */
-
-  /* ---------- Оверлей под выезжающее меню ---------- */
+  /* ===== ОВЕРЛЕЙ ПОД ВЫЕЗЖАЮЩЕЕ МЕНЮ ===== */
   .sidebar-overlay{
     display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
     z-index:49;opacity:0;transition:opacity .25s ease;
@@ -423,7 +411,7 @@
   }
   .sidebar-overlay.show{display:block;opacity:1}
 
-  /* ---------- Кнопка-гамбургер (вставляется JS-ом в topbar) ---------- */
+  /* ===== ГАМБУРГЕР ===== */
   .hamburger-btn{
     display:none;align-items:center;justify-content:center;
     width:34px;height:34px;min-width:34px;border-radius:9px;
@@ -433,7 +421,7 @@
   }
   .hamburger-btn:active{background:var(--card2)}
 
-  /* ---------- Нижняя навигация (моб.) ---------- */
+  /* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */
   .bottom-nav{
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;
     background:var(--bg2);border-top:1px solid var(--border);
@@ -465,7 +453,7 @@
   .bn-sheet-item:active{background:var(--bg3)}
   .bn-sheet-item .icon{font-size:18px;width:22px;text-align:center}
 
-  /* ---------- Режим редактирования "Быстрого меню" ---------- */
+  /* ===== РЕЖИМ РЕДАКТИРОВАНИЯ БЫСТРОГО МЕНЮ ===== */
   .bottom-nav.edit-mode{background:var(--card2);box-shadow:0 -4px 18px rgba(167,139,250,.18) inset;gap:0}
   .bn-edit-item{
     display:flex;align-items:center;gap:1px;flex:1;min-width:0;
@@ -521,7 +509,6 @@
     #dashTriColumn{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr}
     .input-row{grid-template-columns:1fr 1fr}
-    /* нижние отступы под bottom-nav, чтобы контент не перекрывался */
     .content{padding-bottom:84px}
   }
 
@@ -530,76 +517,46 @@
     body{font-size:13px}
     .app{flex-direction:column}
     .sidebar{width:78vw;max-width:300px;min-width:0}
-    .content{padding:12px;padding-bottom:88px}
+    .content{padding:12px;padding-bottom:100px}
     .topbar{
       flex-wrap:nowrap;height:auto;min-height:50px;padding:8px 10px;
       gap:6px;overflow-x:visible;
     }
-    /* Названия разделов в топбаре скрываем на мобильном —
-       раздел и так понятен из нижнего/бокового меню.
-       Приветствие на дашборде (#greetTitle) — исключение, его оставляем. */
     .topbar-title:not(#greetTitle){display:none}
     .topbar-subtitle{display:none}
     .topbar .btn{flex-shrink:0}
     .btn{padding:7px 10px;font-size:11.5px}
     .btn-sm{padding:5px 8px}
-
-    /* Топбары на телефоне: гамбургер слева, остальное прижато к правому краю */
     .topbar{justify-content:flex-end}
     .topbar > .hamburger-btn{margin-right:auto;flex-shrink:0}
-
-    /* Дашборд — особый случай: после гамбургера идёт приветствие (растягивается),
-       а кнопки действий "+ Урок" / "+ Ученик" прижимаются к правому краю */
     #page-dashboard .topbar > div:first-of-type{flex:1;min-width:0;margin-right:0}
     #page-dashboard .topbar > .hamburger-btn{margin-right:0}
-
-    /* Заголовочные статы — 2 в ряд, компактнее */
     .stat-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px;margin-bottom:16px}
     .stat-card{padding:12px}
     .stat-value{font-size:20px}
     .stat-label{font-size:9.5px}
-
-    /* Карточки учеников — 1 в ряд на телефоне */
     .student-grid{grid-template-columns:1fr!important;gap:10px;margin-bottom:16px}
-
-    /* Дашборд: триколонка → одна колонка */
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px;margin-bottom:16px}
-
-    /* Финансы: 3 стат-карточки → 1 колонка */
     #page-finances .stat-grid{grid-template-columns:1fr!important}
-
-    /* Задания: 3 колонки → 1 колонка, с разделителями */
     #page-homework .content > div{grid-template-columns:1fr!important;gap:18px!important}
-
-    /* Прогресс/аналитика: 2 колонки → 1 */
     #page-progress .content > div{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr;gap:10px}
     .detail-card{padding:12px}
-
-    /* Формы внутри модалок — поля друг под другом */
     .input-row{grid-template-columns:1fr!important;gap:0}
     .modal{width:100%;max-width:100vw;border-radius:16px 16px 0 0;padding:22px 16px 22px;
       position:fixed;left:0;right:0;bottom:0;max-height:92vh;margin:0}
     .modal::before{content:'';display:block;width:36px;height:4px;border-radius:3px;
       background:var(--border2);margin:0 auto 14px}
     .modal-bg{align-items:flex-end;padding:0}
-
-    /* Табы — горизонтальный скролл вместо переноса */
     .tab-row{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
     .tab-row::-webkit-scrollbar{display:none}
     .tab{padding:6px 12px;font-size:11.5px}
-
-    /* Расписание / неделя (вид "по дням" вне календаря) — горизонтальный скролл */
     .schedule-grid{overflow-x:auto;grid-template-columns:repeat(7,minmax(140px,1fr))}
-
-    /* ===== РАСПИСАНИЕ (КАЛЕНДАРЬ): всё на одном экране, без скролла,
-       7 дней видно целиком, часы не обрезаны ===== */
     #page-schedule .topbar{
       flex-wrap:nowrap;padding:6px 8px;min-height:46px;gap:4px;overflow:visible;
     }
     #page-schedule .topbar .btn{padding:6px 8px;font-size:10.5px;gap:3px}
     #page-schedule .zoom-controls-top{display:flex!important;gap:3px}
-    /* Кнопка Меню в расписании */
     .schedule-menu-btn{
       display:none;align-items:center;gap:5px;
       font-size:11px;font-weight:600;flex-shrink:0;
@@ -613,8 +570,8 @@
       .sched-reset-label{display:none}
       .schedule-menu-label{display:none}
     }
-    .cal-head{grid-template-columns:26px repeat(7,1fr)}
-    .cal-body{grid-template-columns:26px repeat(7,1fr)}
+    .cal-head{grid-template-columns:36px repeat(7,1fr)}
+    .cal-body{grid-template-columns:36px repeat(7,1fr)}
     #calView{overflow-x:hidden}
     .cal-day-hd{padding:5px 1px}
     .cal-day-hd-name{font-size:7.5px;letter-spacing:0}
@@ -624,11 +581,7 @@
     .cal-event{left:1px;right:1px;padding:2px 3px 2px 4px}
     .cal-event-name{font-size:8px}
     .cal-event-svc{display:none}
-
-    /* Карточка ученика (детальная) */
     .skill-name{width:84px;font-size:11px}
-
-    /* Нижняя навигация включается */
     .bottom-nav{display:flex}
     .qm-edit-bar.show{display:flex}
     #quickMenuSettingsSection{display:block!important}
@@ -638,7 +591,7 @@
 
   /* ================= УЗКИЙ ТЕЛЕФОН (≤380px) ================= */
   @media (max-width:380px){
-    .content{padding:10px;padding-bottom:86px}
+    .content{padding:10px;padding-bottom:100px}
     .stat-value{font-size:18px}
     .stat-card{padding:10px}
     .student-header{gap:8px}
@@ -651,12 +604,12 @@
     .bn-move-arrow{width:14px;font-size:14px}
     .skill-name{width:70px;font-size:10px}
     #page-schedule .topbar .btn{padding:5px 6px;font-size:9.5px}
-    .cal-head{grid-template-columns:22px repeat(7,1fr)}
-    .cal-body{grid-template-columns:22px repeat(7,1fr)}
-    .cal-time-label{font-size:8.5px;right:0;left:0;text-align:center}
+    .cal-head{grid-template-columns:30px repeat(7,1fr)}
+    .cal-body{grid-template-columns:30px repeat(7,1fr)}
+    .cal-time-label{font-size:9px;right:0;left:0;text-align:center}
   }
 
-  /* ---------- Сенсорные улучшения (применяются везде на тач-устройствах) ---------- */
+  /* ---------- Сенсорные улучшения ---------- */
   @media (hover:none) and (pointer:coarse){
     .nav-item,.tab,.btn,.bn-item,.student-card,.finance-row,.lesson-slot,.teacher-row{
       min-height:34px;
@@ -665,7 +618,7 @@
     .swatch{width:26px;height:26px}
   }
 
-  /* ===== ДОПОЛНИТЕЛЬНЫЕ ПРАВКИ ДЛЯ PWA ===== */
+  /* ===== PWA ===== */
   @media all and (display-mode: standalone) {
     body {
       overflow: hidden;
@@ -692,7 +645,6 @@
     .content {
       height: 100%;
     }
-    /* Bottom nav учитывает safe-area снизу в PWA */
     .bottom-nav {
       padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     }
@@ -785,23 +737,27 @@
     <!-- SCHEDULE (КАЛЕНДАРЬ) -->
     <div id="page-schedule" class="hidden">
       <div class="topbar" id="scheduleTopbar">
-        <!-- Кнопка Меню (только мобильная, вставляется через JS тоже, но здесь явно для расписания) -->
-        <button class="btn btn-ghost schedule-menu-btn" id="scheduleMenuBtn" onclick="toggleMobileSidebar()" title="Открыть меню" style="display:none">
-          <i class="fa-solid fa-bars"></i> <span class="schedule-menu-label">Меню</span>
-        </button>
-        <!-- Навигация по неделям -->
-        <button class="btn btn-ghost" onclick="shiftCalWeek(-1)" title="Предыдущая неделя">◀</button>
-        <button class="btn btn-ghost" onclick="resetCalendarView()" title="Сбросить к сегодня"><i class="fa-solid fa-rotate-left"></i> <span class="sched-reset-label">Сбросить</span></button>
-        <button class="btn btn-ghost" onclick="shiftCalWeek(1)" title="Следующая неделя">▶</button>
-        <!-- Зум -->
-        <div class="zoom-controls-top" style="display:flex;gap:4px;">
-          <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(1)" title="Увеличить"><i class="fa-solid fa-plus"></i></button>
-          <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить"><i class="fa-solid fa-minus"></i></button>
+        <!-- Левая часть: гамбургер (моб) + зум -->
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <button class="btn btn-ghost schedule-menu-btn" id="scheduleMenuBtn" onclick="toggleMobileSidebar()" title="Открыть меню" style="display:none">
+            <i class="fa-solid fa-bars"></i> <span class="schedule-menu-label">Меню</span>
+          </button>
+          <div class="zoom-controls-top" style="display:flex;gap:4px;">
+            <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(1)" title="Увеличить"><i class="fa-solid fa-plus"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить"><i class="fa-solid fa-minus"></i></button>
+          </div>
         </div>
-        <!-- Период -->
+
+        <!-- Центр: подпись периода -->
         <span class="topbar-title" style="flex:1;text-align:center;font-size:13px" id="calPeriodLabel">—</span>
-        <!-- Добавить урок -->
-        <button class="btn btn-primary" onclick="openModal('lesson')">+ Урок</button>
+
+        <!-- Правая часть: навигация, сброс, + Урок -->
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <button class="btn btn-ghost" onclick="shiftCalWeek(-1)" title="Предыдущая неделя"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="btn btn-ghost" onclick="resetCalendarView()" title="Сбросить к сегодня"><i class="fa-solid fa-rotate-left"></i> <span class="sched-reset-label">Сбросить</span></button>
+          <button class="btn btn-ghost" onclick="shiftCalWeek(1)" title="Следующая неделя"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="btn btn-primary" onclick="openModal('lesson')">+ Урок</button>
+        </div>
       </div>
       <div class="content" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
         <div id="calView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
@@ -925,7 +881,6 @@
         <div class="topbar-title">Настройки <span class="topbar-subtitle">профиль педагога</span></div>
       </div>
       <div class="content">
-
         <div class="settings-section">
           <div class="settings-section-title">Профиль</div>
           <div class="settings-row" style="align-items:flex-start">
@@ -992,16 +947,15 @@
             <span style="font-size:16px">⎋</span> Выйти из аккаунта
           </button>
         </div>
-
       </div>
     </div>
   </main>
 </div>
 
-<!-- НИЖНЕЕ "БЫСТРОЕ МЕНЮ" (только мобильные, настраиваемое) -->
+<!-- НИЖНЕЕ "БЫСТРОЕ МЕНЮ" -->
 <nav class="bottom-nav" id="bottomNav"></nav>
 
-<!-- Шторка выбора раздела для слота быстрого меню (режим редактирования) -->
+<!-- Шторка выбора раздела для слота быстрого меню -->
 <div class="bn-more-sheet" id="qmPickSheet">
   <div class="bn-sheet-handle"></div>
   <div style="font-size:13px;font-weight:600;margin-bottom:10px;padding:0 4px">Выберите раздел для этой кнопки</div>
@@ -1015,7 +969,7 @@
 
 <div id="toastHost"></div>
 
-<!-- Подключаем Font Awesome для иконок календаря -->
+<!-- Подключаем Font Awesome для иконок -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <script>
@@ -1278,7 +1232,7 @@ function yearIncomeSeries(year){
 }
 
 /* ============================================================
-   КАЛЕНДАРЬ — ЯДРО (перенесено из SSL CRM)
+   КАЛЕНДАРЬ — ЯДРО (исправлено: время всегда HH:00)
    ============================================================ */
 let calDate = new Date();
 let calWeekOffset = 0;
@@ -1293,6 +1247,7 @@ let animationFrameRequest = null;
 const SENSITIVITY = 2.5;
 let isMobileDevice = false;
 let calScrollSaved = 0;
+let calendarInited = false;
 
 const HOURS_START = 7;
 const HOURS_END = 24;
@@ -1304,7 +1259,6 @@ function setEffectiveZoom(val) {
 }
 
 function saveZoomToProfile() {
-  // Сохраняем в localStorage для текущего учителя (сохраняем в объекте учителя)
   const teacher = getCurrentTeacher();
   if(teacher && teacher.id) {
     teacher.hourHeight = getEffectiveZoom();
@@ -1394,13 +1348,13 @@ function renderCalendar() {
     const slot = document.createElement('div');
     slot.className = 'cal-time-slot';
     slot.style.height = zoom + 'px';
-    const timeLabel = (isMobileDevice || window.innerWidth<=600) ? String(h) : (String(h).padStart(2,'0')+':00');
+    // ВСЕГДА показываем HH:00, как на компьютере
+    const timeLabel = String(h).padStart(2,'0') + ':00';
     slot.innerHTML = `<span class="cal-time-label">${timeLabel}</span>`;
     timeCol.appendChild(slot);
   }
   body.appendChild(timeCol);
 
-  // Получаем уроки текущего учителя
   const lessons = lessonsOfTeacher();
   const byDate = {};
   lessons.forEach(l => {
@@ -1450,7 +1404,6 @@ function renderCalendar() {
       const totalCols = Math.max(placed.filter(x=>x!==undefined).length, 1);
       const colW = 90 / totalCols;
       const colLeft = 3 + subcol * (colW + 1);
-      // Цвет ученика
       const student = studentById(ev.studentId);
       const color = student ? student.color : GRADIENTS[0];
       const evName = escapeHTML(student ? student.name : '—');
@@ -1463,7 +1416,6 @@ function renderCalendar() {
       evEl.style.width = colW + '%';
       evEl.style.background = 'rgba(167,139,250,0.18)';
       if(student) {
-        // Извлекаем цвет из градиента (берём первый цвет)
         const gradMatch = color.match(/#[0-9a-f]{6}/i);
         const hex = gradMatch ? gradMatch[0] : '#a78bfa';
         evEl.style.background = hex + '33';
@@ -1472,7 +1424,6 @@ function renderCalendar() {
         evEl.style.background = 'rgba(167,139,250,0.18)';
         evEl.style.borderLeft = '4px solid #a78bfa';
       }
-      // Статус
       const statusColor = ev.status === 'done' ? 'var(--green)' : ev.status === 'planned' ? 'var(--amber)' : 'var(--red)';
       evEl.style.borderLeft = '4px solid ' + statusColor;
       evEl.innerHTML = `<div class="cal-event-name" style="color:var(--text)">${evName}</div><div class="cal-event-svc" style="color:var(--text);opacity:.78">${evSvc}</div>`;
@@ -1483,9 +1434,8 @@ function renderCalendar() {
       col.appendChild(evEl);
     });
 
-    // Drag-to-create (упрощённо, только клик)
+    // Drag-to-create (клик по пустому месту)
     (function setupDragCreate(col, ds) {
-      // Обработка клика по пустому месту
       col.addEventListener('click', function(e) {
         if(e.target.closest('.cal-event')) return;
         const rect = this.getBoundingClientRect();
@@ -1494,7 +1444,6 @@ function renderCalendar() {
         let hour = Math.floor((y / totalHeight) * (HOURS_END - HOURS_START)) + HOURS_START;
         hour = Math.min(Math.max(hour, HOURS_START), HOURS_END - 1);
         const timeStr = String(hour).padStart(2,'0') + ':00';
-        // Открываем модалку создания урока с предзаполненной датой и временем
         openModal('lesson', { date: ds, time: timeStr });
       });
     })(col, ds);
@@ -1587,7 +1536,7 @@ function handleTouchEnd(e) {
   swipeHandled = false;
 }
 
-// Инициализация календаря при первом показе
+// Инициализация календаря
 function initCalendar() {
   const calView = document.getElementById('calView');
   if(calView) {
@@ -1595,7 +1544,6 @@ function initCalendar() {
     calView.addEventListener('touchmove', handleTouchMove, { passive: false });
     calView.addEventListener('touchend', handleTouchEnd, { passive: false });
   }
-  // Восстанавливаем zoom из профиля учителя
   const teacher = getCurrentTeacher();
   if(teacher) {
     if(teacher.hourHeight) currentHourHeight = Math.min(Math.max(teacher.hourHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
@@ -1606,7 +1554,7 @@ function initCalendar() {
 }
 
 /* ============================================================
-   ОБЩИЕ КОМПОНЕНТЫ КАРТОЧЕК (без изменений)
+   ОБЩИЕ КОМПОНЕНТЫ КАРТОЧЕК
    ============================================================ */
 function paymentTagHTML(l){
   if(l.viaSubscription) return '<span class="tag tag-purple">🎫 Абонемент</span>';
@@ -1767,18 +1715,6 @@ function renderIncomeChart(){
   else { yoy.textContent='—'; yoy.className='tag tag-grey'; }
 }
 
-// При показе страницы расписания инициализируем календарь
-let calendarEverInited = false;
-function showSchedule() {
-  if(!calendarEverInited) {
-    calendarInited = false;
-    initCalendar();
-    calendarEverInited = true;
-  } else {
-    renderCalendar();
-  }
-}
-
 /* ============================================================
    УЧЕНИКИ
    ============================================================ */
@@ -1857,7 +1793,7 @@ function showPage(name){
   const navName=navMap[name];
   document.querySelectorAll('.nav-item').forEach(i=>{ if(i.getAttribute('data-page')===navName) i.classList.add('active'); });
   if(name==='dashboard') renderDashboard();
-  if(name==='schedule') { showSchedule(); adaptScheduleTopbar(); }
+  if(name==='schedule') { if(!calendarEverInited) { calendarInited=false; initCalendar(); calendarEverInited=true; } else renderCalendar(); }
   if(name==='students') renderStudents();
   if(name==='finances') renderFinances();
   if(name==='homework') renderHomework();
@@ -1869,6 +1805,7 @@ function showPage(name){
   const contentEl = document.querySelector('#page-'+name+' .content');
   if(contentEl) contentEl.scrollTop = 0;
 }
+let calendarEverInited = false;
 
 /* ============================================================
    МОБИЛЬНАЯ НАВИГАЦИЯ: гамбургер, выезжающее меню, шторка "Ещё"
@@ -1946,7 +1883,6 @@ function renderBottomNav(){
   host.innerHTML = html;
   host.classList.toggle('edit-mode', quickMenuEditMode);
 
-  // Полоса управления режимом редактирования (кнопка "Сохранить"), отдельно от слотов
   let editBar = document.getElementById('qmEditBar');
   if(quickMenuEditMode){
     if(!editBar){
@@ -2024,7 +1960,6 @@ function closeQuickMenuPicker(){
 function pickQuickMenuSection(key){
   if(qmPendingSlotIndex===null) return;
   const slots = getQuickMenu().slice();
-  // если этот раздел уже стоит в другом слоте — освобождаем тот слот (без дублей)
   const existingIdx = slots.indexOf(key);
   if(existingIdx !== -1) slots[existingIdx] = null;
   slots[qmPendingSlotIndex] = key;
@@ -2044,33 +1979,6 @@ function qmMoveSlot(e, idx, dir){
   saveQuickMenu(slots);
   renderBottomNav();
 }
-
-function toggleMoreSheet(){ enterQuickMenuEditMode(); }
-function closeMoreSheet(){ closeQuickMenuPicker(); }
-function insertHamburgers(){
-  document.querySelectorAll('.topbar').forEach(tb=>{
-    // Расписание — у него своя кнопка меню (scheduleMenuBtn), пропускаем
-    if(tb.closest('#page-schedule')) return;
-    if(tb.querySelector('.hamburger-btn')) return;
-    const btn = document.createElement('button');
-    btn.className = 'hamburger-btn';
-    btn.setAttribute('aria-label','Открыть меню');
-    btn.innerHTML = '☰';
-    btn.style.marginLeft = '4px'; // небольшой отступ от левого края
-    btn.addEventListener('click', function(e){
-      e.stopPropagation();
-      toggleMobileSidebar();
-    });
-    tb.insertBefore(btn, tb.firstChild);
-  });
-}
-/* На телефоне сокращаем текст кнопок навигации расписания
-   (◀ Пред. → ◀, Сегодня → Сегодня, След. ▶ → ▶, + Урок → +),
-   чтобы весь топбар расписания помещался в одну строку без скролла. */
-function adaptScheduleTopbar(){
-  // Кнопки расписания теперь используют иконки — текст не нужно укорачивать
-  // Функция оставлена для совместимости
-}
 function closeOverlay(){
   closeMobileSidebar();
   closeQuickMenuPicker();
@@ -2078,7 +1986,7 @@ function closeOverlay(){
 }
 
 /* ============================================================
-   КАРТОЧКА УЧЕНИКА — ВКЛАДКИ (без изменений)
+   КАРТОЧКА УЧЕНИКА — ВКЛАДКИ
    ============================================================ */
 function renderDetailProfile(){
   const s = studentById(currentStudentId); if(!s) return;
@@ -2333,7 +2241,6 @@ function renderFinances(){
   }
 
   if(financeFilter==='subs'){
-    // история покупок/пополнений абонементов
     const subPayments = DB.payments.filter(p=>{
       const st=studentById(p.studentId);
       return st && myStudentIds.has(st.id) && (p.type==='subscription_purchase'||p.type==='subscription_topup');
@@ -2587,10 +2494,8 @@ function saveLessonForm(){
   const sub = activeSubscriptionOf(studentId);
 
   if(lessonId) {
-    // Редактирование существующего урока
     const lesson = DB.lessons.find(l=>l.id===lessonId);
     if(!lesson){ toast('Урок не найден','red'); return; }
-    // Обновляем поля
     lesson.studentId = studentId;
     lesson.date = date;
     lesson.time = time;
@@ -2598,7 +2503,6 @@ function saveLessonForm(){
     lesson.format = format;
     lesson.plan = plan;
     lesson.status = status;
-    // Цена/оплата
     if(!lesson.viaSubscription){
       const price = Number(document.getElementById('f-l-price').value)||0;
       const payType = document.getElementById('f-l-paytype').value;
@@ -2615,7 +2519,6 @@ function saveLessonForm(){
     return;
   }
 
-  // Создание нового урока
   let lesson = { id:uid('l'), studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status, plan, workedOn:'', createdAt: todayISO() };
   if(sub){
     lesson.viaSubscription = true; lesson.subscriptionId = sub.id; lesson.price = sub.pricePerLesson; lesson.paid = sub.pricePerLesson;
@@ -2869,7 +2772,6 @@ function saveRepertoireForm(studentId){
   renderRepertoire();
 }
 
-/* ---------- Педагоги (профили) ---------- */
 /* ---------- Детали месяца (аналитика) ---------- */
 function buildMonthInfoModal(ctx){
   ctx = ctx||{};
@@ -2991,7 +2893,7 @@ function refreshAllVisible(){
     const el = document.getElementById('page-'+p);
     if(el && !el.classList.contains('hidden')){
       if(p==='dashboard') renderDashboard();
-      else if(p==='schedule') { if(calendarEverInited) renderCalendar(); else showSchedule(); }
+      else if(p==='schedule') { if(calendarEverInited) renderCalendar(); else { calendarInited=false; initCalendar(); calendarEverInited=true; } }
       else if(p==='students') renderStudents();
       else if(p==='student-detail') renderStudentDetailAll();
       else if(p==='finances') renderFinances();
@@ -3005,13 +2907,12 @@ function refreshAllVisible(){
 /* ============================================================
    НАСТРОЙКИ ПРОФИЛЯ
    ============================================================ */
-let settingsAvatarUrl = null; // data URL загруженного аватара
+let settingsAvatarUrl = null;
 
 function renderSettingsPage(){
   const t = getCurrentTeacher();
   document.getElementById('settingsNameInput').value = t.name || '';
   document.getElementById('settingsRoleInput').value = t.role || '';
-  // Аватар превью
   const prev = document.getElementById('settingsAvPreview');
   if(t.avatarUrl){
     prev.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
@@ -3022,7 +2923,6 @@ function renderSettingsPage(){
     prev.style.background = t.avatar || GRADIENTS[0];
     settingsAvatarUrl = null;
   }
-  // Тема
   const themeIsLight = DB.theme === 'light';
   const themeToggle = document.getElementById('settingsThemeToggle');
   if(themeToggle) themeToggle.checked = themeIsLight;
@@ -3063,7 +2963,6 @@ function saveProfileSettings(){
   else delete t.avatarUrl;
   saveDB();
   renderSidebar();
-  // обновить превью
   const prev = document.getElementById('settingsAvPreview');
   if(t.avatarUrl){
     prev.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
@@ -3092,8 +2991,6 @@ function applyTheme(){
 
 function doLogout(){
   if(!confirm('Выйти из аккаунта? Все данные сохранены локально.')) return;
-  // В локальной CRM просто скрываем приложение и показываем экран входа
-  // (при наличии — иначе просто перезагрузка)
   const authScreen = document.getElementById('authScreen');
   if(authScreen){
     document.getElementById('app').style.display = 'none';
@@ -3108,20 +3005,30 @@ function initApp(){
   if(!DB.theme) DB.theme = 'dark';
   applyTheme();
   renderSidebar();
-  insertHamburgers();
+  // Вставляем гамбургеры (кроме расписания — там уже есть)
+  document.querySelectorAll('.topbar').forEach(tb=>{
+    if(tb.closest('#page-schedule')) return;
+    if(tb.querySelector('.hamburger-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'hamburger-btn';
+    btn.setAttribute('aria-label','Открыть меню');
+    btn.innerHTML = '☰';
+    btn.style.marginLeft = '4px';
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      toggleMobileSidebar();
+    });
+    tb.insertBefore(btn, tb.firstChild);
+  });
   showPage('dashboard');
-  adaptScheduleTopbar();
   isMobileDevice = window.innerWidth <= 768;
   window.addEventListener('resize', function(){
     isMobileDevice = window.innerWidth <= 768;
     if(window.innerWidth > 880){ closeMobileSidebar(); closeQuickMenuPicker(); if(quickMenuEditMode) exitQuickMenuEditMode(true); }
-    adaptScheduleTopbar();
     if(calendarEverInited && !document.getElementById('page-schedule').classList.contains('hidden')) renderCalendar();
   });
 
   // ===== СВАЙП ДЛЯ БОКОВОГО МЕНЮ + КЛИК ВНЕ МЕНЮ =====
-  // Открытие: свайп вправо от левого края экрана (зона 40px)
-  // Закрытие: свайп влево по открытому меню ИЛИ клик вне меню
   let _sbTouchStartX = 0, _sbTouchStartY = 0;
   const _SB_EDGE_ZONE = 40;
   document.addEventListener('touchstart', function(e) {
@@ -3137,11 +3044,9 @@ function initApp(){
       const diffX = _sbTouchStartX - touchEndX;
       const diffY = Math.abs(_sbTouchStartY - touchEndY);
       const sidebar = document.getElementById('sidebar');
-      // Закрыть меню: свайп влево > 50px, горизонтальный
       if (sidebar && sidebar.classList.contains('mobile-open')) {
         if (diffX > 50 && diffX > diffY) closeMobileSidebar();
       }
-      // Открыть меню: свайп вправо от левого края
       if (sidebar && !sidebar.classList.contains('mobile-open')) {
         const swipeRight = touchEndX - _sbTouchStartX;
         if (_sbTouchStartX < _SB_EDGE_ZONE && swipeRight > 50 && swipeRight > diffY) {
@@ -3150,7 +3055,6 @@ function initApp(){
       }
     }
   }, { passive: true });
-  // Клик вне меню — закрыть
   document.addEventListener('click', function(e) {
     const sidebar = document.getElementById('sidebar');
     const hamburger = document.querySelector('.hamburger-btn');
@@ -3202,7 +3106,6 @@ function initApp(){
       newLink.href = dataUri;
       document.head.appendChild(newLink);
     }
-    // Адаптация theme-color под тему
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
       const dark = '#0f0f14', light = '#f0f0f6';
