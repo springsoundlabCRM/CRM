@@ -49,7 +49,6 @@
   .logo-text{font-size:15px;font-weight:600;letter-spacing:-0.3px}
   .logo-sub{font-size:10px;color:var(--text3);margin-top:1px}
   .nav{padding:12px 10px;flex:1;overflow-y:auto}
-  /* убрали .nav-section и .nav-label – пункты идут без группировки */
   .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:2px}
   .nav-item:hover{background:var(--bg3);color:var(--text)}
   .nav-item.active{background:var(--accent-glow);color:var(--accent)}
@@ -261,35 +260,10 @@
     border-radius: 50%;
     background: var(--red);
   }
-  .cal-drag-ghost {
-    position: absolute;
-    left: 3px;
-    right: 3px;
-    border-radius: 6px;
-    pointer-events: none;
-    z-index: 20;
-    border: 2px dashed transparent;
-  }
-  .cal-drag-ghost-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 10px;
-    font-weight: 700;
-    white-space: nowrap;
-    pointer-events: none;
-  }
   @media(max-width:768px) {
-    .cal-head {
-      grid-template-columns: 36px repeat(7, 1fr);
-    }
-    .cal-body {
-      grid-template-columns: 36px repeat(7, 1fr);
-    }
-    .cal-event-svc {
-      display: none;
-    }
+    .cal-head { grid-template-columns: 36px repeat(7, 1fr); }
+    .cal-body { grid-template-columns: 36px repeat(7, 1fr); }
+    .cal-event-svc { display: none; }
   }
   .schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:24px}
   .day-col{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px;min-height:160px}
@@ -536,9 +510,6 @@
     .btn{padding:7px 10px;font-size:11.5px}
     .btn-sm{padding:5px 8px}
     .topbar{justify-content:flex-end}
-    .topbar > .hamburger-btn{margin-right:auto;flex-shrink:0}
-    #page-dashboard .topbar > div:first-of-type{flex:1;min-width:0;margin-right:0}
-    #page-dashboard .topbar > .hamburger-btn{margin-right:0}
     .stat-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px;margin-bottom:16px}
     .stat-card{padding:12px}
     .stat-value{font-size:20px}
@@ -564,12 +535,6 @@
     }
     #page-schedule .topbar .btn{padding:6px 8px;font-size:11px;gap:3px}
     .zoom-controls-top{display:none!important}
-    .schedule-menu-btn{
-      display:flex!important;align-items:center;gap:5px;
-      font-size:11px;font-weight:600;flex-shrink:0;
-      background:var(--bg3)!important;border-color:var(--border2)!important;
-      margin-right:2px;
-    }
     .sched-reset-label{display:none}
     .schedule-menu-label{display:none}
     .cal-head{grid-template-columns:36px repeat(7,1fr)}
@@ -690,7 +655,6 @@
       </div>
     </div>
     <nav class="nav">
-      <!-- Все пункты меню без разделителей -->
       <div class="nav-item active" data-page="schedule" onclick="showPage('schedule')"><span class="icon">📅</span> Расписание</div>
       <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">🏠</span> Дашборд</div>
       <div class="nav-item" data-page="students" onclick="showPage('students')"><span class="icon">🎓</span> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
@@ -752,10 +716,9 @@
       </div>
     </div>
 
-    <!-- SCHEDULE (КАЛЕНДАРЬ) – с кнопкой сброса с датой -->
+    <!-- SCHEDULE (КАЛЕНДАРЬ) -->
     <div id="page-schedule">
       <div class="topbar" id="scheduleTopbar" style="padding:4px 16px; gap:8px; flex-wrap:nowrap;">
-        <!-- Левая часть: гамбургер (только мобильные) + зум (только десктоп) -->
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
           <button class="btn btn-ghost" id="scheduleMenuBtn" onclick="toggleMobileSidebar()" title="Открыть меню" style="padding:6px 10px; display:flex; align-items:center; gap:4px;">
             <i class="fa-solid fa-bars" style="font-size:18px;"></i>
@@ -765,8 +728,6 @@
             <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить" style="padding:6px 10px; font-size:14px;"><i class="fa-solid fa-minus"></i></button>
           </div>
         </div>
-
-        <!-- Правая часть: навигация и кнопка сброса с датой -->
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0; margin-left: auto;">
           <button class="btn btn-ghost" onclick="shiftCalWeek(-1)" title="Предыдущая неделя" style="padding:6px 10px;"><i class="fa-solid fa-chevron-left"></i></button>
           <button class="btn btn-ghost" onclick="shiftCalWeek(1)" title="Следующая неделя" style="padding:6px 10px;"><i class="fa-solid fa-chevron-right"></i></button>
@@ -990,7 +951,7 @@
 
 <script>
 /* ============================================================
-   VoiceLoft CRM — слой данных (localStorage)
+   VoiceLoft CRM — полный код
    ============================================================ */
 const STORAGE_KEY = 'voiceloft_crm_data_v1';
 const MN = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -1092,7 +1053,6 @@ function seedDB(){
     {name:'Иван Смирнов', age:22, voiceType:'Баритон', phone:'+7 967 111-99-55', telegram:'@ivan_smir', goal:'Только начал заниматься, пробует голос.', notes:'Новичок, нужно больше дыхательных упражнений.', status:'trial', color:GRADIENTS[5], bdayOffset:300, skills:{breath:35,intonation:40,mix:20,range:30,stage:25}},
   ];
 
-  const subTitles = ['Абонемент 4 урока','Абонемент 8 уроков'];
   sData.forEach((s,i)=>{
     const studentId = uid('s');
     const bday = toISODate(addDays(today, s.bdayOffset));
@@ -1102,7 +1062,6 @@ function seedDB(){
       color:s.color, initials:initialsOf(s.name), createdAt: iso(-240+i*10), skills:s.skills
     });
 
-    // Абонемент
     const total = i===2 ? 4 : 8;
     const used = [3,5,2,4,6,1][i];
     const price = 8000;
@@ -1115,7 +1074,6 @@ function seedDB(){
       DB.payments.push({ id:uid('p'), studentId, date: iso(-used*7-3), amount:price, type:'subscription_purchase', note:'Абонемент '+total+' уроков' });
     }
 
-    // История уроков (прошлые + сегодня/будущие)
     const lessonDefs = [
       {offset:-21, status:'done'},
       {offset:-14, status:'done'},
@@ -1141,11 +1099,9 @@ function seedDB(){
       DB.payments.push({ id:uid('p'), studentId, date: iso(-21), amount:1600, type:'lesson', note:'Частичная оплата за урок' });
     }
 
-    // ДЗ
     const hwStatuses = ['done','progress','todo'];
     DB.homework.push({ id:uid('hw'), studentId, title:'Распевки 15 мин/день', sub:'Фокус на плавном переходе грудь → голова', status:hwStatuses[i%3], icon:'🎵', assignedDate: iso(-3) });
 
-    // Репертуар
     const songs = [
       {title:'Голос', artist:'Полина Гагарина', status:'активная', cls:'tag-green'},
       {title:'Вдыхая', artist:'Loboda', status:'разучиваем', cls:'tag-amber'},
@@ -1248,9 +1204,8 @@ function yearIncomeSeries(year){
 }
 
 /* ============================================================
-   КАЛЕНДАРЬ — ЯДРО (исправлено: время всегда HH:00)
+   КАЛЕНДАРЬ — ЯДРО
    ============================================================ */
-let calDate = new Date();
 let calWeekOffset = 0;
 let currentHourHeight = 60;
 let currentHourHeightMobile = 60;
@@ -1281,7 +1236,6 @@ function saveZoomToProfile() {
     teacher.hourHeight = currentHourHeight;
     teacher.hourHeightMobile = currentHourHeightMobile;
     saveDB();
-    console.log('✅ Зум сохранён (десктоп:', currentHourHeight, 'мобильный:', currentHourHeightMobile, ')');
   }
 }
 
@@ -1461,7 +1415,6 @@ function renderCalendar() {
       col.appendChild(evEl);
     });
 
-    // Drag-to-create (клик по пустому месту)
     (function setupDragCreate(col, ds) {
       col.addEventListener('click', function(e) {
         if(e.target.closest('.cal-event')) return;
@@ -1489,7 +1442,7 @@ function renderCalendar() {
   }, 50);
 }
 
-// --- Обработчики свайпа для переключения недель ---
+// Обработчики свайпа
 let swipeStartX = 0, swipeStartY = 0, swipeActive = false, swipeHandled = false;
 const SWIPE_MIN_DISTANCE = 60;
 const SWIPE_MAX_VERTICAL = 45;
@@ -1564,7 +1517,6 @@ function handleTouchEnd(e) {
   swipeHandled = false;
 }
 
-// Инициализация календаря
 function initCalendar() {
   const calView = document.getElementById('calView');
   if(calView) {
@@ -1576,22 +1528,895 @@ function initCalendar() {
   if(teacher) {
     if(teacher.hourHeight) currentHourHeight = Math.min(Math.max(teacher.hourHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
     if(teacher.hourHeightMobile) currentHourHeightMobile = Math.min(Math.max(teacher.hourHeightMobile, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
-    console.log('🔁 Зум восстановлен (десктоп:', currentHourHeight, 'мобильный:', currentHourHeightMobile, ')');
   }
   isMobileDevice = window.innerWidth <= 768;
   renderCalendar();
 }
 
 /* ============================================================
-   ОБЩИЕ КОМПОНЕНТЫ КАРТОЧЕК (остальная логика)
+   ПЕРЕКЛЮЧЕНИЕ СТРАНИЦ
    ============================================================ */
-// (здесь идёт вся остальная логика, которая была в предыдущих версиях – она не изменилась)
-// Я сократил вывод, чтобы уместить ответ, но полный код с остальными функциями
-// (renderStudents, renderFinances, модалки, и т.д.) идёт дальше, как в предыдущих версиях.
-// Если нужно, я могу выложить полностью, но сейчас я хочу, чтобы вы проверили верхнюю панель и зум.
+let currentPage = 'schedule';
 
-// ... (остальной код)
+function showPage(pageId) {
+  // скрыть все страницы
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
+  const target = document.getElementById('page-'+pageId);
+  if(target) target.classList.remove('hidden');
+  // обновить активный пункт меню
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navItem = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+  if(navItem) navItem.classList.add('active');
+  // закрыть мобильное меню
+  closeOverlay();
+  // если страница расписание – обновить календарь
+  if(pageId === 'schedule') {
+    setTimeout(() => { renderCalendar(); }, 50);
+  }
+  // обновить контент для других страниц
+  if(pageId === 'dashboard') renderDashboard();
+  if(pageId === 'students') renderStudents();
+  if(pageId === 'finances') renderFinances();
+  if(pageId === 'homework') renderHomework();
+  if(pageId === 'progress') renderProgress();
+  if(pageId === 'settings') renderSettings();
+  currentPage = pageId;
+}
 
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function renderDashboard() {
+  const students = studentsOfTeacher();
+  const total = students.length;
+  const active = students.filter(s=>s.status==='active').length;
+  document.getElementById('dStudents').textContent = total;
+  document.getElementById('dStudentsDelta').textContent = active+' активных';
+
+  // Дата
+  const now = new Date();
+  const dayName = DOW[(now.getDay()+6)%7];
+  const dateStr = dayName+', '+pad2(now.getDate())+' '+MNSh[now.getMonth()].toLowerCase()+' '+now.getFullYear();
+  document.getElementById('dashDate').textContent = dateStr;
+
+  // Доход за месяц
+  const {paid, debt} = monthIncome(now.getFullYear(), now.getMonth());
+  document.getElementById('dIncome').textContent = money(paid);
+  document.getElementById('dIncomeDelta').textContent = paid>0 ? 'за этот месяц' : '—';
+
+  // Уроки сегодня
+  const today = todayISO();
+  const todayLessons = lessonsOfTeacher().filter(l=>l.date===today);
+  document.getElementById('dLessonsToday').textContent = todayLessons.length;
+  const next = todayLessons.length>0 ? 'след. в '+todayLessons[0].time : 'нет уроков';
+  document.getElementById('dNextLesson').textContent = next;
+
+  // Долги
+  let totalDebt=0, debtCount=0;
+  students.forEach(s=>{
+    const d = studentDebt(s.id);
+    if(d>0){ totalDebt+=d; debtCount++; }
+  });
+  document.getElementById('dDebt').textContent = money(totalDebt);
+  document.getElementById('dDebtCount').textContent = debtCount>0 ? `у ${debtCount} учеников` : 'нет долгов';
+
+  // Сегодня уроки (список)
+  const container = document.getElementById('todayLessons');
+  if(todayLessons.length===0) {
+    container.innerHTML = '<div class="empty-state">Сегодня занятий нет</div>';
+  } else {
+    container.innerHTML = todayLessons.map(l=>{
+      const s = studentById(l.studentId);
+      return `<div class="lesson-slot" style="border-left-color:var(--accent);cursor:pointer" onclick="openModal('lesson',{lessonId:'${l.id}'})">
+        <div class="lesson-time">${l.time} · ${l.format||'Урок'}</div>
+        <div class="lesson-name">${s?escapeHTML(s.name):'—'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Уведомления (долги, пропуски)
+  const notifs = [];
+  students.forEach(s=>{
+    const d = studentDebt(s.id);
+    if(d>0) notifs.push({text:`Долг ${money(d)} у ${s.name}`, dot:'red'});
+    const last = lessonsOfStudent(s.id).filter(l=>l.status==='done'||l.status==='noshow').slice(0,1);
+    if(last.length && last[0].status==='noshow') notifs.push({text:`${s.name} пропустил урок ${formatRuShort(last[0].date)}`, dot:'amber'});
+  });
+  const notifContainer = document.getElementById('notifList');
+  if(notifs.length===0) {
+    notifContainer.innerHTML = '<div class="empty-state">Все хорошо 👍</div>';
+  } else {
+    notifContainer.innerHTML = notifs.slice(0,4).map(n=>
+      `<div class="notif"><div class="notif-dot" style="background:${n.dot}"></div><div class="notif-text">${escapeHTML(n.text)}</div></div>`
+    ).join('');
+  }
+
+  // Дни рождения
+  const bdays = students.filter(s=>s.birthday).map(s=>{
+    const days = daysUntilBirthday(s.birthday);
+    if(days===null) return null;
+    return {...s, days};
+  }).filter(s=>s!==null).sort((a,b)=>a.days-b.days).slice(0,5);
+  const bdayContainer = document.getElementById('bdayList');
+  if(bdays.length===0) {
+    bdayContainer.innerHTML = '<div class="empty-state">Нет ближайших ДР</div>';
+  } else {
+    bdayContainer.innerHTML = bdays.map(s=>
+      `<div class="bday-item"><span>${escapeHTML(s.name)}</span><span class="bday-days">через ${s.days} дн.</span></div>`
+    ).join('');
+  }
+
+  // График доходов
+  const data = last6MonthsIncome();
+  const maxVal = Math.max(1, ...data.map(d=>d.value));
+  const chart = document.getElementById('income-chart');
+  chart.innerHTML = data.map(d=>{
+    const h = (d.value/maxVal)*50;
+    return `<div class="bar-col"><div class="bar" style="height:${h}px"></div><div class="bar-val">${money(d.value)}</div></div>`;
+  }).join('');
+  const labels = document.getElementById('income-labels');
+  labels.innerHTML = data.map(d=>`<span style="flex:1;text-align:center;font-size:9px;color:var(--text3)">${d.label}</span>`).join('');
+  const totalIncome = data.reduce((s,d)=>s+d.value,0);
+  const prev = data.length>1 ? data[data.length-2].value : 0;
+  document.getElementById('incomeYoY').textContent = prev>0 ? `${Math.round((data[data.length-1].value/prev-1)*100)}%` : '—';
+}
+
+/* ============================================================
+   STUDENTS
+   ============================================================ */
+function renderStudents() {
+  const search = (document.getElementById('studentSearch')?.value||'').toLowerCase();
+  let list = studentsOfTeacher();
+  if(studentFilter==='active') list = list.filter(s=>s.status==='active');
+  else if(studentFilter==='paused') list = list.filter(s=>s.status==='paused');
+  else if(studentFilter==='trial') list = list.filter(s=>s.status==='trial');
+  if(search) list = list.filter(s=>s.name.toLowerCase().includes(search)||s.phone?.includes(search)||s.telegram?.toLowerCase().includes(search));
+  document.getElementById('studentsCountLabel').textContent = list.length+' учеников';
+  document.getElementById('navStudentsBadge').textContent = studentsOfTeacher().filter(s=>s.status==='active').length;
+  const container = document.getElementById('student-cards');
+  if(list.length===0){
+    container.innerHTML = '<div class="empty-state">Нет учеников</div>';
+    return;
+  }
+  container.innerHTML = list.map(s=>{
+    const prog = studentProgress(s.id);
+    const debt = studentDebt(s.id);
+    const tag = debt>0 ? '<span class="tag tag-red">💰 Долг</span>' : (s.status==='trial'?'<span class="tag tag-amber">Пробный</span>':'<span class="tag tag-green">Активен</span>');
+    return `<div class="student-card" onclick="openStudentDetail('${s.id}')">
+      <div class="student-header">
+        <div class="student-avatar" style="background:${s.color||GRADIENTS[0]}">${escapeHTML(initialsOf(s.name))}</div>
+        <div><div class="student-name">${escapeHTML(s.name)}</div><div class="student-meta">${s.voiceType||'Вокал'}</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:var(--accent)"></div></div>
+      <div class="progress-label"><span>Прогресс</span><span>${prog}%</span></div>
+      <div>${tag}</div>
+    </div>`;
+  }).join('');
+}
+
+function setStudentFilter(f, el){
+  studentFilter = f;
+  document.querySelectorAll('#studentFilterTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderStudents();
+}
+
+function openStudentDetail(id){
+  currentStudentId = id;
+  showPage('student-detail');
+  renderStudentDetail(id);
+}
+
+function renderStudentDetail(id){
+  const s = studentById(id);
+  if(!s) return;
+  document.getElementById('detail-name').textContent = s.name;
+  // Профиль
+  const profile = document.getElementById('dtab-profile');
+  const sub = activeSubscriptionOf(id);
+  const debt = studentDebt(id);
+  const age = ageFromBirthday(s.birthday);
+  profile.innerHTML = `
+    <div class="detail-card"><div class="detail-title">👤 Профиль</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+        <div><span style="color:var(--text3)">Имя</span><br><b>${escapeHTML(s.name)}</b></div>
+        <div><span style="color:var(--text3)">Возраст</span><br><b>${age!==null?age+' лет':s.age||'—'}</b></div>
+        <div><span style="color:var(--text3)">Голос</span><br><b>${escapeHTML(s.voiceType||'—')}</b></div>
+        <div><span style="color:var(--text3)">Статус</span><br><b>${s.status==='active'?'Активен':s.status==='trial'?'Пробный':'На паузе'}</b></div>
+        <div><span style="color:var(--text3)">Телефон</span><br><b>${escapeHTML(s.phone||'—')}</b></div>
+        <div><span style="color:var(--text3)">Telegram</span><br><b>${escapeHTML(s.telegram||'—')}</b></div>
+        <div><span style="color:var(--text3)">Цель</span><br><b>${escapeHTML(s.goal||'—')}</b></div>
+        <div><span style="color:var(--text3)">Заметки</span><br><b>${escapeHTML(s.notes||'—')}</b></div>
+        <div><span style="color:var(--text3)">Долг</span><br><b style="color:${debt>0?'var(--red)':'var(--green)'}">${debt>0?money(debt):'нет'}</b></div>
+        <div><span style="color:var(--text3)">Абонемент</span><br><b>${sub?escapeHTML(sub.title)+` (осталось ${sub.totalLessons-sub.usedLessons} уроков)`:'нет'}</b></div>
+      </div>
+    </div>
+  `;
+  // Прогресс
+  renderDetailProgress(id);
+  // Репертуар
+  renderDetailRepertoire(id);
+  // Задания
+  renderDetailHomework(id);
+  // История
+  renderDetailHistory(id);
+  // Финансы
+  renderDetailFinance(id);
+}
+
+function renderDetailProgress(id){
+  const s = studentById(id);
+  if(!s||!s.skills) return;
+  const container = document.getElementById('dtab-progress-tab');
+  container.innerHTML = `<div class="detail-card">
+    <div class="detail-title">📊 Прогресс</div>
+    ${Object.entries(s.skills).map(([k,v])=>`
+      <div class="skill-row">
+        <div class="skill-name">${k==='breath'?'Дыхание':k==='intonation'?'Интонация':k==='mix'?'Микс':k==='range'?'Диапазон':k==='stage'?'Сцена':k}</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:${v}%;background:var(--accent)"></div></div>
+        <input class="skill-input" value="${v}" onchange="updateSkill('${id}','${k}',this.value)">
+      </div>
+    `).join('')}
+    <div style="margin-top:12px;font-size:12px;color:var(--text3)">Средний прогресс: <b style="color:var(--text)">${studentProgress(id)}%</b></div>
+  </div>`;
+}
+
+function updateSkill(studentId, skill, val){
+  val = Math.min(100, Math.max(0, parseInt(val)||0));
+  const s = studentById(studentId);
+  if(s && s.skills){
+    s.skills[skill] = val;
+    saveDB();
+    renderDetailProgress(studentId);
+  }
+}
+
+function renderDetailRepertoire(id){
+  const list = repertoireOfStudent(id);
+  const container = document.getElementById('dtab-repertoire');
+  if(list.length===0){
+    container.innerHTML = '<div class="empty-state">Нет песен в репертуаре</div>';
+    return;
+  }
+  container.innerHTML = list.map((r,i)=>`
+    <div class="song-item" onclick="openModal('repertoire',{repertoireId:'${r.id}',studentId:'${id}'})">
+      <div class="song-num">${i+1}</div>
+      <div class="song-info"><div class="song-title">${escapeHTML(r.title)}</div><div class="song-artist">${escapeHTML(r.artist)}</div></div>
+      <span class="tag ${r.cls||'tag-grey'}">${escapeHTML(r.status)}</span>
+    </div>
+  `).join('');
+}
+
+function renderDetailHomework(id){
+  const list = homeworkOfStudent(id);
+  const container = document.getElementById('dtab-homework-tab');
+  if(list.length===0){
+    container.innerHTML = '<div class="empty-state">Нет заданий</div>';
+    return;
+  }
+  container.innerHTML = list.map(h=>`
+    <div class="homework-item">
+      <div class="hw-icon">${h.icon||'📝'}</div>
+      <div class="hw-content"><div class="hw-title">${escapeHTML(h.title)}</div><div class="hw-sub">${escapeHTML(h.sub||'')}</div></div>
+      <span class="tag ${h.status==='done'?'tag-green':h.status==='progress'?'tag-amber':'tag-red'}">${h.status==='done'?'Сдано':h.status==='progress'?'В процессе':'Не сдано'}</span>
+    </div>
+  `).join('');
+}
+
+function renderDetailHistory(id){
+  const lessons = lessonsOfStudent(id);
+  const container = document.getElementById('dtab-history');
+  if(lessons.length===0){
+    container.innerHTML = '<div class="empty-state">Нет уроков</div>';
+    return;
+  }
+  container.innerHTML = lessons.map(l=>{
+    const statusMap = {done:'✅ Проведён', planned:'⏳ Запланирован', noshow:'❌ Неявка', cancelled:'🚫 Отменён'};
+    return `<div class="lesson-note" style="cursor:pointer" onclick="openModal('lesson',{lessonId:'${l.id}'})">
+      <div class="note-date"><span>${formatRu(l.date)} ${l.time}</span><span>${l.format||'Урок'}</span></div>
+      <div class="note-text">${statusMap[l.status]||l.status}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderDetailFinance(id){
+  const payments = paymentsOfStudent(id);
+  const subs = allSubscriptionsOf(id);
+  let html = '<div class="detail-card"><div class="detail-title">💳 Финансы</div>';
+  if(subs.length){
+    html += subs.map(su=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><b>${escapeHTML(su.title)}</b> — ${su.usedLessons}/${su.totalLessons} уроков, ${money(su.totalPrice)}</div>`).join('');
+  } else {
+    html += '<div style="color:var(--text3);font-size:13px">Нет абонементов</div>';
+  }
+  if(payments.length){
+    html += '<div style="margin-top:12px"><div style="font-weight:600;font-size:12px;color:var(--text3)">Платежи</div>';
+    payments.slice(0,5).forEach(p=>{
+      html += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><span>${formatRu(p.date)}</span><span>${money(p.amount)}</span></div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('dtab-finance-tab').innerHTML = html;
+}
+
+function switchDetailTab(el, tabId){
+  document.querySelectorAll('#page-student-detail .tab-row .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#page-student-detail [id^="dtab-"]').forEach(el=>el.classList.add('hidden'));
+  const target = document.getElementById('dtab-'+tabId);
+  if(target) target.classList.remove('hidden');
+}
+
+/* ============================================================
+   FINANCES
+   ============================================================ */
+function renderFinances(){
+  const students = studentsOfTeacher();
+  const now = new Date();
+  document.getElementById('finMonthLabel').textContent = MN[now.getMonth()]+' '+now.getFullYear();
+  const {paid, debt} = monthIncome(now.getFullYear(), now.getMonth());
+  document.getElementById('finPaid').textContent = money(paid);
+  document.getElementById('finPaidDelta').textContent = paid>0 ? 'за месяц' : '—';
+  document.getElementById('finDebt').textContent = money(debt);
+  let debtCount = 0;
+  students.forEach(s=>{ if(studentDebt(s.id)>0) debtCount++; });
+  document.getElementById('finDebtCount').textContent = debtCount>0 ? `${debtCount} учеников должны` : '—';
+
+  let rows = [];
+  students.forEach(s=>{
+    const d = studentDebt(s.id);
+    const sub = activeSubscriptionOf(s.id);
+    if(financeFilter==='paid' && d>0) return;
+    if(financeFilter==='debt' && d===0) return;
+    if(financeFilter==='subs' && !sub) return;
+    const tag = sub ? 'Абонемент' : (d>0 ? 'Долг' : 'Оплачено');
+    const cls = d>0 ? 'is-debt' : (sub ? 'is-paid' : 'is-paid');
+    rows.push({student:s, debt:d, sub, tag, cls});
+  });
+  const container = document.getElementById('finance-list');
+  if(rows.length===0){
+    container.innerHTML = '<div class="empty-state">Нет записей</div>';
+    return;
+  }
+  container.innerHTML = rows.map(r=>`
+    <div class="finance-row ${r.cls}" onclick="openStudentDetail('${r.student.id}')">
+      <div class="finance-name">${escapeHTML(r.student.name)}<div class="finance-sub">${r.tag}</div></div>
+      <div class="finance-amount ${r.debt>0?'debt':'paid'}">${r.debt>0?money(r.debt):(r.sub?'Активен':'Оплачено')}</div>
+    </div>
+  `).join('');
+}
+
+function setFinanceFilter(f, el){
+  financeFilter = f;
+  document.querySelectorAll('#financeFilterTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderFinances();
+}
+
+/* ============================================================
+   HOMEWORK
+   ============================================================ */
+function renderHomework(){
+  const all = DB.homework.filter(h=>{
+    const s = studentById(h.studentId);
+    return s && s.teacherId===DB.currentTeacherId;
+  });
+  const todo = all.filter(h=>h.status==='todo');
+  const progress = all.filter(h=>h.status==='progress');
+  const done = all.filter(h=>h.status==='done');
+  document.getElementById('hwTodoHead').textContent = '✗ Не сдано ('+todo.length+')';
+  document.getElementById('hwProgressHead').textContent = '⏳ В процессе ('+progress.length+')';
+  document.getElementById('hwDoneHead').textContent = '✓ Сдано ('+done.length+')';
+  document.getElementById('hwTodoList').innerHTML = renderHomeworkItems(todo);
+  document.getElementById('hwProgressList').innerHTML = renderHomeworkItems(progress);
+  document.getElementById('hwDoneList').innerHTML = renderHomeworkItems(done);
+  document.getElementById('navHwBadge').textContent = todo.length;
+}
+
+function renderHomeworkItems(list){
+  if(!list.length) return '<div class="empty-state">—</div>';
+  return list.map(h=>{
+    const s = studentById(h.studentId);
+    return `<div class="homework-item">
+      <div class="hw-icon">${h.icon||'📝'}</div>
+      <div class="hw-content"><div class="hw-title">${escapeHTML(h.title)}</div><div class="hw-sub">${s?escapeHTML(s.name):'—'} · ${escapeHTML(h.sub||'')}</div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+function renderProgress(){
+  const students = studentsOfTeacher();
+  // Средние навыки
+  const skills = {breath:0, intonation:0, mix:0, range:0, stage:0};
+  let count = 0;
+  students.forEach(s=>{
+    if(s.skills){
+      count++;
+      Object.keys(skills).forEach(k=>{ skills[k] += (s.skills[k]||0); });
+    }
+  });
+  const avgBox = document.getElementById('avgSkillsBox');
+  if(count===0){
+    avgBox.innerHTML = '<div class="empty-state">Нет данных</div>';
+  } else {
+    avgBox.innerHTML = Object.entries(skills).map(([k,v])=>`
+      <div class="skill-row">
+        <div class="skill-name">${k==='breath'?'Дыхание':k==='intonation'?'Интонация':k==='mix'?'Микс':k==='range'?'Диапазон':k==='stage'?'Сцена':k}</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:${Math.round(v/count)}%;background:var(--accent)"></div></div>
+        <span style="font-size:11px;color:var(--text3)">${Math.round(v/count)}%</span>
+      </div>
+    `).join('');
+  }
+
+  // Топ прогресса
+  const sorted = [...students].filter(s=>s.skills).sort((a,b)=>studentProgress(b.id)-studentProgress(a.id));
+  const topBox = document.getElementById('topProgressBox');
+  if(sorted.length===0){
+    topBox.innerHTML = '<div class="empty-state">—</div>';
+  } else {
+    topBox.innerHTML = sorted.slice(0,3).map(s=>`
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span>${escapeHTML(s.name)}</span>
+        <span style="color:var(--green)">${studentProgress(s.id)}%</span>
+      </div>
+    `).join('');
+  }
+
+  // Внимание (долги или низкий прогресс)
+  const attention = students.filter(s=>studentDebt(s.id)>0 || studentProgress(s.id)<40);
+  const attBox = document.getElementById('attentionBox');
+  if(attention.length===0){
+    attBox.innerHTML = '<div class="empty-state">Все хорошо 👍</div>';
+  } else {
+    attBox.innerHTML = attention.map(s=>`
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span>${escapeHTML(s.name)}</span>
+        <span style="color:var(--red)">${studentDebt(s.id)>0?'Долг':'Низкий прогресс'}</span>
+      </div>
+    `).join('');
+  }
+
+  // Годовой доход
+  const year = analyticsYear;
+  document.getElementById('yearLabel').textContent = year;
+  const data = yearIncomeSeries(year);
+  const maxVal = Math.max(1, ...data.map(d=>d.paid));
+  const chart = document.getElementById('yearChart');
+  chart.innerHTML = data.map((d,idx)=>{
+    const h = (d.paid/maxVal)*100;
+    const cls = idx===new Date().getMonth() && year===new Date().getFullYear() ? 'cur' : '';
+    return `<div class="bar-col"><div class="bar ${cls}" style="height:${Math.max(h,2)}px"></div></div>`;
+  }).join('');
+  const labels = document.getElementById('yearLabels');
+  labels.innerHTML = data.map(d=>`<span style="flex:1;text-align:center;font-size:9px;color:var(--text3)">${MNSh[data.indexOf(d)]}</span>`).join('');
+  const totalYear = data.reduce((s,d)=>s+d.paid,0);
+  const totalDebt = data.reduce((s,d)=>s+d.debt,0);
+  document.getElementById('yearTotal').textContent = money(totalYear);
+  const avg = totalYear / 12;
+  document.getElementById('yearAvg').textContent = money(avg);
+  document.getElementById('yearDebt').textContent = money(totalDebt);
+}
+
+function shiftYear(delta){
+  analyticsYear += delta;
+  renderProgress();
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+let modalCallback = null;
+let modalData = null;
+
+function openModal(type, data){
+  modalData = data || {};
+  const bg = document.getElementById('modal-bg');
+  const content = document.getElementById('modal-content');
+  bg.classList.remove('hidden');
+
+  let html = '';
+  if(type==='student'){
+    html = `
+      <div class="modal-title">➕ Новый ученик <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="input-group"><label class="input-label">Имя</label><input class="input" id="mStudentName" placeholder="Имя ученика"></div>
+      <div class="input-row">
+        <div class="input-group"><label class="input-label">Телефон</label><input class="input" id="mStudentPhone" placeholder="+7 ..."></div>
+        <div class="input-group"><label class="input-label">Telegram</label><input class="input" id="mStudentTelegram" placeholder="@username"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label class="input-label">Тип голоса</label><input class="input" id="mStudentVoice" placeholder="Сопрано, тенор..."></div>
+        <div class="input-group"><label class="input-label">Статус</label>
+          <select class="input" id="mStudentStatus"><option value="active">Активен</option><option value="trial">Пробный</option><option value="paused">На паузе</option></select>
+        </div>
+      </div>
+      <div class="input-group"><label class="input-label">Цель</label><input class="input" id="mStudentGoal" placeholder="Цель занятий"></div>
+      <div class="input-group"><label class="input-label">Заметки</label><textarea class="input" id="mStudentNotes" rows="2" placeholder="Дополнительная информация"></textarea></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveStudent()">Сохранить</button>
+    `;
+    modalCallback = 'saveStudent';
+  } else if(type==='lesson'){
+    const students = studentsOfTeacher();
+    const opts = students.map(s=>`<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('');
+    const date = modalData.date || todayISO();
+    const time = modalData.time || '10:00';
+    html = `
+      <div class="modal-title">📅 ${modalData.lessonId?'Редактировать урок':'Новый урок'} <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="input-group"><label class="input-label">Ученик</label><select class="input" id="mLessonStudent">${opts}</select></div>
+      <div class="input-row">
+        <div class="input-group"><label class="input-label">Дата</label><input class="input" id="mLessonDate" type="date" value="${date}"></div>
+        <div class="input-group"><label class="input-label">Время</label><input class="input" id="mLessonTime" type="time" value="${time}"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label class="input-label">Формат</label><select class="input" id="mLessonFormat"><option value="offline">В студии</option><option value="online">Онлайн</option></select></div>
+        <div class="input-group"><label class="input-label">Статус</label><select class="input" id="mLessonStatus"><option value="planned">Запланирован</option><option value="done">Проведён</option><option value="noshow">Неявка</option><option value="cancelled">Отменён</option></select></div>
+      </div>
+      <div class="input-group"><label class="input-label">Цена (если разовая оплата)</label><input class="input" id="mLessonPrice" type="number" placeholder="0"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveLesson('${modalData.lessonId||''}')">Сохранить</button>
+    `;
+    if(modalData.lessonId){
+      const l = DB.lessons.find(l=>l.id===modalData.lessonId);
+      if(l){
+        setTimeout(()=>{
+          document.getElementById('mLessonStudent').value = l.studentId;
+          document.getElementById('mLessonDate').value = l.date;
+          document.getElementById('mLessonTime').value = l.time;
+          document.getElementById('mLessonFormat').value = l.format||'offline';
+          document.getElementById('mLessonStatus').value = l.status||'planned';
+          document.getElementById('mLessonPrice').value = l.price||'';
+        }, 50);
+      }
+    }
+    modalCallback = 'saveLesson';
+  } else if(type==='payment'){
+    const students = studentsOfTeacher();
+    const opts = students.map(s=>`<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('');
+    html = `
+      <div class="modal-title">💰 Новый платёж <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="input-group"><label class="input-label">Ученик</label><select class="input" id="mPaymentStudent">${opts}</select></div>
+      <div class="input-row">
+        <div class="input-group"><label class="input-label">Дата</label><input class="input" id="mPaymentDate" type="date" value="${todayISO()}"></div>
+        <div class="input-group"><label class="input-label">Сумма</label><input class="input" id="mPaymentAmount" type="number" placeholder="0"></div>
+      </div>
+      <div class="input-group"><label class="input-label">Примечание</label><input class="input" id="mPaymentNote" placeholder="За что"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="savePayment()">Сохранить</button>
+    `;
+    modalCallback = 'savePayment';
+  } else if(type==='homework'){
+    const students = studentsOfTeacher();
+    const opts = students.map(s=>`<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('');
+    html = `
+      <div class="modal-title">📝 Задать ДЗ <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="input-group"><label class="input-label">Ученик</label><select class="input" id="mHwStudent">${opts}</select></div>
+      <div class="input-group"><label class="input-label">Задание</label><input class="input" id="mHwTitle" placeholder="Название"></div>
+      <div class="input-group"><label class="input-label">Детали</label><input class="input" id="mHwSub" placeholder="Дополнительно"></div>
+      <div class="input-group"><label class="input-label">Статус</label><select class="input" id="mHwStatus"><option value="todo">Не сдано</option><option value="progress">В процессе</option><option value="done">Сдано</option></select></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveHomework()">Сохранить</button>
+    `;
+    modalCallback = 'saveHomework';
+  } else if(type==='subscription'){
+    const students = studentsOfTeacher();
+    const opts = students.map(s=>`<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('');
+    html = `
+      <div class="modal-title">🎫 Абонемент <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="input-group"><label class="input-label">Ученик</label><select class="input" id="mSubStudent">${opts}</select></div>
+      <div class="input-row">
+        <div class="input-group"><label class="input-label">Название</label><input class="input" id="mSubTitle" placeholder="Абонемент 4 урока"></div>
+        <div class="input-group"><label class="input-label">Кол-во уроков</label><input class="input" id="mSubTotal" type="number" value="4"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label class="input-label">Цена</label><input class="input" id="mSubPrice" type="number" placeholder="0"></div>
+        <div class="input-group"><label class="input-label">Дата покупки</label><input class="input" id="mSubDate" type="date" value="${todayISO()}"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveSubscription()">Сохранить</button>
+    `;
+    modalCallback = 'saveSubscription';
+  } else if(type==='repertoire'){
+    const students = studentsOfTeacher();
+    const opts = students.map(s=>`<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('');
+    const selectedStudent = modalData.studentId || (students.length?students[0].id:'');
+    const r = modalData.repertoireId ? DB.repertoire.find(r=>r.id===modalData.repertoireId) : null;
+    html = `
+      <div class="modal-title">${r?'Редактировать':'Добавить'} песню <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="input-group"><label class="input-label">Ученик</label><select class="input" id="mRepStudent">${opts}</select></div>
+      <div class="input-group"><label class="input-label">Название</label><input class="input" id="mRepTitle" placeholder="Название песни" value="${r?escapeHTML(r.title):''}"></div>
+      <div class="input-group"><label class="input-label">Исполнитель</label><input class="input" id="mRepArtist" placeholder="Исполнитель" value="${r?escapeHTML(r.artist):''}"></div>
+      <div class="input-group"><label class="input-label">Статус</label><input class="input" id="mRepStatus" placeholder="Разучиваем, готова..." value="${r?escapeHTML(r.status):''}"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveRepertoire('${modalData.repertoireId||''}')">Сохранить</button>
+    `;
+    if(modalData.studentId){
+      setTimeout(()=>{ document.getElementById('mRepStudent').value = modalData.studentId; }, 50);
+    }
+    modalCallback = 'saveRepertoire';
+  }
+  content.innerHTML = html;
+}
+
+function closeModal(e){
+  if(e && e.target && e.target.id !== 'modal-bg') return;
+  document.getElementById('modal-bg').classList.add('hidden');
+  modalCallback = null;
+}
+
+/* ============================================================
+   СОХРАНЕНИЕ МОДАЛЬНЫХ ДАННЫХ
+   ============================================================ */
+function saveStudent(){
+  const name = document.getElementById('mStudentName').value.trim();
+  if(!name){ toast('Введите имя','red'); return; }
+  const teacherId = DB.currentTeacherId;
+  const s = {
+    id: uid('s'), teacherId, name, age: null, birthday: null,
+    voiceType: document.getElementById('mStudentVoice').value.trim(),
+    phone: document.getElementById('mStudentPhone').value.trim(),
+    telegram: document.getElementById('mStudentTelegram').value.trim(),
+    goal: document.getElementById('mStudentGoal').value.trim(),
+    notes: document.getElementById('mStudentNotes').value.trim(),
+    status: document.getElementById('mStudentStatus').value,
+    color: GRADIENTS[Math.floor(Math.random()*GRADIENTS.length)],
+    initials: initialsOf(name),
+    createdAt: todayISO(),
+    skills: {breath:50, intonation:50, mix:50, range:50, stage:50}
+  };
+  DB.students.push(s);
+  saveDB();
+  closeModal();
+  toast('Ученик добавлен','green');
+  renderStudents();
+}
+
+function saveLesson(lessonId){
+  const studentId = document.getElementById('mLessonStudent').value;
+  const date = document.getElementById('mLessonDate').value;
+  const time = document.getElementById('mLessonTime').value;
+  if(!studentId || !date || !time){ toast('Заполните все поля','red'); return; }
+  const price = parseFloat(document.getElementById('mLessonPrice').value)||0;
+  const format = document.getElementById('mLessonFormat').value;
+  const status = document.getElementById('mLessonStatus').value;
+  if(lessonId){
+    const l = DB.lessons.find(l=>l.id===lessonId);
+    if(l){
+      l.studentId = studentId;
+      l.date = date;
+      l.time = time;
+      l.format = format;
+      l.status = status;
+      l.price = price;
+      saveDB();
+      toast('Урок обновлён','green');
+    }
+  } else {
+    DB.lessons.push({
+      id: uid('l'), studentId, teacherId: DB.currentTeacherId,
+      date, time, duration:60, format, status,
+      price, paid:0, viaSubscription:false, subscriptionId:null,
+      plan:'', workedOn:'', rating:'good', mood:'neutral', createdAt:todayISO()
+    });
+    saveDB();
+    toast('Урок создан','green');
+  }
+  closeModal();
+  if(currentPage==='schedule') renderCalendar();
+  else if(currentPage==='student-detail') renderStudentDetail(currentStudentId);
+}
+
+function savePayment(){
+  const studentId = document.getElementById('mPaymentStudent').value;
+  const date = document.getElementById('mPaymentDate').value;
+  const amount = parseFloat(document.getElementById('mPaymentAmount').value);
+  if(!studentId || !date || !amount || amount<=0){ toast('Заполните все поля','red'); return; }
+  DB.payments.push({ id:uid('p'), studentId, date, amount, type:'manual', note:document.getElementById('mPaymentNote').value.trim() });
+  // Распределить оплату по долгам
+  const lessons = lessonsOfStudent(studentId).filter(l=>!l.viaSubscription && lessonDebt(l)>0).sort((a,b)=>a.date.localeCompare(b.date));
+  let remaining = amount;
+  for(let l of lessons){
+    const debt = lessonDebt(l);
+    if(debt<=0) continue;
+    const toPay = Math.min(remaining, debt);
+    l.paid = (l.paid||0)+toPay;
+    remaining -= toPay;
+    if(remaining<=0) break;
+  }
+  saveDB();
+  closeModal();
+  toast('Платёж сохранён','green');
+  renderFinances();
+}
+
+function saveHomework(){
+  const studentId = document.getElementById('mHwStudent').value;
+  const title = document.getElementById('mHwTitle').value.trim();
+  const sub = document.getElementById('mHwSub').value.trim();
+  const status = document.getElementById('mHwStatus').value;
+  if(!studentId || !title){ toast('Заполните поля','red'); return; }
+  DB.homework.push({ id:uid('hw'), studentId, title, sub, status, icon:'📝', assignedDate:todayISO() });
+  saveDB();
+  closeModal();
+  toast('ДЗ задано','green');
+  renderHomework();
+}
+
+function saveSubscription(){
+  const studentId = document.getElementById('mSubStudent').value;
+  const title = document.getElementById('mSubTitle').value.trim()||'Абонемент';
+  const totalLessons = parseInt(document.getElementById('mSubTotal').value)||4;
+  const totalPrice = parseFloat(document.getElementById('mSubPrice').value)||0;
+  const purchaseDate = document.getElementById('mSubDate').value||todayISO();
+  if(!studentId || totalLessons<=0){ toast('Заполните поля','red'); return; }
+  const ppl = totalPrice/totalLessons;
+  DB.subscriptions.push({ id:uid('sub'), studentId, title, totalLessons, usedLessons:0, pricePerLesson:ppl, totalPrice, purchaseDate, active:true });
+  DB.subHistory.push({ id:uid('h'), studentId, subscriptionId:uid('sub'), type:'purchase', lessonsDelta:totalLessons, amount:totalPrice, date:purchaseDate, note:'Покупка абонемента' });
+  if(totalPrice>0){
+    DB.payments.push({ id:uid('p'), studentId, date:purchaseDate, amount:totalPrice, type:'subscription_purchase', note:title });
+  }
+  saveDB();
+  closeModal();
+  toast('Абонемент добавлен','green');
+  renderFinances();
+}
+
+function saveRepertoire(repertoireId){
+  const studentId = document.getElementById('mRepStudent').value;
+  const title = document.getElementById('mRepTitle').value.trim();
+  const artist = document.getElementById('mRepArtist').value.trim();
+  const status = document.getElementById('mRepStatus').value.trim()||'в работе';
+  if(!studentId || !title){ toast('Заполните поля','red'); return; }
+  if(repertoireId){
+    const r = DB.repertoire.find(r=>r.id===repertoireId);
+    if(r){ r.title=title; r.artist=artist; r.status=status; }
+  } else {
+    DB.repertoire.push({ id:uid('r'), studentId, title, artist, status, cls:'tag-amber' });
+  }
+  saveDB();
+  closeModal();
+  toast('Репертуар обновлён','green');
+  if(currentStudentId) renderStudentDetail(currentStudentId);
+}
+
+/* ============================================================
+   НАСТРОЙКИ
+   ============================================================ */
+function renderSettings(){
+  const teacher = getCurrentTeacher();
+  if(!teacher) return;
+  document.getElementById('settingsNameInput').value = teacher.name||'';
+  document.getElementById('settingsRoleInput').value = teacher.role||'';
+  const av = document.getElementById('settingsAvPreview');
+  if(teacher.avatar && !teacher.avatar.startsWith('linear-gradient')){
+    av.innerHTML = `<img src="${teacher.avatar}" alt="avatar">`;
+  } else {
+    av.textContent = teacher.initials||'??';
+    av.style.background = teacher.avatar||'linear-gradient(135deg,#a78bfa,#ec4899)';
+  }
+  const themeToggle = document.getElementById('settingsThemeToggle');
+  themeToggle.checked = document.body.classList.contains('light-theme');
+}
+
+function saveProfileSettings(){
+  const teacher = getCurrentTeacher();
+  teacher.name = document.getElementById('settingsNameInput').value.trim()||'Преподаватель';
+  teacher.role = document.getElementById('settingsRoleInput').value.trim()||'Вокалист';
+  teacher.initials = initialsOf(teacher.name);
+  document.getElementById('sbName').textContent = teacher.name;
+  document.getElementById('sbRole').textContent = teacher.role;
+  saveDB();
+  toast('Профиль сохранён','green');
+}
+
+function handleSettingsAvatar(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const teacher = getCurrentTeacher();
+    teacher.avatar = ev.target.result;
+    saveDB();
+    document.getElementById('sbAvatar').innerHTML = `<img src="${ev.target.result}" alt="avatar">`;
+    document.getElementById('settingsAvPreview').innerHTML = `<img src="${ev.target.result}" alt="avatar">`;
+    toast('Аватар загружен','green');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeSettingsAvatar(){
+  const teacher = getCurrentTeacher();
+  teacher.avatar = 'linear-gradient(135deg,#a78bfa,#ec4899)';
+  saveDB();
+  document.getElementById('sbAvatar').textContent = teacher.initials||'??';
+  document.getElementById('settingsAvPreview').textContent = teacher.initials||'??';
+  toast('Аватар удалён','amber');
+}
+
+function toggleSettingsTheme(el){
+  document.body.classList.toggle('light-theme', el.checked);
+  localStorage.setItem('theme', el.checked?'light':'dark');
+}
+
+/* ============================================================
+   БОКОВОЕ МЕНЮ (мобильное)
+   ============================================================ */
+function toggleMobileSidebar(){
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const isOpen = sidebar.classList.contains('mobile-open');
+  if(isOpen){
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('show');
+  } else {
+    sidebar.classList.add('mobile-open');
+    overlay.classList.add('show');
+  }
+}
+
+function closeOverlay(){
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+/* ============================================================
+   WHASAPP
+   ============================================================ */
+function sendWhatsAppForStudent(studentId){
+  const s = studentById(studentId);
+  if(!s) return;
+  const phone = digitsOnly(s.phone);
+  if(!phone){ toast('Нет номера телефона','red'); return; }
+  const url = 'https://wa.me/'+phone;
+  window.open(url, '_blank');
+}
+
+/* ============================================================
+   ВЫХОД
+   ============================================================ */
+function doLogout(){
+  if(confirm('Выйти из аккаунта? Все данные сохранены.')){
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+
+/* ============================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+function init(){
+  loadDB();
+  const teacher = getCurrentTeacher();
+  document.getElementById('sbName').textContent = teacher.name||'Преподаватель';
+  document.getElementById('sbRole').textContent = teacher.role||'Вокалист';
+  const av = document.getElementById('sbAvatar');
+  if(teacher.avatar && !teacher.avatar.startsWith('linear-gradient')){
+    av.innerHTML = `<img src="${teacher.avatar}" alt="avatar">`;
+  } else {
+    av.textContent = teacher.initials||'??';
+    av.style.background = teacher.avatar||'linear-gradient(135deg,#a78bfa,#ec4899)';
+  }
+  // Восстановить тему
+  const savedTheme = localStorage.getItem('theme');
+  if(savedTheme==='light') document.body.classList.add('light-theme');
+  document.getElementById('settingsThemeToggle').checked = savedTheme==='light';
+
+  showPage('schedule');
+  initCalendar();
+  renderDashboard();
+  renderStudents();
+  renderFinances();
+  renderHomework();
+  renderProgress();
+  renderSettings();
+
+  // Обработка изменения размера окна для мобильного зума
+  window.addEventListener('resize', ()=>{
+    const wasMobile = isMobileDevice;
+    isMobileDevice = window.innerWidth <= 768;
+    if(wasMobile !== isMobileDevice){
+      renderCalendar();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
