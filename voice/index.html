@@ -31,7 +31,7 @@
   }
   body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:13px}
   .app{display:flex;height:100vh;overflow:hidden}
-  .sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+  .sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
   .logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
   .logo-mark{display:flex;align-items:center;gap:9px}
   .logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
@@ -73,7 +73,14 @@
   .tgl input:checked+.tgl-s::before{transform:translateX(16px)}
   .logout-btn{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:var(--red-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);color:var(--red);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font)}
   .logout-btn:hover{background:var(--red);color:#fff}
-  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+  /* Все страницы кроме расписания — flex-колонка с прокруткой */
+  [id^="page-"]{display:flex;flex-direction:column;height:100%;overflow:hidden}
+  [id^="page-"].hidden{display:none!important}
+  /* Расписание — жёсткий overflow:hidden (календарь сам скроллит) */
+  #page-schedule{overflow:hidden}
+  /* Контент — скроллится */
+  .content{flex:1;overflow-y:auto;padding:24px;-webkit-overflow-scrolling:touch}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
   .topbar-title{font-size:15px;font-weight:600;flex:1}
   .topbar-subtitle{font-size:11px;color:var(--text3);font-weight:400;margin-left:8px}
@@ -88,7 +95,6 @@
   .btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.3)}
   .btn-danger:hover{background:var(--red);color:#1a1a24}
   .btn:disabled{opacity:.4;cursor:not-allowed}
-  .content{flex:1;overflow-y:auto;padding:24px}
   .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
   .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;position:relative;overflow:hidden}
   .stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 var(--r2) 0 60px;opacity:.07}
@@ -476,7 +482,7 @@
     </div>
 
     <!-- SCHEDULE (КАЛЕНДАРЬ) -->
-    <div id="page-schedule" class="hidden" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+    <div id="page-schedule" class="hidden">
       <div class="topbar">
         <div class="topbar-title">Расписание <span class="topbar-subtitle" id="calPeriodLabel">—</span></div>
         <button class="btn btn-ghost" onclick="shiftCalWeek(-1)">◀ Пред.</button>
@@ -488,8 +494,8 @@
         </div>
         <button class="btn btn-primary" onclick="openModal('lesson')">+ Урок</button>
       </div>
-      <div class="content" style="padding:0;overflow:hidden;">
-        <div id="calView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;height:100%;">
+      <div class="content" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
+        <div id="calView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
           <div class="cal-head" id="calHead"></div>
           <div class="cal-body" id="calBody"></div>
         </div>
