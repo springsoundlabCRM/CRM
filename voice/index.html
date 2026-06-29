@@ -19,6 +19,16 @@
     --wa:#34d399;
     --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
   }
+  body.light-theme{
+    --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
+    --border:#dddde8;--border2:#c8c8d8;--text:#1e1e2a;--text2:#5a5a72;--text3:#9090a8;
+    --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
+    --green:#059669;--green-bg:rgba(5,150,105,0.1);
+    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);
+    --red:#dc2626;--red-bg:rgba(220,38,38,0.1);
+    --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
+    --pink:#db2777;--pink-bg:rgba(219,39,119,0.1);
+  }
   body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:13px}
   .app{display:flex;height:100vh;overflow:hidden}
   .sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
@@ -35,15 +45,34 @@
   .nav-item.active{background:var(--accent-glow);color:var(--accent)}
   .nav-item .icon{font-size:16px;width:18px;text-align:center}
   .nav-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px}
-  .sidebar-footer{padding:14px;border-top:1px solid var(--border)}
-  .teacher-card{display:flex;align-items:center;gap:9px;cursor:pointer;border-radius:var(--r);padding:6px;transition:background .15s;position:relative}
-  .teacher-card:hover{background:var(--bg3)}
-  .teacher-card:hover .teacher-switch-hint{opacity:1}
-  .teacher-switch-hint{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text3);opacity:0;transition:opacity .15s}
-  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#ec4899);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;flex-shrink:0}
-  .teacher-info{flex:1;min-width:0}
-  .teacher-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .teacher-role{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sidebar-footer{padding:10px 12px 14px;border-top:1px solid var(--border)}
+  .sb-user-block{display:flex;align-items:center;gap:9px;cursor:pointer;border-radius:var(--r);padding:7px 8px;transition:background .15s;position:relative}
+  .sb-user-block:hover{background:var(--bg3)}
+  .sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#ec4899);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;border:1px solid rgba(167,139,250,.35)}
+  .sb-av img{width:100%;height:100%;object-fit:cover}
+  .sb-info{flex:1;min-width:0}
+  .sb-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sb-role{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .sb-logout-icon{font-size:14px;color:var(--text3);flex-shrink:0;transition:color .15s}
+  .sb-user-block:hover .sb-logout-icon{color:var(--red)}
+  /* ===== НАСТРОЙКИ ===== */
+  .settings-section{margin-bottom:24px}
+  .settings-section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+  .settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px}
+  .settings-row-label{font-size:13px;font-weight:500}
+  .settings-row-sub{font-size:11px;color:var(--text3);margin-top:2px}
+  .settings-avatar-block{display:flex;align-items:center;gap:14px}
+  .settings-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#ec4899);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;border:2px solid var(--border2)}
+  .settings-av img{width:100%;height:100%;object-fit:cover}
+  .settings-av-actions{display:flex;flex-direction:column;gap:6px}
+  .tgl{position:relative;width:36px;height:20px;flex-shrink:0}
+  .tgl input{opacity:0;width:0;height:0;position:absolute}
+  .tgl-s{position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:20px;transition:.25s}
+  .tgl-s::before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s}
+  .tgl input:checked+.tgl-s{background:var(--accent)}
+  .tgl input:checked+.tgl-s::before{transform:translateX(16px)}
+  .logout-btn{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:var(--red-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);color:var(--red);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font)}
+  .logout-btn:hover{background:var(--red);color:#fff}
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
   .topbar-title{font-size:15px;font-weight:600;flex:1}
@@ -392,15 +421,19 @@
         <div class="nav-label">Аналитика</div>
         <div class="nav-item" data-page="progress" onclick="showPage('progress')"><span class="icon">📈</span> Прогресс</div>
       </div>
+      <div class="nav-section">
+        <div class="nav-label">Аккаунт</div>
+        <div class="nav-item" data-page="settings" onclick="showPage('settings')"><span class="icon">⚙️</span> Настройки</div>
+      </div>
     </nav>
     <div class="sidebar-footer">
-      <div class="teacher-card" onclick="openModal('teachers')" title="Сменить педагога">
-        <div class="avatar" id="sbAvatar">АК</div>
-        <div class="teacher-info">
-          <div class="teacher-name" id="sbName">Анна Ковалёва</div>
-          <div class="teacher-role" id="sbRole">Преподаватель эстрады</div>
+      <div class="sb-user-block" onclick="doLogout()" title="Выйти из аккаунта">
+        <div class="sb-av" id="sbAvatar">АК</div>
+        <div class="sb-info">
+          <div class="sb-name" id="sbName">Анна Ковалёва</div>
+          <div class="sb-role" id="sbRole">Преподаватель эстрады</div>
         </div>
-        <span class="teacher-switch-hint">⇄</span>
+        <span class="sb-logout-icon" title="Выйти">⎋</span>
       </div>
     </div>
   </aside>
@@ -569,6 +602,71 @@
           <div class="year-chart" id="yearChart"></div>
           <div style="display:flex;gap:6px" id="yearLabels"></div>
         </div>
+      </div>
+    </div>
+    <!-- SETTINGS -->
+    <div id="page-settings" class="hidden">
+      <div class="topbar">
+        <div class="topbar-title">Настройки <span class="topbar-subtitle">профиль педагога</span></div>
+      </div>
+      <div class="content">
+
+        <div class="settings-section">
+          <div class="settings-section-title">Профиль</div>
+          <div class="settings-row" style="align-items:flex-start">
+            <div>
+              <div class="settings-row-label">Аватар</div>
+              <div class="settings-row-sub">Фото отображается в боковом меню</div>
+            </div>
+            <div class="settings-avatar-block">
+              <div class="settings-av" id="settingsAvPreview">АК</div>
+              <div class="settings-av-actions">
+                <label class="btn btn-ghost btn-sm" for="settingsAvatarFile" style="cursor:pointer">📷 Загрузить</label>
+                <input type="file" id="settingsAvatarFile" accept="image/*" style="display:none" onchange="handleSettingsAvatar(event)">
+                <button class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.25)" onclick="removeSettingsAvatar()">Удалить</button>
+              </div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Имя педагога</div>
+              <div class="settings-row-sub">Отображается в боковом меню</div>
+            </div>
+            <input class="input" id="settingsNameInput" style="width:200px" placeholder="Ваше имя" value="">
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Специализация</div>
+              <div class="settings-row-sub">Например: Преподаватель эстрады</div>
+            </div>
+            <input class="input" id="settingsRoleInput" style="width:200px" placeholder="Ваша специализация" value="">
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:4px">
+            <button class="btn btn-primary" onclick="saveProfileSettings()">💾 Сохранить профиль</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Внешний вид</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Тёмная тема</div>
+              <div class="settings-row-sub">Переключить на светлую тему</div>
+            </div>
+            <label class="tgl">
+              <input type="checkbox" id="settingsThemeToggle" onchange="toggleSettingsTheme(this)">
+              <div class="tgl-s"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Аккаунт</div>
+          <button class="logout-btn" onclick="doLogout()">
+            <span style="font-size:16px">⎋</span> Выйти из аккаунта
+          </button>
+        </div>
+
       </div>
     </div>
   </main>
@@ -1217,8 +1315,14 @@ function lessonCardHTML(l, opts){
    ============================================================ */
 function renderSidebar(){
   const t = getCurrentTeacher();
-  document.getElementById('sbAvatar').textContent = t.initials || initialsOf(t.name);
-  document.getElementById('sbAvatar').style.background = t.avatar || GRADIENTS[0];
+  const av = document.getElementById('sbAvatar');
+  if(t.avatarUrl){
+    av.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    av.style.background = 'none';
+  } else {
+    av.textContent = t.initials || initialsOf(t.name);
+    av.style.background = t.avatar || GRADIENTS[0];
+  }
   document.getElementById('sbName').textContent = t.name;
   document.getElementById('sbRole').textContent = t.role || 'Преподаватель вокала';
   document.getElementById('navStudentsBadge').textContent = studentsOfTeacher().filter(s=>s.status!=='archived').length;
@@ -1412,7 +1516,7 @@ function showPage(name){
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
   document.getElementById('page-'+name).classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-  const navMap={dashboard:'dashboard',schedule:'schedule',students:'students','student-detail':'students',finances:'finances',homework:'homework',progress:'progress'};
+  const navMap={dashboard:'dashboard',schedule:'schedule',students:'students','student-detail':'students',finances:'finances',homework:'homework',progress:'progress',settings:'settings'};
   const navName=navMap[name];
   document.querySelectorAll('.nav-item').forEach(i=>{ if(i.getAttribute('data-page')===navName) i.classList.add('active'); });
   if(name==='dashboard') renderDashboard();
@@ -1421,6 +1525,7 @@ function showPage(name){
   if(name==='finances') renderFinances();
   if(name==='homework') renderHomework();
   if(name==='progress') renderProgress();
+  if(name==='settings') renderSettingsPage();
 }
 
 /* ============================================================
@@ -2216,68 +2321,6 @@ function saveRepertoireForm(studentId){
 }
 
 /* ---------- Педагоги (профили) ---------- */
-function buildTeachersModal(){
-  const rows = DB.teachers.map(t=>
-    '<div class="teacher-row '+(t.id===DB.currentTeacherId?'active':'')+'" onclick="switchTeacher(\''+t.id+'\')">'
-    +'<div class="avatar" style="background:'+(t.avatar||GRADIENTS[0])+'">'+t.initials+'</div>'
-    +'<div class="teacher-info"><div class="teacher-name">'+escapeHTML(t.name)+'</div><div class="teacher-role">'+escapeHTML(t.role||'Педагог')+'</div></div>'
-    + (DB.teachers.length>1 ? '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteTeacher(\''+t.id+'\')">✕</button>' : '')
-    +'</div>'
-  ).join('');
-  return '<div class="modal-title">Педагоги студии <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div style="margin-bottom:16px">'+rows+'</div>'
-    +'<div class="detail-title" style="margin-bottom:10px">+ Новый педагог</div>'
-    +'<div class="input-row"><div class="input-group"><label class="input-label">Имя</label><input class="input" id="f-t-name" placeholder="Анна Ковалёва"></div>'
-    +'<div class="input-group"><label class="input-label">Роль</label><input class="input" id="f-t-role" placeholder="Преподаватель вокала"></div></div>'
-    +'<div class="input-group"><label class="input-label">Цвет аватара</label><div class="color-row" id="f-t-colors">'
-    + GRADIENTS.map((g,i)=>'<div class="swatch'+(i===0?' active':'')+'" data-g="'+g+'" style="background:'+g+'" onclick="pickTeacherColor(this)"></div>').join('')
-    +'</div></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="addTeacherForm()">Добавить педагога</button>';
-}
-function pickTeacherColor(el){
-  document.querySelectorAll('#f-t-colors .swatch').forEach(s=>s.classList.remove('active'));
-  el.classList.add('active');
-}
-function switchTeacher(id){
-  if(id===DB.currentTeacherId){ closeModal(); return; }
-  DB.currentTeacherId = id;
-  saveDB();
-  closeModal();
-  const t = getCurrentTeacher();
-  toast('Активен профиль: '+t.name);
-  renderSidebar();
-  showPage('dashboard');
-  // Переинициализируем календарь для нового учителя
-  if(!document.getElementById('page-schedule').classList.contains('hidden')){
-    calendarInited = false;
-    showSchedule();
-  }
-}
-function addTeacherForm(){
-  const name = document.getElementById('f-t-name').value.trim();
-  if(!name){ toast('Введите имя педагога','red'); return; }
-  const role = document.getElementById('f-t-role').value.trim() || 'Преподаватель вокала';
-  const colorEl = document.querySelector('#f-t-colors .swatch.active');
-  const color = colorEl ? colorEl.getAttribute('data-g') : GRADIENTS[0];
-  const id = uid('t');
-  DB.teachers.push({ id, name, role, initials: initialsOf(name), avatar: color, phone:'' });
-  DB.currentTeacherId = id;
-  saveDB();
-  closeModal();
-  toast('Педагог «'+name+'» добавлен ✓');
-  renderSidebar();
-  showPage('dashboard');
-}
-function deleteTeacher(id){
-  if(DB.teachers.length<=1){ toast('Нельзя удалить единственный профиль','red'); return; }
-  if(!confirm('Удалить педагога? Его ученики и записи останутся в базе, но будут недоступны через интерфейс.')) return;
-  DB.teachers = DB.teachers.filter(t=>t.id!==id);
-  if(DB.currentTeacherId===id) DB.currentTeacherId = DB.teachers[0].id;
-  saveDB();
-  openModal('teachers');
-  renderSidebar();
-}
-
 /* ---------- Детали месяца (аналитика) ---------- */
 function buildMonthInfoModal(ctx){
   ctx = ctx||{};
@@ -2309,7 +2352,6 @@ const modalBuilders = {
   subHistory: buildSubHistoryModal,
   homework: buildHomeworkModal,
   repertoire: buildRepertoireModal,
-  teachers: buildTeachersModal,
   monthInfo: buildMonthInfoModal
 };
 function openModal(type, ctx){
@@ -2412,13 +2454,112 @@ function refreshAllVisible(){
 }
 
 /* ============================================================
-   ИНИЦИАЛИЗАЦИЯ
+   НАСТРОЙКИ ПРОФИЛЯ
    ============================================================ */
+let settingsAvatarUrl = null; // data URL загруженного аватара
+
+function renderSettingsPage(){
+  const t = getCurrentTeacher();
+  document.getElementById('settingsNameInput').value = t.name || '';
+  document.getElementById('settingsRoleInput').value = t.role || '';
+  // Аватар превью
+  const prev = document.getElementById('settingsAvPreview');
+  if(t.avatarUrl){
+    prev.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    prev.style.background = 'none';
+    settingsAvatarUrl = t.avatarUrl;
+  } else {
+    prev.textContent = t.initials || initialsOf(t.name);
+    prev.style.background = t.avatar || GRADIENTS[0];
+    settingsAvatarUrl = null;
+  }
+  // Тема
+  const themeIsLight = DB.theme === 'light';
+  const themeToggle = document.getElementById('settingsThemeToggle');
+  if(themeToggle) themeToggle.checked = themeIsLight;
+}
+
+function handleSettingsAvatar(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(file.size > 2*1024*1024){ toast('Файл слишком большой (максимум 2 МБ)', 'red'); return; }
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    settingsAvatarUrl = ev.target.result;
+    const prev = document.getElementById('settingsAvPreview');
+    prev.innerHTML = '<img src="'+settingsAvatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    prev.style.background = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeSettingsAvatar(){
+  settingsAvatarUrl = null;
+  const t = getCurrentTeacher();
+  const prev = document.getElementById('settingsAvPreview');
+  prev.innerHTML = '';
+  prev.textContent = t.initials || initialsOf(t.name);
+  prev.style.background = t.avatar || GRADIENTS[0];
+}
+
+function saveProfileSettings(){
+  const name = (document.getElementById('settingsNameInput').value||'').trim();
+  const role = (document.getElementById('settingsRoleInput').value||'').trim();
+  if(!name){ toast('Имя не может быть пустым', 'red'); return; }
+  const t = getCurrentTeacher();
+  t.name = name;
+  t.role = role;
+  t.initials = initialsOf(name);
+  if(settingsAvatarUrl !== null) t.avatarUrl = settingsAvatarUrl;
+  else delete t.avatarUrl;
+  saveDB();
+  renderSidebar();
+  // обновить превью
+  const prev = document.getElementById('settingsAvPreview');
+  if(t.avatarUrl){
+    prev.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    prev.style.background = 'none';
+  } else {
+    prev.textContent = t.initials;
+    prev.style.background = t.avatar || GRADIENTS[0];
+  }
+  toast('Профиль сохранён ✓');
+}
+
+function toggleSettingsTheme(checkbox){
+  const isLight = checkbox.checked;
+  DB.theme = isLight ? 'light' : 'dark';
+  applyTheme();
+  saveDB();
+}
+
+function applyTheme(){
+  if(DB.theme === 'light'){
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
+}
+
+function doLogout(){
+  if(!confirm('Выйти из аккаунта? Все данные сохранены локально.')) return;
+  // В локальной CRM просто скрываем приложение и показываем экран входа
+  // (при наличии — иначе просто перезагрузка)
+  const authScreen = document.getElementById('authScreen');
+  if(authScreen){
+    document.getElementById('app').style.display = 'none';
+    authScreen.style.display = 'flex';
+  } else {
+    toast('Вы вышли из аккаунта', 'amber');
+  }
+}
+
 function initApp(){
   loadDB();
+  if(!DB.theme) DB.theme = 'dark';
+  applyTheme();
   renderSidebar();
   showPage('dashboard');
-  // Инициализация календаря произойдёт при первом переходе на расписание
   isMobileDevice = window.innerWidth <= 768;
 }
 if(typeof window!=='undefined'){
