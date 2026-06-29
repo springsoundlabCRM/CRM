@@ -136,10 +136,12 @@
   }
   .cal-body {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
     display: grid;
     grid-template-columns: 56px repeat(7, 1fr);
-    -webkit-overflow-scrolling: touch;
+    background: var(--bg);
+    min-height: 0;
   }
   .cal-time-col {
     border-right: 1px solid var(--border);
@@ -361,6 +363,43 @@
     .student-grid{grid-template-columns:repeat(2,1fr)}
     .schedule-grid{grid-template-columns:repeat(7,minmax(120px,1fr));overflow-x:auto}
     .detail-panel{grid-template-columns:1fr}
+  }
+
+  /* ===== ИСПРАВЛЕНИЕ ПРОКРУТКИ ДЛЯ СТРАНИЦЫ РАСПИСАНИЯ ===== */
+  #page-schedule {
+    display: flex !important;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  #page-schedule .content {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  #calView {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+    min-height: 0;
+  }
+  .cal-body {
+    flex: 1;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+  /* Для мобильных устройств - гарантируем сенсорную прокрутку */
+  @media(max-width:768px) {
+    .cal-body {
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto !important;
+    }
   }
 </style>
 </head>
@@ -871,7 +910,6 @@ function setEffectiveZoom(val) {
 }
 
 function saveZoomToProfile() {
-  // Сохраняем в localStorage для текущего учителя (сохраняем в объекте учителя)
   const teacher = getCurrentTeacher();
   if(teacher && teacher.id) {
     teacher.hourHeight = getEffectiveZoom();
@@ -967,7 +1005,6 @@ function renderCalendar() {
   }
   body.appendChild(timeCol);
 
-  // Получаем уроки текущего учителя
   const lessons = lessonsOfTeacher();
   const byDate = {};
   lessons.forEach(l => {
@@ -1017,7 +1054,6 @@ function renderCalendar() {
       const totalCols = Math.max(placed.filter(x=>x!==undefined).length, 1);
       const colW = 90 / totalCols;
       const colLeft = 3 + subcol * (colW + 1);
-      // Цвет ученика
       const student = studentById(ev.studentId);
       const color = student ? student.color : GRADIENTS[0];
       const evName = escapeHTML(student ? student.name : '—');
@@ -1030,7 +1066,6 @@ function renderCalendar() {
       evEl.style.width = colW + '%';
       evEl.style.background = 'rgba(167,139,250,0.18)';
       if(student) {
-        // Извлекаем цвет из градиента (берём первый цвет)
         const gradMatch = color.match(/#[0-9a-f]{6}/i);
         const hex = gradMatch ? gradMatch[0] : '#a78bfa';
         evEl.style.background = hex + '33';
@@ -1039,7 +1074,6 @@ function renderCalendar() {
         evEl.style.background = 'rgba(167,139,250,0.18)';
         evEl.style.borderLeft = '4px solid #a78bfa';
       }
-      // Статус
       const statusColor = ev.status === 'done' ? 'var(--green)' : ev.status === 'planned' ? 'var(--amber)' : 'var(--red)';
       evEl.style.borderLeft = '4px solid ' + statusColor;
       evEl.innerHTML = `<div class="cal-event-name" style="color:var(--text)">${evName}</div><div class="cal-event-svc" style="color:var(--text);opacity:.78">${evSvc}</div>`;
@@ -1050,9 +1084,7 @@ function renderCalendar() {
       col.appendChild(evEl);
     });
 
-    // Drag-to-create (упрощённо, только клик)
     (function setupDragCreate(col, ds) {
-      // Обработка клика по пустому месту
       col.addEventListener('click', function(e) {
         if(e.target.closest('.cal-event')) return;
         const rect = this.getBoundingClientRect();
@@ -1061,7 +1093,6 @@ function renderCalendar() {
         let hour = Math.floor((y / totalHeight) * (HOURS_END - HOURS_START)) + HOURS_START;
         hour = Math.min(Math.max(hour, HOURS_START), HOURS_END - 1);
         const timeStr = String(hour).padStart(2,'0') + ':00';
-        // Открываем модалку создания урока с предзаполненной датой и временем
         openModal('lesson', { date: ds, time: timeStr });
       });
     })(col, ds);
@@ -1162,7 +1193,6 @@ function initCalendar() {
     calView.addEventListener('touchmove', handleTouchMove, { passive: false });
     calView.addEventListener('touchend', handleTouchEnd, { passive: false });
   }
-  // Восстанавливаем zoom из профиля учителя
   const teacher = getCurrentTeacher();
   if(teacher) {
     if(teacher.hourHeight) currentHourHeight = Math.min(Math.max(teacher.hourHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
@@ -1331,7 +1361,6 @@ function renderIncomeChart(){
 /* ============================================================
    РАСПИСАНИЕ — переключатель на календарь
    ============================================================ */
-// При показе страницы расписания инициализируем календарь
 let calendarInited = false;
 function showSchedule() {
   if(!calendarInited) {
