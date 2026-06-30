@@ -466,15 +466,15 @@
   }
   .sidebar-overlay.show{display:block;opacity:1}
 
-  /* ---------- Кнопка-гамбургер (вставляется JS-ом в topbar) ---------- */
+  /* ---------- Кнопка-гамбургер "Меню" (вставляется JS-ом в topbar) ---------- */
   .hamburger-btn{
-    display:none;align-items:center;justify-content:center;
-    width:34px;height:34px;min-width:34px;border-radius:9px;
-    background:var(--bg3);border:1px solid var(--border2);color:var(--text);
-    font-size:16px;cursor:pointer;flex-shrink:0;margin-left:4px;margin-right:6px;
+    display:none!important;align-items:center;gap:5px;
+    font-size:11px;font-weight:600;
+    background:var(--bg3)!important;border-color:var(--border2)!important;
+    cursor:pointer;flex-shrink:0;margin-left:4px;margin-right:6px;
     -webkit-tap-highlight-color:transparent;
   }
-  .hamburger-btn:active{background:var(--card2)}
+  .hamburger-btn:active{background:var(--card2)!important}
 
   /* ---------- Нижняя навигация (моб.) ---------- */
   .bottom-nav{
@@ -556,7 +556,7 @@
       box-sizing:border-box;
     }
     .sidebar.mobile-open{transform:translateX(0)}
-    .hamburger-btn{display:flex}
+    .hamburger-btn{display:flex!important}
     .content{padding:16px}
     .topbar{padding:0 14px;height:54px;gap:8px}
     .topbar-title{font-size:14px}
@@ -2121,11 +2121,13 @@ function insertHamburgers(){
     if(tb.closest('#page-schedule')) return;
     if(tb.querySelector('.hamburger-btn')) return;
     const btn = document.createElement('button');
-    btn.className = 'hamburger-btn';
+    btn.className = 'hamburger-btn tb-btn';
     btn.setAttribute('aria-label','Открыть меню');
-    btn.innerHTML = '☰';
-    btn.style.marginLeft = '4px'; // небольшой отступ от левого края
+    btn.setAttribute('title','Открыть меню');
+    btn.type = 'button';
+    btn.innerHTML = '<i class="fa-solid fa-bars"></i> <span class="hamburger-label">Меню</span>';
     btn.addEventListener('click', function(e){
+      e.preventDefault();
       e.stopPropagation();
       toggleMobileSidebar();
     });
