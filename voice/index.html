@@ -504,7 +504,7 @@
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;
     box-sizing:border-box;
     background:var(--bg2);border-top:1px solid var(--border);
-    padding:6px 2px calc(6px + env(safe-area-inset-bottom, 0px));
+    padding:6px 2px 6px;
     justify-content:space-around;align-items:center;
   }
   .bn-item{
@@ -743,9 +743,22 @@
   // Надёжный фикс высоты для iOS/Android: меряем реальную видимую высоту
   // (а не layout viewport) и держим её синхронизированной всегда.
   (function(){
-    function setVH(){
+    var _maxVH = 0;
+    var _lastW = window.innerWidth;
+    function setVH(force){
       var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-      document.documentElement.style.setProperty('--vh100', h + 'px');
+      var w = window.innerWidth;
+      // Если ширина экрана заметно изменилась — это поворот экрана
+      // или сильное изменение раскладки, а не "дрожание" iOS.
+      // В этом случае сбрасываем запомненный максимум и мерим заново.
+      if (Math.abs(w - _lastW) > 80) {
+        _maxVH = 0;
+        _lastW = w;
+      }
+      if (force || h > _maxVH) {
+        _maxVH = h;
+      }
+      document.documentElement.style.setProperty('--vh100', _maxVH + 'px');
     }
     function setNavH(){
       var nav = document.getElementById('bottomNav');
@@ -753,18 +766,18 @@
         document.documentElement.style.setProperty('--bottom-nav-h', nav.offsetHeight + 'px');
       }
     }
-    function refreshAll(){ setVH(); setNavH(); }
+    function refreshAll(force){ setVH(force === true); setNavH(); }
     refreshAll();
     // Повторные замеры — на старте standalone-приложения (запуск с иконки)
     // размеры окна и реальная высота меню иногда устанавливаются не сразу.
-    [0, 100, 300, 600, 1200].forEach(function(t){ setTimeout(refreshAll, t); });
-    window.addEventListener('load', refreshAll);
-    window.addEventListener('pageshow', refreshAll);
-    window.addEventListener('resize', refreshAll);
-    window.addEventListener('orientationchange', function(){ setTimeout(refreshAll, 50); setTimeout(refreshAll, 300); });
+    [0, 100, 300, 600, 1200].forEach(function(t){ setTimeout(function(){ refreshAll(); }, t); });
+    window.addEventListener('load', function(){ refreshAll(); });
+    window.addEventListener('pageshow', function(){ refreshAll(); });
+    window.addEventListener('resize', function(){ refreshAll(); });
+    window.addEventListener('orientationchange', function(){ setTimeout(function(){ refreshAll(true); }, 50); setTimeout(function(){ refreshAll(true); }, 300); });
     if(window.visualViewport){
-      window.visualViewport.addEventListener('resize', refreshAll);
-      window.visualViewport.addEventListener('scroll', setVH);
+      window.visualViewport.addEventListener('resize', function(){ refreshAll(); });
+      window.visualViewport.addEventListener('scroll', function(){ setVH(); });
     }
     // Меню рендерится через JS уже после загрузки страницы — следим за ним,
     // чтобы пересчитать высоту, как только оно реально появится в DOM.
