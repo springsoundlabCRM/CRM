@@ -143,7 +143,7 @@
     #page-dashboard #todayLabel{font-size:15px;font-weight:600;color:var(--text);margin-left:0}
     #page-dashboard .topbar{justify-content:space-between}
     #page-dashboard .dash-actions{margin-left:auto}
-    .sub-new-btn{padding:16px 9px;font-size:13px;font-weight:600}
+    .sub-new-btn{font-size:13px;font-weight:600}
   }
   .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff}
@@ -2374,10 +2374,10 @@ function renderDetailProfile(){
       +'</div>';
   } else {
     const hasHistory = subHistoryOf(s.id).length>0;
-    subBlock = '<div class="detail-card"><div class="detail-title">💳 Абонемент</div>'
-      +'<div class="empty-state" style="margin-bottom:10px">Нет активного абонемента</div>'
-      +'<button class="btn btn-primary btn-sm sub-new-btn" style="width:100%;justify-content:center;margin-bottom:6px" onclick="openModal(\'subscription\',{studentId:\''+s.id+'\'})">Новый абонемент</button>'
-      + (hasHistory ? '<button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История абонементов</button>' : '')
+    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title">💳 Абонемент</div>'
+      +'<div class="empty-state" style="margin-bottom:10px;flex:1">Нет активного абонемента</div>'
+      +'<button class="btn btn-primary sub-new-btn" style="width:100%;justify-content:center;flex:2;font-size:13px;font-weight:600" onclick="openModal(\'subscription\',{studentId:\''+s.id+'\'})">Новый абонемент</button>'
+      + (hasHistory ? '<button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История абонементов</button>' : '')
       +'</div>';
   }
 
