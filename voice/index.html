@@ -638,27 +638,25 @@
     /* ===== РАСПИСАНИЕ (КАЛЕНДАРЬ): всё на одном экране, без скролла,
        7 дней видно целиком, часы не обрезаны ===== */
     #page-schedule .topbar{
-      flex-wrap:nowrap;padding:8px;min-height:46px;gap:6px;overflow-x:auto;overflow-y:visible;
+      flex-wrap:nowrap;padding:8px 6px;min-height:46px;gap:4px;overflow-x:auto;overflow-y:visible;
+      -webkit-overflow-scrolling:touch;
     }
+    #page-schedule .topbar::-webkit-scrollbar{display:none}
     #page-schedule .topbar .btn{padding:6px 8px;font-size:10.5px;gap:3px}
     /* На мобильном зум скрываем — место экономим, зумировать можно жестом pinch */
     #page-schedule .zoom-controls-top{display:none!important}
-    /* Стрелки ◀▶ скрываем — на скриншоте их нет, листать можно свайпом по календарю */
+    /* Стрелки ◀▶ скрываем — листать неделю можно свайпом по календарю */
     #calWeekPrevBtn,#calWeekNextBtn{display:none!important}
-    /* Дата + Сбросить остаются видны, выстраиваются по центру/после Меню */
-    #page-schedule .cal-week-nav{display:flex!important;flex:1;justify-content:center}
-    .cal-period-btn{flex-shrink:0}
-    /* Отдельная иконка-календарик справа — мобильная, открывает тот же пикер */
-    .schedule-picker-btn{display:flex!important;flex-shrink:0;padding:6px 10px!important}
-    /* Кнопка Меню в расписании на мобильном — показываем */
+    /* Дата + Сбросить остаются видны, идут сразу после Меню */
+    #page-schedule .cal-week-nav{display:flex!important;flex-shrink:0}
+    .cal-period-btn{flex-shrink:0;padding:6px 9px!important}
+    .cal-period-btn span{font-size:10.5px}
+    /* Кнопка Меню в расписании на мобильном — показываем, текст ВСЕГДА виден */
     .schedule-menu-btn{
       display:flex!important;align-items:center;gap:5px;
       font-size:11px;font-weight:600;flex-shrink:0;
       background:var(--bg3)!important;border-color:var(--border2)!important;
-    }
-    @media(max-width:380px){
-      .schedule-menu-label{display:none}
-      .reset-label{display:none}
+      padding:6px 10px!important;
     }
     .cal-head{grid-template-columns:38px repeat(7,1fr)}
     .cal-body{grid-template-columns:38px repeat(7,1fr)}
@@ -852,10 +850,6 @@
           <button class="tb-btn" id="calWeekNextBtn" onclick="shiftCalWeek(1)" title="Следующая неделя"><i class="fa-solid fa-chevron-right"></i></button>
           <button class="tb-btn" onclick="resetCalendarView()" title="Вернуться к текущей дате"><i class="fa-solid fa-rotate-left"></i> <span class="reset-label">Сбросить</span></button>
         </div>
-        <!-- Иконка-календарик (мобильная, открывает пикер периода) -->
-        <button class="tb-btn schedule-picker-btn" onclick="openCalPicker()" title="Выбрать дату">
-          <i class="fa-regular fa-calendar"></i>
-        </button>
       </div>
       <div class="content" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
         <div id="calView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
