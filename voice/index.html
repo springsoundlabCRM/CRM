@@ -1284,12 +1284,23 @@ async function loadDB(){
 
 async function saveDB(){
   if(!currentUid) return;
+  window.__pendingSaves = (window.__pendingSaves||0) + 1;
   try{
     const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
     await window.__fb.setDoc(ref, { payload: JSON.stringify(DB), updatedAt: Date.now() });
   }
   catch(e){ console.error('Не удалось сохранить данные в Firestore',e); toast('⚠️ Не удалось сохранить данные','red'); }
+  finally{ window.__pendingSaves = Math.max(0, (window.__pendingSaves||1) - 1); }
 }
+// Защита: если есть незавершённое сохранение в Firestore — предупреждаем перед
+// закрытием вкладки или обновлением страницы, чтобы данные не "терялись" из-за
+// слишком быстрого refresh сразу после добавления ученика/урока/абонемента и т.д.
+window.addEventListener('beforeunload', function(e){
+  if(window.__pendingSaves > 0){
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 
 /* ---------- Утилиты дат ---------- */
 function pad2(n){ return String(n).padStart(2,'0'); }
@@ -2767,7 +2778,7 @@ function buildStudentModal(ctx){
     +'<div class="input-group"><label class="input-label">Цель</label><textarea class="input" id="f-goal" rows="2" placeholder="Пою для себя / хочу выступать..."></textarea></div>'
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveStudentForm()">Добавить ученика</button>';
 }
-function saveStudentForm(){
+async function saveStudentForm(){
   const name = document.getElementById('f-name').value.trim();
   if(!name){ toast('Введите имя ученика','red'); return; }
   const id = uid('s');
@@ -2779,7 +2790,9 @@ function saveStudentForm(){
     goal: document.getElementById('f-goal').value.trim(), notes:'', status: document.getElementById('f-status').value,
     color, initials: initialsOf(name), createdAt: todayISO(), skills:{breath:30,intonation:30,mix:20,range:30,stage:25}
   });
-  saveDB();
+  const btn = document.querySelector('#modal-content .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = 'Сохранение...'; }
+  await saveDB();
   closeModal();
   toast('Ученик «'+name+'» добавлен ✓');
   renderSidebar();
