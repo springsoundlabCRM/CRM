@@ -1227,8 +1227,8 @@ async function loadDB(){
   if(data){
     try{ DB = JSON.parse(data); }catch(e){ console.warn('Повреждённые данные, создаю новую базу',e); DB=null; }
   }
-  if(!DB){ DB = defaultDB(); seedDB(); }
-  if(!DB.teachers || !DB.teachers.length){ DB = defaultDB(); seedDB(); }
+  if(!DB){ DB = defaultDB(); seedEmptyTeacher(); }
+  if(!DB.teachers || !DB.teachers.length){ DB = defaultDB(); seedEmptyTeacher(); }
   if(!DB.currentTeacherId || !DB.teachers.find(t=>t.id===DB.currentTeacherId)){
     DB.currentTeacherId = DB.teachers[0].id;
   }
@@ -1289,6 +1289,14 @@ function toast(msg, color){
 /* ============================================================
    ДЕМО-ДАННЫЕ
    ============================================================ */
+// Для реальных новых аккаунтов (регистрация через Firebase) — создаём
+// только пустой профиль преподавателя, без тестовых учеников/уроков.
+function seedEmptyTeacher(){
+  const teacherId = uid('t');
+  DB.teachers.push({ id:teacherId, name:'', role:'', initials:'', avatar:GRADIENTS[0], phone:'' });
+  DB.currentTeacherId = teacherId;
+}
+
 function seedDB(){
   const teacherId = uid('t');
   DB.teachers.push({ id:teacherId, name:'Анна Ковалёва', role:'Преподаватель эстрады', initials:'АК', avatar:'linear-gradient(135deg,#a78bfa,#ec4899)', phone:'' });
