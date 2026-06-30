@@ -94,8 +94,17 @@
   /* Контент — скроллится */
   .content{flex:1;overflow-y:auto;padding:24px;-webkit-overflow-scrolling:touch}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+  /* Кнопки верхней панели расписания — точно как в оригинале SSL CRM */
+  .tb-btn{
+    padding:6px 11px;border-radius:var(--r);border:1px solid var(--border);
+    background:var(--card2);color:var(--text2);font-size:11px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;gap:5px;transition:.15s;
+    white-space:nowrap;
+  }
+  .tb-btn:hover{color:var(--text);border-color:var(--border2)}
+  button.tb-btn{font-family:inherit}
   /* Зум-контролы расписания: на десктопе слева, видны по умолчанию */
-  .zoom-controls-top{display:flex;gap:4px}
+  .zoom-controls-top{display:flex;gap:4px;margin-right:8px}
   /* Навигация по неделям + дата + сброс: на десктопе справа, видна по умолчанию */
   .cal-week-nav{display:flex}
   /* Кнопка "Меню" в расписании: видна только на мобильном */
@@ -801,22 +810,23 @@
           <i class="fa-solid fa-bars"></i> <span class="schedule-menu-label">Меню</span>
         </button>
         <span id="calPeriodLabelMobile" style="display:none;font-size:11px;color:var(--text2);white-space:nowrap"></span>
-        <!-- Зум (слева, как в оригинале SSL) -->
+        <!-- Зум (слева, точно как в оригинале SSL) -->
         <div class="zoom-controls-top">
-          <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(1)" title="Увеличить"><i class="fa-solid fa-plus"></i></button>
-          <button class="btn btn-ghost btn-sm" onclick="zoomCalendar(-1)" title="Уменьшить"><i class="fa-solid fa-minus"></i></button>
+          <button class="tb-btn" onclick="zoomCalendar(1)" title="Увеличить масштаб"><i class="fa-solid fa-plus"></i></button>
+          <button class="tb-btn" onclick="zoomCalendar(-1)" title="Уменьшить масштаб"><i class="fa-solid fa-minus"></i></button>
         </div>
         <!-- Заполнитель -->
         <div style="flex:1"></div>
         <!-- Добавить урок -->
         <button class="btn btn-primary" onclick="openModal('lesson')">+ Урок</button>
-        <!-- Навигация по неделям + дата + сброс (справа, как в оригинале SSL) -->
+        <!-- Навигация по неделям + дата + сброс (справа, точно как в оригинале SSL) -->
         <div class="cal-week-nav" style="display:flex;align-items:center;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="shiftCalWeek(-1)" title="Предыдущая неделя"><i class="fa-solid fa-chevron-left"></i></button>
-          <i class="fa-regular fa-calendar" style="font-size:11px;color:var(--text3);margin-right:-2px"></i>
-          <span class="btn btn-ghost" style="cursor:default;font-size:12.5px" id="calPeriodLabel">—</span>
-          <button class="btn btn-ghost btn-sm" onclick="shiftCalWeek(1)" title="Следующая неделя"><i class="fa-solid fa-chevron-right"></i></button>
-          <button class="btn btn-ghost" onclick="resetCalendarView()" title="Сбросить к сегодня"><i class="fa-solid fa-rotate-left"></i> Сбросить</button>
+          <button class="tb-btn" onclick="shiftCalWeek(-1)" title="Предыдущая неделя"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="tb-btn" id="calPeriodBtn" title="Текущий период" style="cursor:default" onclick="return false">
+            <i class="fa-solid fa-calendar-days"></i> <span id="calPeriodLabel">—</span>
+          </button>
+          <button class="tb-btn" onclick="shiftCalWeek(1)" title="Следующая неделя"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="tb-btn" onclick="resetCalendarView()" title="Вернуться к текущей дате"><i class="fa-solid fa-rotate-left"></i> Сбросить</button>
         </div>
       </div>
       <div class="content" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
