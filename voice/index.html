@@ -113,7 +113,7 @@
   #page-schedule{overflow:hidden}
   /* Контент — скроллится */
   .content{flex:1;overflow-y:auto;padding:24px;-webkit-overflow-scrolling:touch}
-  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 24px;min-height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;row-gap:8px}
   /* Кнопки верхней панели расписания — точно как в оригинале SSL CRM */
   .tb-btn{
     padding:6px 11px;border-radius:var(--r);border:1px solid var(--border);
@@ -502,12 +502,11 @@
      ОДИНАКОВЫЙ размер кнопки во всех разделах, независимо от того, что
      находится в топбаре справа (заголовки, кнопки действий и т.д.) */
   .hamburger-btn{
-    display:none!important;align-items:center;gap:5px;
-    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    display:none!important;align-items:center;gap:5px;flex-shrink:0;order:-1;
     font-size:11px;font-weight:600;
     background:var(--bg3)!important;border-color:var(--border2)!important;
     padding:6px 10px!important;height:30px;box-sizing:border-box;
-    cursor:pointer;z-index:5;
+    cursor:pointer;
     -webkit-tap-highlight-color:transparent;
   }
   .hamburger-btn:active{background:var(--card2)!important}
@@ -593,7 +592,7 @@
     .sidebar.mobile-open{transform:translateX(0)}
     .hamburger-btn{display:flex!important}
     .content{padding:16px}
-    .topbar{padding:0 12px 0 96px;height:54px;gap:8px;position:relative}
+    .topbar{padding:8px 12px;min-height:54px;gap:8px;row-gap:6px}
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
     .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -610,10 +609,11 @@
     .sidebar{width:78vw;max-width:300px;min-width:0}
     .content{padding:12px}
     .topbar{
-      flex-wrap:nowrap;height:50px;padding:0 10px 0 96px;
-      gap:6px;overflow-x:auto;position:relative;justify-content:flex-end;
+      flex-wrap:nowrap;min-height:50px;padding:8px 10px;
+      gap:6px;overflow-x:auto;
       -webkit-overflow-scrolling:touch;
     }
+    .topbar .hamburger-btn,#page-schedule .topbar .schedule-menu-btn{margin-right:auto}
     .topbar::-webkit-scrollbar{display:none}
     /* Названия разделов в топбаре скрываем на мобильном —
        раздел и так понятен из нижнего/бокового меню.
@@ -667,8 +667,8 @@
     /* ===== РАСПИСАНИЕ (КАЛЕНДАРЬ): всё на одном экране, без скролла,
        7 дней видно целиком, часы не обрезаны ===== */
     #page-schedule .topbar{
-      flex-wrap:nowrap;padding:0 10px 0 96px;height:50px;gap:4px;
-      overflow-x:auto;overflow-y:visible;position:relative;
+      flex-wrap:nowrap;padding:8px 10px;min-height:50px;gap:4px;
+      overflow-x:auto;overflow-y:visible;
       -webkit-overflow-scrolling:touch;
     }
     #page-schedule .topbar::-webkit-scrollbar{display:none}
@@ -682,14 +682,13 @@
     .cal-period-btn{flex-shrink:0;padding:6px 9px!important}
     .cal-period-btn span{font-size:10.5px}
     /* Кнопка Меню в расписании на мобильном — показываем, текст ВСЕГДА виден.
-       Абсолютное позиционирование — точно как у .hamburger-btn в других разделах,
-       чтобы отступ слева и размер были идентичны на 100%. */
+       Обычный flex-элемент (без absolute) — так она никогда не наслаивается
+       на соседние кнопки независимо от её фактической ширины. */
     .schedule-menu-btn{
-      display:flex!important;align-items:center;gap:5px;
-      position:absolute;left:12px;top:50%;transform:translateY(-50%);
+      display:flex!important;align-items:center;gap:5px;flex-shrink:0;order:-1;
       font-size:11px;font-weight:600;
       background:var(--bg3)!important;border-color:var(--border2)!important;
-      padding:6px 10px!important;height:30px;box-sizing:border-box;z-index:5;
+      padding:6px 10px!important;height:30px;box-sizing:border-box;
     }
     .cal-head{grid-template-columns:38px repeat(7,1fr)}
     .cal-body{grid-template-columns:38px repeat(7,1fr)}
