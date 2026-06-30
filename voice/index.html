@@ -745,17 +745,24 @@
   (function(){
     var _maxVH = 0;
     var _lastW = window.innerWidth;
+    var _touching = false;
     function setVH(force){
       var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
       var w = window.innerWidth;
       // Если ширина экрана заметно изменилась — это поворот экрана
       // или сильное изменение раскладки, а не "дрожание" iOS.
-      // В этом случае сбрасываем запомненный максимум и мерим заново.
       if (Math.abs(w - _lastW) > 80) {
         _maxVH = 0;
         _lastW = w;
       }
-      if (force || h > _maxVH) {
+      if (_touching && !force) {
+        // Во время активного касания iOS может на долю секунды отдать
+        // заниженную высоту — игнорируем уменьшение, но рост всё равно учитываем.
+        if (h > _maxVH) _maxVH = h;
+      } else {
+        // В любой другой момент (старт, обычный resize, конец касания,
+        // поворот экрана) всегда доверяем актуальному замеру — это и
+        // чинит, и не даёт «запереть» неверно маленькую высоту навсегда.
         _maxVH = h;
       }
       document.documentElement.style.setProperty('--vh100', _maxVH + 'px');
@@ -790,6 +797,18 @@
       var scrollable = e.target.closest('.content, .modal, .bn-more-sheet, .sidebar, [style*="overflow"], textarea, input');
       if(!scrollable){ e.preventDefault(); }
     }, { passive:false });
+    // Помечаем активное касание, чтобы во время него не давать высоте
+    // уменьшаться (см. setVH выше) — это убирает «дрожание» нижнего меню.
+    document.addEventListener('touchstart', function(){ _touching = true; }, { passive:true });
+    document.addEventListener('touchend', function(){
+      _touching = false;
+      setVH(true);
+      setTimeout(function(){ setVH(true); }, 50);
+    }, { passive:true });
+    document.addEventListener('touchcancel', function(){
+      _touching = false;
+      setVH(true);
+    }, { passive:true });
   })();
 </script>
 <div class="app" id="app">
