@@ -737,6 +737,37 @@
     html, body, .app { height: 100%; height: 100dvh; height: var(--vh100, 100dvh); }
   }
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBtEkQuOmhIRrRTLVMAgAHx7edwKsVkZr4",
+    authDomain: "voice-crm-d66db.firebaseapp.com",
+    projectId: "voice-crm-d66db",
+    storageBucket: "voice-crm-d66db.firebasestorage.app",
+    messagingSenderId: "138670630466",
+    appId: "1:138670630466:web:d970ce99cfd343b9bbafdb"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const fbAuth = getAuth(fbApp);
+  const fbDb = getFirestore(fbApp);
+
+  // Делаем доступным для обычных (не-module) скриптов ниже на странице
+  window.__fb = {
+    auth: fbAuth, db: fbDb,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut, doc, getDoc, setDoc
+  };
+  window.dispatchEvent(new Event('fb-ready'));
+</script>
 </head>
 <body>
 <script>
@@ -811,7 +842,36 @@
     }, { passive:true });
   })();
 </script>
-<div class="app" id="app">
+<!-- ===== ЭКРАН ВХОДА / РЕГИСТРАЦИИ (Firebase Auth) ===== -->
+<div id="authScreen" style="display:flex;align-items:center;justify-content:center;min-height:100dvh;min-height:var(--vh100,100dvh);background:var(--bg);padding:20px;box-sizing:border-box">
+  <div class="modal" style="width:380px">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:28px">🎤</div>
+      <div style="font-size:17px;font-weight:600;margin-top:4px">VoiceLoft CRM</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px" id="authSubtitle">Вход в аккаунт</div>
+    </div>
+    <div id="authNameField" style="display:none;margin-bottom:12px">
+      <label class="input-label">Ваше имя</label>
+      <input class="input" id="authName" placeholder="Например: Анна Ковалёва">
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="input-label">Номер телефона</label>
+      <input class="input" id="authPhone" placeholder="+7 900 123-45-67" autocomplete="tel">
+    </div>
+    <div style="margin-bottom:6px">
+      <label class="input-label">Пароль</label>
+      <input class="input" id="authPass" type="password" placeholder="Минимум 6 символов" autocomplete="current-password">
+    </div>
+    <div id="authError" style="color:var(--red);font-size:12px;min-height:16px;margin:6px 0 4px"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" id="authSubmitBtn" onclick="handleAuthSubmit()">Войти</button>
+    <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3)">
+      <span id="authToggleText">Нет аккаунта?</span>
+      <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--accent);font-weight:500" id="authToggleLink">Зарегистрироваться</a>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeOverlay()"></div>
   <aside class="sidebar" id="sidebar">
     <div class="logo">
@@ -1154,24 +1214,34 @@ function defaultDB(){
 }
 
 let DB = null;
+let currentUid = null; // ID текущего пользователя Firebase — каждый видит только свой документ
 
-function loadDB(){
-  let raw=null;
-  try{ raw = localStorage.getItem(STORAGE_KEY); }catch(e){ console.warn('localStorage недоступен',e); }
-  if(raw){
-    try{ DB = JSON.parse(raw); }catch(e){ console.warn('Повреждённые данные, создаю новую базу',e); DB=null; }
+async function loadDB(){
+  let data = null;
+  try{
+    const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
+    const snap = await window.__fb.getDoc(ref);
+    if(snap.exists()) data = snap.data().payload;
+  }catch(e){ console.error('Не удалось загрузить данные из Firestore', e); toast('⚠️ Не удалось загрузить данные','red'); }
+
+  if(data){
+    try{ DB = JSON.parse(data); }catch(e){ console.warn('Повреждённые данные, создаю новую базу',e); DB=null; }
   }
   if(!DB){ DB = defaultDB(); seedDB(); }
   if(!DB.teachers || !DB.teachers.length){ DB = defaultDB(); seedDB(); }
   if(!DB.currentTeacherId || !DB.teachers.find(t=>t.id===DB.currentTeacherId)){
     DB.currentTeacherId = DB.teachers[0].id;
   }
-  saveDB();
+  await saveDB();
 }
 
-function saveDB(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); }
-  catch(e){ console.error('Не удалось сохранить данные в localStorage',e); toast('⚠️ Не удалось сохранить данные','red'); }
+async function saveDB(){
+  if(!currentUid) return;
+  try{
+    const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
+    await window.__fb.setDoc(ref, { payload: JSON.stringify(DB), updatedAt: Date.now() });
+  }
+  catch(e){ console.error('Не удалось сохранить данные в Firestore',e); toast('⚠️ Не удалось сохранить данные','red'); }
 }
 
 /* ---------- Утилиты дат ---------- */
@@ -3294,20 +3364,104 @@ function applyTheme(){
 }
 
 function doLogout(){
-  if(!confirm('Выйти из аккаунта? Все данные сохранены локально.')) return;
-  // В локальной CRM просто скрываем приложение и показываем экран входа
-  // (при наличии — иначе просто перезагрузка)
-  const authScreen = document.getElementById('authScreen');
-  if(authScreen){
-    document.getElementById('app').style.display = 'none';
-    authScreen.style.display = 'flex';
-  } else {
-    toast('Вы вышли из аккаунта', 'amber');
-  }
+  if(!confirm('Выйти из аккаунта?')) return;
+  window.__fb.signOut(window.__fb.auth);
 }
 
-function initApp(){
-  loadDB();
+/* ============================================================
+   Вход / регистрация по номеру телефона (через Firebase Auth)
+   Номер телефона хранится как служебный email под капотом —
+   пользователь его никогда не видит и не вводит.
+   ============================================================ */
+let authMode = 'login'; // 'login' | 'register'
+
+function normalizePhone(raw){
+  let digits = (raw||'').replace(/\D/g,'');
+  if(digits.length === 11 && digits[0] === '8') digits = '7'+digits.slice(1);
+  if(digits.length === 10) digits = '7'+digits; // ввели без кода страны
+  return digits; // итог: 11 цифр, начинается на 7
+}
+
+function phoneToFakeEmail(normalized){
+  return normalized + '@voiceloft.internal';
+}
+
+function toggleAuthMode(){
+  authMode = (authMode === 'login') ? 'register' : 'login';
+  document.getElementById('authNameField').style.display = (authMode==='register') ? 'block' : 'none';
+  document.getElementById('authSubmitBtn').textContent = (authMode==='register') ? 'Зарегистрироваться' : 'Войти';
+  document.getElementById('authSubtitle').textContent = (authMode==='register') ? 'Создание аккаунта' : 'Вход в аккаунт';
+  document.getElementById('authToggleText').textContent = (authMode==='register') ? 'Уже есть аккаунт?' : 'Нет аккаунта?';
+  document.getElementById('authToggleLink').textContent = (authMode==='register') ? 'Войти' : 'Зарегистрироваться';
+  document.getElementById('authError').textContent = '';
+}
+
+async function handleAuthSubmit(){
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  const phoneRaw = document.getElementById('authPhone').value.trim();
+  const pass = document.getElementById('authPass').value;
+  const normalized = normalizePhone(phoneRaw);
+
+  if(normalized.length !== 11){ errEl.textContent = 'Введите корректный номер телефона'; return; }
+  if(!pass || pass.length < 6){ errEl.textContent = 'Пароль должен быть не короче 6 символов'; return; }
+
+  const btn = document.getElementById('authSubmitBtn');
+  btn.disabled = true;
+  const fakeEmail = phoneToFakeEmail(normalized);
+
+  try{
+    if(authMode === 'register'){
+      const name = document.getElementById('authName').value.trim();
+      if(!name){ errEl.textContent = 'Введите имя'; btn.disabled = false; return; }
+      const cred = await window.__fb.createUserWithEmailAndPassword(window.__fb.auth, fakeEmail, pass);
+      // Профиль педагога создастся автоматически внутри initApp()/seedDB(),
+      // но имя из формы регистрации сразу прокинем в DB после загрузки.
+      window.__pendingRegisterName = name;
+    } else {
+      await window.__fb.signInWithEmailAndPassword(window.__fb.auth, fakeEmail, pass);
+    }
+    // Дальше подхватит onAuthStateChanged ниже — он сам покажет приложение.
+  }catch(e){
+    console.error(e);
+    const map = {
+      'auth/invalid-credential':'Неверный номер телефона или пароль',
+      'auth/wrong-password':'Неверный пароль',
+      'auth/user-not-found':'Аккаунт с этим номером не найден',
+      'auth/email-already-in-use':'Этот номер уже зарегистрирован',
+      'auth/weak-password':'Пароль слишком простой (минимум 6 символов)',
+      'auth/invalid-email':'Некорректный номер телефона'
+    };
+    errEl.textContent = map[e.code] || ('Ошибка: ' + (e.message||e.code||'неизвестная'));
+  }
+  btn.disabled = false;
+}
+
+window.addEventListener('fb-ready', function(){
+  window.__fb.onAuthStateChanged(window.__fb.auth, async function(user){
+    const authScreen = document.getElementById('authScreen');
+    const appEl = document.getElementById('app');
+    if(user){
+      currentUid = user.uid;
+      authScreen.style.display = 'none';
+      appEl.style.display = 'flex';
+      await initApp();
+      if(window.__pendingRegisterName){
+        const t = DB.teachers.find(t=>t.id===DB.currentTeacherId);
+        if(t){ t.name = window.__pendingRegisterName; await saveDB(); renderSidebar(); }
+        window.__pendingRegisterName = null;
+      }
+    } else {
+      currentUid = null;
+      appEl.style.display = 'none';
+      authScreen.style.display = 'flex';
+    }
+  });
+});
+
+
+async function initApp(){
+  await loadDB();
   if(!DB.theme) DB.theme = 'dark';
   applyTheme();
   renderSidebar();
@@ -3408,13 +3562,10 @@ function initApp(){
   }
 })();
 
-if(typeof window!=='undefined'){
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', initApp);
-  } else {
-    initApp();
-  }
-}
+/* Приложение теперь запускается не сразу, а из onAuthStateChanged
+   (см. блок window.addEventListener('fb-ready', ...) выше) —
+   initApp() вызывается там только после подтверждённого входа. */
+
 </script>
 </body>
 </html>
