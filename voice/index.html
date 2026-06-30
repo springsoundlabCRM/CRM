@@ -135,6 +135,15 @@
   #calPeriodLabelMobile{display:none}
   .topbar-title{font-size:15px;font-weight:600;flex:1}
   .topbar-subtitle{font-size:11px;color:var(--text3);font-weight:400;margin-left:8px}
+  .dash-actions{display:flex;gap:10px}
+  /* ===== Только компьютерная версия (от 881px): дата вместо приветствия "Добрый вечер",
+     кнопки "+ Урок"/"+ Ученик" прижаты в правый верхний угол ===== */
+  @media (min-width:881px){
+    #page-dashboard #greetTitle{display:none}
+    #page-dashboard #todayLabel{font-size:15px;font-weight:600;color:var(--text);margin-left:0}
+    #page-dashboard .topbar{justify-content:space-between}
+    #page-dashboard .dash-actions{margin-left:auto}
+  }
   .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff}
   .btn-primary:hover{background:var(--accent2)}
@@ -956,8 +965,10 @@
     <div id="page-dashboard">
       <div class="topbar">
         <div id="dashGreetWrap"><span class="topbar-title" id="greetTitle">Добрый день 👋</span><span class="topbar-subtitle" id="todayLabel"></span></div>
-        <button class="btn btn-ghost" onclick="openModal('lesson')">+ Урок</button>
-        <button class="btn btn-primary" onclick="openModal('student')">+ Ученик</button>
+        <div class="dash-actions">
+          <button class="btn btn-ghost" onclick="openModal('lesson')">+ Урок</button>
+          <button class="btn btn-primary" onclick="openModal('student')">+ Ученик</button>
+        </div>
       </div>
       <div class="content">
         <div class="stat-grid">
