@@ -144,6 +144,7 @@
     #page-dashboard .topbar{justify-content:space-between}
     #page-dashboard .dash-actions{margin-left:auto}
     .sub-new-btn{font-size:13px;font-weight:600}
+    .sub-action-btn{padding:12px 9px;font-size:13px;font-weight:500}
   }
   .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff}
@@ -2367,10 +2368,10 @@ function renderDetailProfile(){
       +'<div style="font-size:11px;color:var(--text3);margin-bottom:12px">Осталось '+left+' '+(left===1?'урок':'уроков')+'</div>'
       +'<div style="font-size:12px;color:var(--text3)">Куплен</div><div style="font-size:14px;font-weight:500;margin-top:2px">'+money(sub.totalPrice)+' · '+formatRu(sub.purchaseDate)+'</div>'
       +'<div style="margin-top:10px;display:flex;gap:6px">'
-      +'<button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" onclick="openModal(\'subTopup\',{studentId:\''+s.id+'\'})">+ Пополнить</button>'
-      +'<button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История</button>'
+      +'<button class="btn btn-primary sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subTopup\',{studentId:\''+s.id+'\'})">Пополнить</button>'
+      +'<button class="btn btn-ghost sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История</button>'
       +'</div>'
-      +'<button class="btn btn-danger btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="deleteSubscription(\''+sub.id+'\')">Удалить абонемент</button>'
+      +'<button class="btn btn-danger sub-action-btn" style="width:100%;justify-content:center;margin-top:8px" onclick="deleteSubscription(\''+sub.id+'\')">Удалить абонемент</button>'
       +'</div>';
   } else {
     const hasHistory = subHistoryOf(s.id).length>0;
@@ -2406,8 +2407,8 @@ function renderDetailProfile(){
     +'<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="saveContactCard(\''+s.id+'\', this)">Сохранить</button>'
     +'</div>'
 
-    +'<div class="detail-card"><div class="detail-title">🎯 Заметки</div>'
-    +'<textarea class="input" rows="5" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
+    +'<div class="detail-card" style="display:flex;flex-direction:column"><div class="detail-title">🎯 Заметки</div>'
+    +'<textarea class="input" style="flex:1;resize:none;min-height:80px" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
     +'</div>'
 
     + subBlock
