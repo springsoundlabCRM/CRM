@@ -9,69 +9,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VoiceLoft CRM">
-<meta name="theme-color" content="#0f0f14">
+<meta name="theme-color" content="#0f0f14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0f0f6" media="(prefers-color-scheme: light)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="VoiceLoft CRM">
 <meta name="apple-touch-fullscreen" content="yes">
-<!-- Android Chrome: полноэкранный режим -->
-<meta name="full-screen" content="yes">
-<meta name="browsermode" content="application">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/springsoundlab/springsoundlab/main/logo%20dly%20prilidcheniz.jpg">
+<link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/springsoundlab/springsoundlab/main/logo%20dly%20prilidcheniz.jpg">
 <link rel="manifest" id="manifestLink">
-
-<script>
-// ===== SERVICE WORKER (обязателен для Android PWA install prompt) =====
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  window.addEventListener('load', function() {
-    const swCode = `
-      self.addEventListener('install', e => self.skipWaiting());
-      self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-      self.addEventListener('fetch', e => {
-        if (e.request.mode === 'navigate') {
-          e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-        }
-      });
-    `;
-    const swUrl = 'data:application/javascript;charset=utf-8,' + encodeURIComponent(swCode);
-    navigator.serviceWorker.register(swUrl, { scope: '/' })
-      .then(reg => console.log('✅ SW registered'))
-      .catch(err => console.warn('⚠️ SW failed:', err));
-  });
-}
-
-// ===== ANDROID INSTALL BANNER =====
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Показываем кнопку установки через 2 секунды после загрузки
-  setTimeout(showInstallBanner, 2000);
-});
-
-function showInstallBanner() {
-  if (!deferredPrompt) return;
-  // Не показывать если уже установлено
-  if (window.matchMedia('(display-mode: standalone)').matches) return;
-  const banner = document.getElementById('pwa-install-banner');
-  if (banner) banner.style.display = 'flex';
-}
-
-function installPWA() {
-  const banner = document.getElementById('pwa-install-banner');
-  if (banner) banner.style.display = 'none';
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(result => {
-    console.log('PWA install:', result.outcome);
-    deferredPrompt = null;
-  });
-}
-
-function dismissInstallBanner() {
-  const banner = document.getElementById('pwa-install-banner');
-  if (banner) banner.style.display = 'none';
-  deferredPrompt = null;
-}
-</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
@@ -814,28 +759,6 @@ function dismissInstallBanner() {
 </style>
 </head>
 <body>
-<!-- Android PWA Install Banner -->
-<div id="pwa-install-banner" style="
-  display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  background:#1e1e2a;border-top:1px solid #a78bfa;
-  padding:12px 16px;align-items:center;gap:12px;
-  box-shadow:0 -4px 20px rgba(0,0,0,0.5);
-">
-  <div style="font-size:28px">🎤</div>
-  <div style="flex:1">
-    <div style="font-size:13px;font-weight:600;color:#e8e8f0">Установить VoiceLoft CRM</div>
-    <div style="font-size:11px;color:#9090a8;margin-top:2px">Добавить на главный экран</div>
-  </div>
-  <button onclick="dismissInstallBanner()" style="
-    background:transparent;border:none;color:#9090a8;font-size:20px;
-    cursor:pointer;padding:4px 8px;line-height:1;
-  ">✕</button>
-  <button onclick="installPWA()" style="
-    background:#a78bfa;color:#fff;border:none;border-radius:8px;
-    padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
-    white-space:nowrap;
-  ">Установить</button>
-</div>
 <div class="app" id="app">
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeOverlay()"></div>
   <aside class="sidebar" id="sidebar">
@@ -3419,6 +3342,7 @@ function initApp(){
 // ===== PWA: ДИНАМИЧЕСКИЙ МАНИФЕСТ =====
 (function injectManifest() {
   try {
+    const iconUrl = "https://raw.githubusercontent.com/springsoundlab/springsoundlab/main/logo%20dly%20prilidcheniz.jpg";
     const startUrl = window.location.href.split('?')[0];
     const fullStartUrl = startUrl + (startUrl.includes('?') ? '&' : '?') + 'from=pwa';
     const manifest = {
@@ -3428,22 +3352,19 @@ function initApp(){
       start_url: fullStartUrl,
       scope: window.location.pathname || "/",
       display: "standalone",
-      display_override: ["standalone", "minimal-ui"],
       orientation: "portrait",
       background_color: "#0f0f14",
       theme_color: "#0f0f14",
-      lang: "ru",
-      categories: ["productivity", "business"],
       icons: [{
-        src: "https://raw.githubusercontent.com/springsoundlab/springsoundlab/main/logo%20dly%20prilidcheniz.jpg",
+        src: iconUrl,
         sizes: "192x192",
         type: "image/jpeg",
-        purpose: "any"
+        purpose: "any maskable"
       }, {
-        src: "https://raw.githubusercontent.com/springsoundlab/springsoundlab/main/logo%20dly%20prilidcheniz.jpg",
+        src: iconUrl,
         sizes: "512x512",
         type: "image/jpeg",
-        purpose: "maskable"
+        purpose: "any maskable"
       }]
     };
     const manifestStr = JSON.stringify(manifest);
