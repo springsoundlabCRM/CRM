@@ -504,7 +504,7 @@
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;
     box-sizing:border-box;
     background:var(--bg2);border-top:1px solid var(--border);
-    padding:6px 2px 6px;
+    padding:6px 2px calc(6px + env(safe-area-inset-bottom, 0px));
     justify-content:space-around;align-items:center;
   }
   .bn-item{
