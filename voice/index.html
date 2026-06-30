@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual">
 <title>VoiceLoft CRM — Студия вокала</title>
 
 <!-- PWA / Android + iOS -->
@@ -490,7 +490,7 @@
     box-sizing:border-box;
     background:var(--bg2);border-top:1px solid var(--border);
     padding:6px 2px;
-    padding-bottom:calc(6px + env(safe-area-inset-bottom, 0px));
+    padding-bottom:max(6px, env(safe-area-inset-bottom, 0px));
     justify-content:space-around;align-items:center;
   }
   .bn-item{
@@ -3252,9 +3252,25 @@ function initApp(){
     nav.style.bottom = '0';
     nav.style.transform = 'none';
   }
+
+  // Используем реальную высоту viewport (без системных баров Android)
+  function fixAppHeight() {
+    // window.innerHeight — реальная высота без системной навигации Android
+    const h = window.innerHeight;
+    document.documentElement.style.setProperty('--real-vh', h + 'px');
+    const app = document.getElementById('app');
+    if (app) app.style.height = h + 'px';
+    const main = document.querySelector('.main');
+    const nav = document.getElementById('bottomNav');
+    if (main && nav) {
+      const navH = nav.offsetHeight;
+      main.style.height = (h - navH) + 'px';
+    }
+  }
   fixBottomNav();
+  fixAppHeight();
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', fixBottomNav);
+    window.visualViewport.addEventListener('resize', () => { fixBottomNav(); fixAppHeight(); });
     window.visualViewport.addEventListener('scroll', fixBottomNav);
   }
 
@@ -3263,6 +3279,7 @@ function initApp(){
     if(window.innerWidth > 880){ closeMobileSidebar(); closeQuickMenuPicker(); if(quickMenuEditMode) exitQuickMenuEditMode(true); }
     adaptScheduleTopbar();
     fixBottomNav();
+    fixAppHeight();
     if(calendarEverInited && !document.getElementById('page-schedule').classList.contains('hidden')) renderCalendar();
   });
 
