@@ -1058,7 +1058,6 @@
       <div class="topbar" id="detail-topbar">
         <div class="topbar-title" id="detail-name">Ученик</div>
         <button class="btn btn-ghost" onclick="showPage('students')">← Все ученики</button>
-        <button class="btn btn-ghost wa-btn-detail" id="detailWaBtn" onclick="sendWhatsAppForStudent(currentStudentId)">📲 WhatsApp</button>
         <button class="btn btn-ghost" onclick="openModal('lesson',{studentId:currentStudentId})">+ Урок</button>
         <button class="btn btn-primary" onclick="openModal('note',{studentId:currentStudentId})">✎ Заметка</button>
       </div>
@@ -2112,8 +2111,6 @@ function openStudent(s){
   if(!s) return;
   currentStudentId = s.id;
   document.getElementById('detail-name').textContent = s.name;
-  const waBtn=document.getElementById('detailWaBtn');
-  waBtn.style.display = s.phone ? '' : 'none';
   showPage('student-detail');
   renderStudentDetailAll();
 }
