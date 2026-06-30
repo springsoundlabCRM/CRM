@@ -31,7 +31,7 @@
     --pink:#f472b6;--pink-bg:rgba(244,114,182,0.12);
     --wa:#34d399;
     --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
-    --bottom-nav-h:56px;
+    --bottom-nav-h:44px;
   }
   body.light-theme{
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
@@ -43,10 +43,9 @@
     --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
     --pink:#db2777;--pink-bg:rgba(219,39,119,0.1);
   }
-  html{height:100%}
-  html,body{margin:0;padding:0}
-  body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;font-size:13px;height:100%}
-  .app{display:flex;height:100%;overflow:hidden}
+  html{height:100dvh;height:100vh}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;font-size:13px;height:100dvh;height:100vh;margin:0}
+  .app{display:flex;height:100dvh;height:100vh;overflow:hidden}
   .sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
   .logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
   .logo-mark{display:flex;align-items:center;gap:9px}
@@ -490,8 +489,7 @@
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;
     box-sizing:border-box;
     background:var(--bg2);border-top:1px solid var(--border);
-    padding:6px 2px;
-    padding-bottom:max(6px, env(safe-area-inset-bottom, 0px));
+    padding:6px 2px 6px;
     justify-content:space-around;align-items:center;
   }
   .bn-item{
@@ -556,8 +554,8 @@
 
   /* ================= ПЛАНШЕТ / МАЛЫЙ ЭКРАН (≤880px) ================= */
   @media (max-width:880px){
-    .app{height:100%}
-    .main{width:100%}
+    .app{height:100dvh;height:100vh}
+    .main{width:100%;height:calc(100dvh - var(--bottom-nav-h));height:calc(100vh - var(--bottom-nav-h))}
     .sidebar{
       position:fixed;top:0;left:0;height:100%;height:100dvh;z-index:50;
       transform:translateX(-100%);transition:transform .25s ease;
@@ -720,9 +718,8 @@
 
   /* ===== ДОПОЛНИТЕЛЬНЫЕ ПРАВКИ ДЛЯ PWA ===== */
   @media all and (display-mode: standalone) {
-    .sidebar {
-      padding-top: env(safe-area-inset-top, 0px);
-      box-sizing: border-box;
+    html, body, .app {
+      height: 100dvh;
     }
   }
 </style>
@@ -3244,20 +3241,7 @@ function initApp(){
   }
 
   function fixAppHeight() {
-    // visualViewport.height — единственный надёжный способ получить
-    // реальную высоту видимой области на Android и iOS без системных баров
-    const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-    const app = document.getElementById('app');
-    const main = document.querySelector('.main');
-    const nav = document.getElementById('bottomNav');
-    if (app) {
-      app.style.height = h + 'px';
-      app.style.maxHeight = h + 'px';
-    }
-    if (main && nav) {
-      const navH = nav.getBoundingClientRect().height;
-      main.style.height = (h - navH) + 'px';
-    }
+    // Намеренно пусто — высота управляется только через CSS
   }
   fixBottomNav();
   fixAppHeight();
