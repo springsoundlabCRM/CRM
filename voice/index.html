@@ -56,6 +56,8 @@
     left: 0;
     right: 0;
     bottom: 0;
+    overscroll-behavior: none;
+    background: #0f0f14;
   }
   body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;padding-top:env(safe-area-inset-top,0px)}
   .app{display:flex;width:100%;height:100%;height:100dvh;height:var(--vh100, 100dvh);overflow:hidden}
@@ -751,6 +753,12 @@
       window.visualViewport.addEventListener('resize', setVH);
       window.visualViewport.addEventListener('scroll', setVH);
     }
+    // Жёстко гасим "резиновый" bounce-скролл всей страницы на iOS,
+    // не трогая прокрутку внутри списков/модалок/календаря.
+    document.addEventListener('touchmove', function(e){
+      var scrollable = e.target.closest('.content, .modal, .bn-more-sheet, .sidebar, [style*="overflow"], textarea, input');
+      if(!scrollable){ e.preventDefault(); }
+    }, { passive:false });
   })();
 </script>
 <div class="app" id="app">
