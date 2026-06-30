@@ -29,7 +29,7 @@
     --pink:#f472b6;--pink-bg:rgba(244,114,182,0.12);
     --wa:#34d399;
     --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
-    --bottom-nav-h:56px;
+    --bottom-nav-h:52px;
     --safe-bottom:env(safe-area-inset-bottom, 0px);
   }
   body.light-theme{
@@ -486,9 +486,9 @@
   /* ---------- Нижняя навигация (моб.) ---------- */
   .bottom-nav{
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;
-    height:var(--bottom-nav-h);box-sizing:border-box;
+    height:auto;box-sizing:border-box;
     background:var(--bg2);border-top:1px solid var(--border);
-    padding:6px 2px 6px;
+    padding:6px 2px 2px;
     justify-content:space-around;align-items:center;
   }
   .bn-item{
@@ -3268,9 +3268,16 @@ function initApp(){
   function fixBottomNav() {
     const nav = document.getElementById('bottomNav');
     if (!nav) return;
-    // Принудительно сбрасываем любой transform/translate, который мог появиться
     nav.style.bottom = '0';
     nav.style.transform = 'none';
+    // Измеряем реальную высоту панели и подстраиваем .main
+    const navH = nav.offsetHeight;
+    const main = document.querySelector('.main');
+    if (main && navH > 0) {
+      main.style.height = 'calc(100dvh - ' + navH + 'px)';
+      main.style.height = 'calc(100vh - ' + navH + 'px)';
+      main.style.height = 'calc(100dvh - ' + navH + 'px)';
+    }
   }
   fixBottomNav();
   if (window.visualViewport) {
