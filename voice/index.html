@@ -2395,14 +2395,16 @@ function renderDetailProfile(){
     +'</select></div>'
 
     +'<div class="detail-card"><div class="detail-title">👤 Контакт</div>'
-    +'<div style="font-size:13px;margin-bottom:6px;font-weight:500">'+escapeHTML(s.name)+'</div>'
+    +'<div style="font-size:13px;margin-bottom:4px;font-weight:500">'+escapeHTML(s.name)+'</div>'
     +'<div style="font-size:12px;color:var(--text3);margin-bottom:12px">'+(s.age?s.age+' лет · ':'')+'занимается с '+formatRu(s.createdAt)+'</div>'
     +'<div style="display:flex;flex-direction:column;gap:8px">'
-    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">📱</span><span contenteditable="true" data-field="phone" onblur="updateStudentField(\''+s.id+'\',\'phone\',this.textContent)" style="outline:none;border-bottom:1px dashed var(--border2)">'+escapeHTML(s.phone||'—')+'</span>'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
-    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">✈️</span><span contenteditable="true" data-field="telegram" onblur="updateStudentField(\''+s.id+'\',\'telegram\',this.textContent)" style="outline:none;color:var(--accent);border-bottom:1px dashed var(--border2)">'+escapeHTML(s.telegram||'—')+'</span></div>'
-    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">🎂</span><input type="date" class="input" style="padding:4px 8px;font-size:11px;width:auto" value="'+(s.birthday||'')+'" onchange="updateStudentField(\''+s.id+'\',\'birthday\',this.value)"><span style="color:var(--text3);font-size:11px">'+(s.birthday?bdayStr:'')+'</span></div>'
-    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">🎯</span><span contenteditable="true" data-field="goal" onblur="updateStudentField(\''+s.id+'\',\'goal\',this.textContent)" style="outline:none;border-bottom:1px dashed var(--border2)">'+escapeHTML(s.goal||'—')+'</span></div>'
-    +'</div></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">📱</span><input class="input" id="contact-phone" style="padding:4px 8px;font-size:12px" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">✈️</span><input class="input" id="contact-telegram" style="padding:4px 8px;font-size:12px;color:var(--accent)" value="'+escapeHTML(s.telegram||'')+'" placeholder="@username"></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">🎂</span><input type="date" class="input" id="contact-bday" style="padding:4px 8px;font-size:11px;width:auto" value="'+(s.birthday||'')+'"><span style="color:var(--text3);font-size:11px">'+(s.birthday?bdayStr:'')+'</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:20px">🎯</span><input class="input" id="contact-goal" style="padding:4px 8px;font-size:12px" value="'+escapeHTML(s.goal||'')+'" placeholder="Цель ученика..."></div>'
+    +'</div>'
+    +'<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="saveContactCard(\''+s.id+'\', this)">Сохранить</button>'
+    +'</div>'
 
     +'<div class="detail-card"><div class="detail-title">🎯 Заметки</div>'
     +'<textarea class="input" rows="5" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
@@ -2551,6 +2553,19 @@ function updateStudentField(studentId, field, value){
   saveDB();
   if(field==='name'){ document.getElementById('detail-name').textContent=value; }
   renderSidebar();
+}
+
+async function saveContactCard(studentId, btn){
+  const s = studentById(studentId); if(!s) return;
+  s.phone    = (document.getElementById('contact-phone')?.value||'').trim();
+  s.telegram = (document.getElementById('contact-telegram')?.value||'').trim();
+  s.birthday = document.getElementById('contact-bday')?.value||null;
+  s.goal     = (document.getElementById('contact-goal')?.value||'').trim();
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Сохранение...';
+  await saveDB();
+  btn.textContent = '✓ Сохранено';
+  setTimeout(()=>{ btn.disabled=false; btn.textContent=orig; renderDetailProfile(); }, 1200);
 }
 
 /* ============================================================
