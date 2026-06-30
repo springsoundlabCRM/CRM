@@ -871,6 +871,41 @@
   </div>
 </div>
 
+<!-- ===== ЭКРАН ОПЛАТЫ ПОДПИСКИ ===== -->
+<div id="paywallScreen" style="display:none;align-items:center;justify-content:center;min-height:100dvh;min-height:var(--vh100,100dvh);background:var(--bg);padding:20px;box-sizing:border-box">
+  <div class="modal" style="width:380px">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:28px">💳</div>
+      <div style="font-size:17px;font-weight:600;margin-top:4px">Подписка не активна</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">Чтобы продолжить пользоваться VoiceLoft CRM, выберите тариф и оплатите подписку</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div class="card" style="padding:14px 16px;cursor:pointer;border:1px solid var(--border)" onclick="startCheckout('month')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:600;font-size:14px">Месяц</div>
+            <div style="font-size:11px;color:var(--text3)">Подписка на 30 дней</div>
+          </div>
+          <div style="font-weight:700;color:var(--accent)">990 ₽</div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px 16px;cursor:pointer;border:1px solid var(--border)" onclick="startCheckout('year')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:600;font-size:14px">Год</div>
+            <div style="font-size:11px;color:var(--text3)">Подписка на 365 дней, выгоднее</div>
+          </div>
+          <div style="font-weight:700;color:var(--accent)">9 900 ₽</div>
+        </div>
+      </div>
+    </div>
+    <div id="paywallError" style="color:var(--red);font-size:12px;min-height:16px;margin:4px 0"></div>
+    <div style="text-align:center;margin-top:10px;font-size:12.5px;color:var(--text3)">
+      <a href="javascript:void(0)" onclick="logoutFromPaywall()" style="color:var(--accent);font-weight:500">Выйти из аккаунта</a>
+    </div>
+  </div>
+</div>
+
 <div class="app" id="app" style="display:none">
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeOverlay()"></div>
   <aside class="sidebar" id="sidebar">
@@ -3445,23 +3480,85 @@ async function handleAuthSubmit(){
   btn.disabled = false;
 }
 
+/* ============================================================
+   ПРОВЕРКА ПОДПИСКИ (paywall)
+   Документ users/{uid} читается клиентом, но НЕ записывается клиентом
+   (см. Firestore Security Rules) — единственный, кто может выдать
+   подписку, это серверный код (Cloud Function) после реальной оплаты.
+   Пока ЮKassa не подключена, документ просто не существует ни у кого,
+   и paywall будет показываться всем — это ожидаемо и безопасно.
+   ============================================================ */
+async function checkSubscriptionAndRoute(){
+  const authScreen = document.getElementById('authScreen');
+  const paywallScreen = document.getElementById('paywallScreen');
+  const appEl = document.getElementById('app');
+
+  let sub = null;
+  try{
+    const ref = window.__fb.doc(window.__fb.db, 'users', currentUid);
+    const snap = await window.__fb.getDoc(ref);
+    if(snap.exists()) sub = snap.data();
+  }catch(e){
+    console.error('Не удалось проверить статус подписки', e);
+  }
+
+  const now = Date.now();
+  const isActive = sub && sub.subscriptionStatus === 'active' && sub.expiresAt && sub.expiresAt > now;
+
+  if(isActive){
+    authScreen.style.display = 'none';
+    paywallScreen.style.display = 'none';
+    appEl.style.display = 'flex';
+    await initApp();
+    if(window.__pendingRegisterName){
+      const t = DB.teachers.find(t=>t.id===DB.currentTeacherId);
+      if(t){ t.name = window.__pendingRegisterName; await saveDB(); renderSidebar(); }
+      window.__pendingRegisterName = null;
+    }
+  } else {
+    authScreen.style.display = 'none';
+    appEl.style.display = 'none';
+    paywallScreen.style.display = 'flex';
+  }
+}
+
+// ВРЕМЕННАЯ заглушка вместо реального вызова ЮKassa.
+// Когда касса будет подключена, эта функция должна:
+// 1) дернуть вашу Cloud Function / backend, который создаст платёж в ЮKassa
+// 2) получить ссылку на оплату и сделать location.href = ссылка
+// Сейчас она просто показывает, что сервер ещё не настроен.
+async function startCheckout(plan){
+  const errEl = document.getElementById('paywallError');
+  errEl.textContent = '';
+  try{
+    // TODO: заменить на реальный запрос к серверу, который создаёт платёж в ЮKassa
+    // const res = await fetch('/api/create-payment', { method:'POST', body: JSON.stringify({ uid: currentUid, plan }) });
+    // const { confirmationUrl } = await res.json();
+    // location.href = confirmationUrl;
+    errEl.textContent = 'Оплата пока не подключена. Это будет настроено на следующем шаге (ЮKassa).';
+  }catch(e){
+    console.error(e);
+    errEl.textContent = 'Не удалось начать оплату, попробуйте позже';
+  }
+}
+
+function logoutFromPaywall(){
+  window.__fb.signOut(window.__fb.auth);
+}
+
 window.addEventListener('fb-ready', function(){
   window.__fb.onAuthStateChanged(window.__fb.auth, async function(user){
     const authScreen = document.getElementById('authScreen');
+    const paywallScreen = document.getElementById('paywallScreen');
     const appEl = document.getElementById('app');
     if(user){
       currentUid = user.uid;
       authScreen.style.display = 'none';
-      appEl.style.display = 'flex';
-      await initApp();
-      if(window.__pendingRegisterName){
-        const t = DB.teachers.find(t=>t.id===DB.currentTeacherId);
-        if(t){ t.name = window.__pendingRegisterName; await saveDB(); renderSidebar(); }
-        window.__pendingRegisterName = null;
-      }
+      await checkSubscriptionAndRoute();
     } else {
       currentUid = null;
       appEl.style.display = 'none';
+      paywallScreen.style.display = 'none';
       authScreen.style.display = 'flex';
     }
   });
