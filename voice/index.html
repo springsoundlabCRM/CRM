@@ -466,13 +466,17 @@
   }
   .sidebar-overlay.show{display:block;opacity:1}
 
-  /* ---------- Кнопка-гамбургер "Меню" (вставляется JS-ом в topbar) ---------- */
+  /* ---------- Кнопка-гамбургер "Меню" (вставляется JS-ом в topbar) -----------
+     Абсолютное позиционирование — гарантирует ОДИНАКОВЫЙ отступ слева и
+     ОДИНАКОВЫЙ размер кнопки во всех разделах, независимо от того, что
+     находится в топбаре справа (заголовки, кнопки действий и т.д.) */
   .hamburger-btn{
     display:none!important;align-items:center;gap:5px;
-    font-size:11px;font-weight:600;flex-shrink:0;
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    font-size:11px;font-weight:600;
     background:var(--bg3)!important;border-color:var(--border2)!important;
-    padding:6px 10px!important;
-    cursor:pointer;margin-left:0;margin-right:6px;
+    padding:6px 10px!important;height:30px;box-sizing:border-box;
+    cursor:pointer;z-index:5;
     -webkit-tap-highlight-color:transparent;
   }
   .hamburger-btn:active{background:var(--card2)!important}
@@ -559,7 +563,7 @@
     .sidebar.mobile-open{transform:translateX(0)}
     .hamburger-btn{display:flex!important}
     .content{padding:16px}
-    .topbar{padding:0 12px;height:54px;gap:8px}
+    .topbar{padding:0 12px 0 96px;height:54px;gap:8px;position:relative}
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
     .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -576,26 +580,19 @@
     .sidebar{width:78vw;max-width:300px;min-width:0}
     .content{padding:12px}
     .topbar{
-      flex-wrap:nowrap;height:auto;min-height:50px;padding:8px 12px;
-      gap:6px;overflow-x:visible;
+      flex-wrap:nowrap;height:auto;min-height:50px;padding:8px 10px 8px 96px;
+      gap:6px;overflow-x:auto;position:relative;justify-content:flex-end;
+      -webkit-overflow-scrolling:touch;
     }
+    .topbar::-webkit-scrollbar{display:none}
     /* Названия разделов в топбаре скрываем на мобильном —
        раздел и так понятен из нижнего/бокового меню.
-       Приветствие на дашборде (#greetTitle) — исключение, его оставляем. */
-    .topbar-title:not(#greetTitle){display:none}
+       Приветствие на дашборде тоже скрываем — на телефоне оно лишнее. */
+    .topbar-title{display:none}
     .topbar-subtitle{display:none}
     .topbar .btn{flex-shrink:0}
     .btn{padding:7px 10px;font-size:11.5px}
     .btn-sm{padding:5px 8px}
-
-    /* Топбары на телефоне: гамбургер слева, остальное прижато к правому краю */
-    .topbar{justify-content:flex-end}
-    .topbar > .hamburger-btn{margin-right:auto;flex-shrink:0}
-
-    /* Дашборд — особый случай: после гамбургера идёт приветствие (растягивается),
-       а кнопки действий "+ Урок" / "+ Ученик" прижимаются к правому краю */
-    #page-dashboard .topbar > div:first-of-type{flex:1;min-width:0;margin-right:0}
-    #page-dashboard .topbar > .hamburger-btn{margin-right:0}
 
     /* Заголовочные статы — 2 в ряд, компактнее */
     .stat-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px;margin-bottom:16px}
@@ -639,7 +636,8 @@
     /* ===== РАСПИСАНИЕ (КАЛЕНДАРЬ): всё на одном экране, без скролла,
        7 дней видно целиком, часы не обрезаны ===== */
     #page-schedule .topbar{
-      flex-wrap:nowrap;padding:8px 12px;min-height:46px;gap:4px;overflow-x:auto;overflow-y:visible;
+      flex-wrap:nowrap;padding:8px 10px 8px 96px;min-height:46px;gap:4px;
+      overflow-x:auto;overflow-y:visible;position:relative;
       -webkit-overflow-scrolling:touch;
     }
     #page-schedule .topbar::-webkit-scrollbar{display:none}
@@ -652,12 +650,15 @@
     #page-schedule .cal-week-nav{display:flex!important;flex-shrink:0}
     .cal-period-btn{flex-shrink:0;padding:6px 9px!important}
     .cal-period-btn span{font-size:10.5px}
-    /* Кнопка Меню в расписании на мобильном — показываем, текст ВСЕГДА виден */
+    /* Кнопка Меню в расписании на мобильном — показываем, текст ВСЕГДА виден.
+       Абсолютное позиционирование — точно как у .hamburger-btn в других разделах,
+       чтобы отступ слева и размер были идентичны на 100%. */
     .schedule-menu-btn{
       display:flex!important;align-items:center;gap:5px;
-      font-size:11px;font-weight:600;flex-shrink:0;
+      position:absolute;left:12px;top:50%;transform:translateY(-50%);
+      font-size:11px;font-weight:600;
       background:var(--bg3)!important;border-color:var(--border2)!important;
-      padding:6px 10px!important;
+      padding:6px 10px!important;height:30px;box-sizing:border-box;z-index:5;
     }
     .cal-head{grid-template-columns:38px repeat(7,1fr)}
     .cal-body{grid-template-columns:38px repeat(7,1fr)}
