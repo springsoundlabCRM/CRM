@@ -469,9 +469,10 @@
   /* ---------- Кнопка-гамбургер "Меню" (вставляется JS-ом в topbar) ---------- */
   .hamburger-btn{
     display:none!important;align-items:center;gap:5px;
-    font-size:11px;font-weight:600;
+    font-size:11px;font-weight:600;flex-shrink:0;
     background:var(--bg3)!important;border-color:var(--border2)!important;
-    cursor:pointer;flex-shrink:0;margin-left:4px;margin-right:6px;
+    padding:6px 10px!important;
+    cursor:pointer;margin-left:0;margin-right:6px;
     -webkit-tap-highlight-color:transparent;
   }
   .hamburger-btn:active{background:var(--card2)!important}
@@ -558,7 +559,7 @@
     .sidebar.mobile-open{transform:translateX(0)}
     .hamburger-btn{display:flex!important}
     .content{padding:16px}
-    .topbar{padding:0 14px;height:54px;gap:8px}
+    .topbar{padding:0 12px;height:54px;gap:8px}
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
     .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -575,7 +576,7 @@
     .sidebar{width:78vw;max-width:300px;min-width:0}
     .content{padding:12px}
     .topbar{
-      flex-wrap:nowrap;height:auto;min-height:50px;padding:8px 10px;
+      flex-wrap:nowrap;height:auto;min-height:50px;padding:8px 12px;
       gap:6px;overflow-x:visible;
     }
     /* Названия разделов в топбаре скрываем на мобильном —
@@ -638,7 +639,7 @@
     /* ===== РАСПИСАНИЕ (КАЛЕНДАРЬ): всё на одном экране, без скролла,
        7 дней видно целиком, часы не обрезаны ===== */
     #page-schedule .topbar{
-      flex-wrap:nowrap;padding:8px 6px;min-height:46px;gap:4px;overflow-x:auto;overflow-y:visible;
+      flex-wrap:nowrap;padding:8px 12px;min-height:46px;gap:4px;overflow-x:auto;overflow-y:visible;
       -webkit-overflow-scrolling:touch;
     }
     #page-schedule .topbar::-webkit-scrollbar{display:none}
@@ -831,7 +832,7 @@
     <div id="page-schedule" class="hidden">
       <div class="topbar" id="scheduleTopbar">
         <!-- Кнопка Меню (только мобильная — скрыта на десктопе через .schedule-menu-btn{display:none} в базовом CSS) -->
-        <button class="btn btn-ghost schedule-menu-btn" id="scheduleMenuBtn" onclick="toggleMobileSidebar()" title="Открыть меню">
+        <button class="btn btn-ghost schedule-menu-btn" id="scheduleMenuBtn" onclick="event.stopPropagation();toggleMobileSidebar()" title="Открыть меню">
           <i class="fa-solid fa-bars"></i> <span class="schedule-menu-label">Меню</span>
         </button>
         <!-- Зум (слева, точно как в оригинале SSL; на мобильном скрыт) -->
@@ -3290,9 +3291,10 @@ function initApp(){
   // Клик вне меню — закрыть
   document.addEventListener('click', function(e) {
     const sidebar = document.getElementById('sidebar');
-    const hamburger = document.querySelector('.hamburger-btn');
+    // Учитываем ОБЕ кнопки открытия меню: обычный гамбургер и кнопку Расписания
+    const isMenuToggle = e.target.closest && e.target.closest('.hamburger-btn, .schedule-menu-btn');
     if (sidebar && sidebar.classList.contains('mobile-open')) {
-      if (!sidebar.contains(e.target) && (!hamburger || !hamburger.contains(e.target))) {
+      if (!sidebar.contains(e.target) && !isMenuToggle) {
         closeMobileSidebar();
       }
     }
