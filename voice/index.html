@@ -31,8 +31,7 @@
     --pink:#f472b6;--pink-bg:rgba(244,114,182,0.12);
     --wa:#34d399;
     --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
-    --bottom-nav-h:44px;
-    --safe-bottom:env(safe-area-inset-bottom, 0px);
+    --bottom-nav-h:56px;
   }
   body.light-theme{
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
@@ -488,15 +487,16 @@
   /* ---------- Нижняя навигация (моб.) ---------- */
   .bottom-nav{
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;
-    height:auto;box-sizing:border-box;
+    box-sizing:border-box;
     background:var(--bg2);border-top:1px solid var(--border);
-    padding:4px 2px 0px;
+    padding:6px 2px;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom, 0px));
     justify-content:space-around;align-items:center;
   }
   .bn-item{
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:1px;color:var(--text3);font-size:9.5px;font-weight:500;flex:1;
-    padding:3px 2px 2px;border-radius:10px;cursor:pointer;position:relative;
+    gap:2px;color:var(--text3);font-size:9.5px;font-weight:500;flex:1;
+    padding:4px 2px;border-radius:10px;cursor:pointer;position:relative;
     -webkit-tap-highlight-color:transparent;user-select:none;
   }
   .bn-item .bn-icon{font-size:18px;line-height:1}
@@ -556,7 +556,7 @@
   /* ================= ПЛАНШЕТ / МАЛЫЙ ЭКРАН (≤880px) ================= */
   @media (max-width:880px){
     .app{height:100vh;height:100dvh}
-    .main{width:100%;height:calc(100vh - var(--bottom-nav-h) - env(safe-area-inset-bottom, 0px));height:calc(100dvh - var(--bottom-nav-h) - env(safe-area-inset-bottom, 0px))}
+    .main{width:100%;height:calc(100dvh - var(--bottom-nav-h) - env(safe-area-inset-bottom, 0px))}
     .sidebar{
       position:fixed;top:0;left:0;height:100%;height:100dvh;z-index:50;
       transform:translateX(-100%);transition:transform .25s ease;
@@ -719,41 +719,20 @@
 
   /* ===== ДОПОЛНИТЕЛЬНЫЕ ПРАВКИ ДЛЯ PWA ===== */
   @media all and (display-mode: standalone) {
-    html, body {
-      height: 100%;
-      height: 100dvh;
-      overflow: hidden;
-      background: var(--bg2);
-    }
     body {
       position: fixed;
       width: 100%;
-      padding: 0;
+      height: 100dvh;
+      overflow: hidden;
       padding-top: env(safe-area-inset-top, 0px);
+      box-sizing: border-box;
     }
     .app {
-      height: 100dvh;
-      height: calc(100dvh - env(safe-area-inset-top, 0px));
-      background: var(--bg);
-    }
-    .topbar {
-      padding-top: 0;
+      height: 100%;
     }
     .sidebar {
       padding-top: env(safe-area-inset-top, 0px);
       box-sizing: border-box;
-    }
-    .main {
-      height: calc(100dvh - env(safe-area-inset-top, 0px) - var(--bottom-nav-h) - env(safe-area-inset-bottom, 0px));
-      padding-bottom: 0;
-    }
-    .content {
-      height: 100%;
-    }
-    /* Bottom nav прижат к самому низу, без зазора */
-    .bottom-nav {
-      bottom: 0;
-      padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     }
   }
 </style>
@@ -3272,14 +3251,6 @@ function initApp(){
     if (!nav) return;
     nav.style.bottom = '0';
     nav.style.transform = 'none';
-    // Измеряем реальную высоту панели и подстраиваем .main
-    const navH = nav.offsetHeight;
-    const main = document.querySelector('.main');
-    if (main && navH > 0) {
-      main.style.height = 'calc(100dvh - ' + navH + 'px)';
-      main.style.height = 'calc(100vh - ' + navH + 'px)';
-      main.style.height = 'calc(100dvh - ' + navH + 'px)';
-    }
   }
   fixBottomNav();
   if (window.visualViewport) {
