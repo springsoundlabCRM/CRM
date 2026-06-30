@@ -1263,23 +1263,35 @@ function defaultDB(){
 let DB = null;
 let currentUid = null; // ID текущего пользователя Firebase — каждый видит только свой документ
 
-async function loadDB(){
+async function loadDB(prefetchedSnap){
   let data = null;
   try{
-    const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
-    const snap = await window.__fb.getDoc(ref);
-    if(snap.exists()) data = snap.data().payload;
+    let snap = prefetchedSnap;
+    if(!snap){
+      // Фолбэк на случай, если loadDB() вызвали напрямую без предзагруженного
+      // снэпшота (например, в будущем коде) — читаем сами.
+      const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
+      snap = await window.__fb.getDoc(ref);
+    }
+    if(snap && snap.exists()) data = snap.data().payload;
   }catch(e){ console.error('Не удалось загрузить данные из Firestore', e); toast('⚠️ Не удалось загрузить данные','red'); }
 
+  let needsSave = false;
   if(data){
     try{ DB = JSON.parse(data); }catch(e){ console.warn('Повреждённые данные, создаю новую базу',e); DB=null; }
   }
-  if(!DB){ DB = defaultDB(); seedEmptyTeacher(); }
-  if(!DB.teachers || !DB.teachers.length){ DB = defaultDB(); seedEmptyTeacher(); }
+  if(!DB){ DB = defaultDB(); seedEmptyTeacher(); needsSave = true; }
+  if(!DB.teachers || !DB.teachers.length){ DB = defaultDB(); seedEmptyTeacher(); needsSave = true; }
   if(!DB.currentTeacherId || !DB.teachers.find(t=>t.id===DB.currentTeacherId)){
     DB.currentTeacherId = DB.teachers[0].id;
+    needsSave = true;
   }
-  await saveDB();
+  // Раньше здесь был безусловный await saveDB() — то есть КАЖДЫЙ запуск
+  // приложения делал лишнюю запись в Firestore сразу после чтения, даже
+  // если ничего не изменилось. Это удваивало время до отрисовки интерфейса
+  // (чтение + запись друг за другом вместо одного чтения). Теперь сохраняем
+  // только тогда, когда реально что-то создали/поправили выше.
+  if(needsSave) await saveDB();
 }
 
 async function saveDB(){
@@ -1480,7 +1492,13 @@ function studentTotalPaid(studentId){
   return sum;
 }
 function studentLessonsCount(studentId){
-  return lessonsOfStudent(studentId).filter(l=>l.status==='done').length;
+  // Считаем ВСЕ зафиксированные уроки (запланированные, проведённые, неявки) —
+  // не только "проведённые". Раньше тут был фильтр status==='done', из-за чего
+  // карточка в списке показывала "0 уроков" даже если по абонементу уже
+  // числилось, например, "2 из 10" — урок засчитывается в абонемент сразу
+  // при планировании, а не только после того, как отмечен как проведённый.
+  // Отменённые ('cancelled') уроки не считаем — они не должны идти в зачёт.
+  return lessonsOfStudent(studentId).filter(l=>l.status!=='cancelled').length;
 }
 function studentNextLesson(studentId){
   const upcoming = lessonsOfStudent(studentId).filter(l=>l.status==='planned' && l.date>=todayISO());
@@ -3556,15 +3574,19 @@ async function checkSubscriptionAndRoute(){
   const paywallScreen = document.getElementById('paywallScreen');
   const appEl = document.getElementById('app');
 
-  let sub = null;
-  try{
-    const ref = window.__fb.doc(window.__fb.db, 'users', currentUid);
-    const snap = await window.__fb.getDoc(ref);
-    if(snap.exists()) sub = snap.data();
-  }catch(e){
-    console.error('Не удалось проверить статус подписки', e);
-  }
+  // Эти два документа никак не зависят друг от друга, поэтому читаем их
+  // ОДНОВРЕМЕННО (Promise.all), а не один за другим. Раньше тут было
+  // 2 последовательных запроса к Firestore + ещё один (лишний) внутри
+  // loadDB() — итого 3 похода в сеть подряд, прежде чем интерфейс
+  // вообще появлялся. Теперь это 1-2 похода параллельно.
+  const subRef = window.__fb.doc(window.__fb.db, 'users', currentUid);
+  const dbRef = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
+  const [subSnap, dbSnap] = await Promise.all([
+    window.__fb.getDoc(subRef).catch(e=>{ console.error('Не удалось проверить статус подписки', e); return null; }),
+    window.__fb.getDoc(dbRef).catch(e=>{ console.error('Не удалось загрузить данные из Firestore', e); toast('⚠️ Не удалось загрузить данные','red'); return null; })
+  ]);
 
+  const sub = subSnap && subSnap.exists() ? subSnap.data() : null;
   const now = Date.now();
   const isActive = sub && sub.subscriptionStatus === 'active' && sub.expiresAt && sub.expiresAt > now;
 
@@ -3572,7 +3594,7 @@ async function checkSubscriptionAndRoute(){
     authScreen.style.display = 'none';
     paywallScreen.style.display = 'none';
     appEl.style.display = 'flex';
-    await initApp();
+    await initApp(dbSnap);
     if(window.__pendingRegisterName){
       const t = DB.teachers.find(t=>t.id===DB.currentTeacherId);
       if(t){ t.name = window.__pendingRegisterName; await saveDB(); renderSidebar(); }
@@ -3628,8 +3650,8 @@ window.addEventListener('fb-ready', function(){
 });
 
 
-async function initApp(){
-  await loadDB();
+async function initApp(prefetchedDbSnap){
+  await loadDB(prefetchedDbSnap);
   if(!DB.theme) DB.theme = 'dark';
   applyTheme();
   renderSidebar();
