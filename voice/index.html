@@ -2978,20 +2978,43 @@ function buildSubscriptionModal(ctx){
   const studentId = ctx.studentId || (studentsOfTeacher()[0]||{}).id;
   return '<div class="modal-title">Новый абонемент <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-sub-student">'+studentOptionsHTML(studentId)+'</select></div>'
-    +'<div class="input-row"><div class="input-group"><label class="input-label">Количество уроков</label><select class="input" id="f-sub-total"><option value="4">4 урока</option><option value="8" selected>8 уроков</option><option value="12">12 уроков</option></select></div>'
-    +'<div class="input-group"><label class="input-label">Сумма абонемента (₽)</label><input class="input" id="f-sub-price" type="number" value="8000"></div></div>'
+    +'<div class="input-group">'
+      +'<label class="input-label">Количество занятий</label>'
+      +'<div style="display:flex;gap:6px;margin-bottom:6px">'
+        +'<button type="button" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="setSubLessons(4)">4</button>'
+        +'<button type="button" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="setSubLessons(8)">8</button>'
+        +'<button type="button" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="setSubLessons(12)">12</button>'
+      +'</div>'
+      +'<input class="input" id="f-sub-total" type="number" min="1" value="8" oninput="recalcSubTotal()">'
+    +'</div>'
+    +'<div class="input-group"><label class="input-label">Стоимость одного занятия (₽)</label><input class="input" id="f-sub-price" type="number" min="0" value="1000" oninput="recalcSubTotal()"></div>'
     +'<div class="input-group"><label class="input-label">Дата покупки</label><input class="input" id="f-sub-date" type="date" value="'+todayISO()+'"></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveSubscriptionForm()">Создать абонемент</button>';
+    +'<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:8px;padding:10px 12px;margin:4px 0 8px">'
+      +'<span style="font-size:13px;color:var(--text3)">Итого</span>'
+      +'<span style="font-size:16px;font-weight:700" id="f-sub-totalDisplay">8 000₽</span>'
+    +'</div>'
+    +'<button class="btn btn-primary" style="width:100%;margin-top:4px;justify-content:center" onclick="saveSubscriptionForm()">Создать абонемент</button>';
+}
+function setSubLessons(n){
+  document.getElementById('f-sub-total').value = n;
+  recalcSubTotal();
+}
+function recalcSubTotal(){
+  const total = Number(document.getElementById('f-sub-total').value)||0;
+  const pricePerLesson = Number(document.getElementById('f-sub-price').value)||0;
+  document.getElementById('f-sub-totalDisplay').textContent = money(total*pricePerLesson);
 }
 function saveSubscriptionForm(){
   const studentId = document.getElementById('f-sub-student').value;
-  const total = Number(document.getElementById('f-sub-total').value)||8;
-  const price = Number(document.getElementById('f-sub-price').value)||0;
+  const total = Number(document.getElementById('f-sub-total').value)||0;
+  const pricePerLesson = Number(document.getElementById('f-sub-price').value)||0;
+  const price = total*pricePerLesson;
   const date = document.getElementById('f-sub-date').value || todayISO();
+  if(total<=0){ toast('Укажите количество занятий','red'); return; }
   if(activeSubscriptionOf(studentId)){ toast('У ученика уже есть активный абонемент','red'); return; }
   const id = uid('sub');
   const titleWord = total===1?'урок': (total>=2&&total<=4?'урока':'уроков');
-  DB.subscriptions.push({ id, studentId, title:'Абонемент '+total+' '+titleWord, totalLessons: total, usedLessons:0, pricePerLesson: Math.round(price/total), totalPrice: price, purchaseDate: date, active:true });
+  DB.subscriptions.push({ id, studentId, title:'Абонемент '+total+' '+titleWord, totalLessons: total, usedLessons:0, pricePerLesson: pricePerLesson, totalPrice: price, purchaseDate: date, active:true });
   DB.subHistory.push({ id:uid('h'), studentId, subscriptionId:id, type:'purchase', lessonsDelta:total, amount:price, date, note:'Покупка абонемента' });
   DB.payments.push({ id:uid('p'), studentId, date, amount:price, type:'subscription_purchase', note:'Абонемент '+total+' '+titleWord });
   saveDB();
