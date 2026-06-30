@@ -1750,9 +1750,8 @@ function renderCalendar() {
       const totalCols = Math.max(placed.filter(x=>x!==undefined).length, 1);
       const colW = 90 / totalCols;
       const colLeft = 3 + subcol * (colW + 1);
-      // Цвет ученика
+      // Имя/формат для подписи на карточке (цвет карточки теперь не зависит от ученика — см. ниже)
       const student = studentById(ev.studentId);
-      const color = student ? student.color : GRADIENTS[0];
       const evName = escapeHTML(student ? student.name : '—');
       const evSvc = escapeHTML(ev.format || 'Урок');
       const evEl = document.createElement('div');
@@ -1761,20 +1760,14 @@ function renderCalendar() {
       evEl.style.height = height + 'px';
       evEl.style.left = colLeft + '%';
       evEl.style.width = colW + '%';
-      evEl.style.background = 'rgba(167,139,250,0.18)';
-      if(student) {
-        // Извлекаем цвет из градиента (берём первый цвет)
-        const gradMatch = color.match(/#[0-9a-f]{6}/i);
-        const hex = gradMatch ? gradMatch[0] : '#a78bfa';
-        evEl.style.background = hex + '33';
-        evEl.style.borderLeft = '4px solid ' + hex;
-      } else {
-        evEl.style.background = 'rgba(167,139,250,0.18)';
-        evEl.style.borderLeft = '4px solid #a78bfa';
-      }
-      // Статус
-      const statusColor = ev.status === 'done' ? 'var(--green)' : ev.status === 'planned' ? 'var(--amber)' : 'var(--red)';
+      // Цвет события — теперь определяется ТОЛЬКО статусом урока, не учеником:
+      // полоска слева — статус-цвет в полную силу, а фон всей карточки — тот же
+      // самый цвет, только бледнее (ниже непрозрачность), чтобы карточка и
+      // полоска явно читались как один и тот же цвет, но с разным "весом".
+      const STATUS_COLORS = { done:'#34d399', planned:'#fbbf24', noshow:'#f87171', cancelled:'#5a5a72' };
+      const statusColor = STATUS_COLORS[ev.status] || STATUS_COLORS.planned;
       evEl.style.borderLeft = '4px solid ' + statusColor;
+      evEl.style.background = statusColor + '24'; // ~14% непрозрачности — бледный тон того же цвета
       evEl.innerHTML = `<div class="cal-event-name" style="color:var(--text)">${evName}</div><div class="cal-event-svc" style="color:var(--text);opacity:.78">${evSvc}</div>`;
       evEl.onclick = function(e) {
         e.stopPropagation();
