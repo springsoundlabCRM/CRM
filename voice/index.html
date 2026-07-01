@@ -2,6 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<!-- Против агрессивного кэширования страницы на мобильных браузерах
+     (особенно iOS Safari / "На экран Домой") — без этого телефон иногда
+     показывает старую сохранённую копию сайта даже после того, как файл
+     обновлён на хостинге, из-за чего кажется, что "фикс не применился". -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual">
 <title>VoiceLoft CRM — Студия вокала</title>
 
@@ -970,6 +977,12 @@
       </div>
     </div>
   </div>
+  <!-- Метка версии файла — видна глазами без всяких инструментов
+       разработчика. Если после обновления файла на хостинге вы всё ещё
+       видите СТАРУЮ метку — значит телефон показывает закэшированную
+       версию, и проблема не в коде, а в кэше браузера/иконки "На экран
+       Домой". Меняйте эту строку при каждой публикации новой версии. -->
+  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v3</div>
 </div>
 
 <!-- ===== ЭКРАН ОПЛАТЫ ПОДПИСКИ ===== -->
