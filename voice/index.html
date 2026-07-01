@@ -936,6 +936,13 @@
       <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3)">
         <a href="javascript:void(0)" onclick="logoutFromAuthScreen()" style="color:var(--accent);font-weight:500">Выйти из аккаунта</a>
       </div>
+      <div style="text-align:center;margin-top:8px;font-size:12.5px;color:var(--text3)">
+        <a href="javascript:void(0)" onclick="hardResetAuthState()" style="color:var(--red);font-weight:500">Полный сброс входа (если "Выйти" не помогает)</a>
+      </div>
+      <div style="text-align:center;margin-top:10px">
+        <a href="javascript:void(0)" onclick="toggleAuthDiagnostics()" style="color:var(--text3);font-size:11px;text-decoration:underline" id="authDiagToggle">Показать диагностику</a>
+      </div>
+      <pre id="authDiagBox" style="display:none;margin-top:8px;padding:10px;border-radius:8px;background:rgba(255,255,255,.04);color:var(--text3);font-size:10.5px;line-height:1.5;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow:auto"></pre>
     </div>
 
     <!-- Обычная форма входа/регистрации — показывается только когда
@@ -3618,6 +3625,77 @@ function logoutFromAuthScreen(){
   window.__fb.signOut(window.__fb.auth);
 }
 
+function toggleAuthDiagnostics(){
+  const box = document.getElementById('authDiagBox');
+  const link = document.getElementById('authDiagToggle');
+  if(!box) return;
+  const show = box.style.display === 'none';
+  box.style.display = show ? 'block' : 'none';
+  if(link) link.textContent = show ? 'Скрыть диагностику' : 'Показать диагностику';
+}
+
+// Собирает техническую информацию о текущем состоянии входа — без пароля
+// и без полного номера телефона — чтобы при повторении ошибки можно было
+// прислать скриншот этого блока и сразу понять причину, а не гадать.
+async function collectAuthDiagnostics(lastError){
+  const lines = [];
+  try{
+    const user = window.__fb.auth.currentUser;
+    lines.push('UID: ' + (user ? (user.uid.slice(0,6)+'…') : 'нет'));
+    lines.push('Онлайн (navigator.onLine): ' + navigator.onLine);
+    lines.push('Standalone/PWA (iOS): ' + (window.navigator.standalone === true));
+    lines.push('display-mode standalone: ' + (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches));
+    lines.push('User-Agent: ' + navigator.userAgent);
+    if(user){
+      try{
+        const tokenResult = await user.getIdTokenResult(false);
+        lines.push('Токен выдан: ' + tokenResult.issuedAtTime);
+        lines.push('Токен истекает: ' + tokenResult.expirationTime);
+        lines.push('Токен auth_time: ' + tokenResult.authTime);
+      }catch(te){
+        lines.push('Не удалось прочитать данные токена: ' + (te && (te.code||te.message)));
+      }
+    }
+    if(lastError){
+      lines.push('Последняя ошибка: ' + (lastError.code || '(нет кода)'));
+      lines.push('Текст ошибки: ' + (lastError.message || '(нет текста)'));
+    }
+    lines.push('Время: ' + new Date().toISOString());
+  }catch(e){
+    lines.push('Ошибка сбора диагностики: ' + (e && e.message));
+  }
+  return lines.join('\n');
+}
+
+// "Полный сброс" — на случай повреждённого локального состояния входа
+// (характерно для iOS Safari, когда сессия открыта то через вкладку
+// браузера, то через иконку "На экран Домой" — WebKit в части версий
+// хранит их как РАЗНЫЕ хранилища, и в одном из них может застрять старая,
+// нерабочая сессия). Обычный выход (signOut) чистит только текущее
+// активное состояние Firebase Auth в памяти — но не всегда чистит то,
+// что реально лежит в IndexedDB на диске. Здесь чистим это явно.
+async function hardResetAuthState(){
+  try{
+    await window.__fb.signOut(window.__fb.auth);
+  }catch(e){ console.error('signOut при полном сбросе', e); }
+  try{
+    if(window.indexedDB && indexedDB.databases){
+      const dbs = await indexedDB.databases();
+      for(const d of dbs){
+        if(d.name && /firebase|firestore/i.test(d.name)){
+          try{ indexedDB.deleteDatabase(d.name); }catch(e){ console.error('Не удалось удалить IndexedDB', d.name, e); }
+        }
+      }
+    }
+  }catch(e){ console.error('Перебор IndexedDB при полном сбросе', e); }
+  try{
+    Object.keys(localStorage).forEach(k=>{
+      if(/firebase/i.test(k)) localStorage.removeItem(k);
+    });
+  }catch(e){ console.error('Очистка localStorage при полном сбросе', e); }
+  location.reload();
+}
+
 function normalizePhone(raw){
   let digits = (raw||'').replace(/\D/g,'');
   if(digits.length === 11 && digits[0] === '8') digits = '7'+digits.slice(1);
@@ -3819,6 +3897,14 @@ async function checkSubscriptionAndRoute(){
     const code = lastError && (lastError.code || lastError.message) ? (lastError.code || lastError.message) : 'неизвестна';
     const reconnectErrEl = document.getElementById('authReconnectError');
     if(reconnectErrEl) reconnectErrEl.textContent = 'Код ошибки: '+code;
+    // Диагностику собираем сразу (но не показываем, пока не нажмут
+    // "Показать диагностику") — чтобы данные были свежими на момент сбоя,
+    // а не собранными постфактум, когда состояние уже могло измениться.
+    try{
+      const diagText = await collectAuthDiagnostics(lastError);
+      const diagBox = document.getElementById('authDiagBox');
+      if(diagBox) diagBox.textContent = diagText;
+    }catch(e){ console.error('Не удалось собрать диагностику', e); }
     return;
   }
 
