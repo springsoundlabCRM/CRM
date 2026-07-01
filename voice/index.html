@@ -982,7 +982,7 @@
        видите СТАРУЮ метку — значит телефон показывает закэшированную
        версию, и проблема не в коде, а в кэше браузера/иконки "На экран
        Домой". Меняйте эту строку при каждой публикации новой версии. -->
-  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v3</div>
+  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v4</div>
 </div>
 
 <!-- ===== ЭКРАН ОПЛАТЫ ПОДПИСКИ ===== -->
@@ -3867,22 +3867,43 @@ async function checkSubscriptionAndRoute(){
   // дождался готовности токена. То есть у нас в руках уже свежий токен, а
   // Firestore внутри себя ещё не успел его подхватить на конкретное
   // соединение — и получаем permission-denied, хотя доступ на самом деле
-  // есть. Раньше в такой ситуации ничего не помогало, кроме как ждать
-  // (иногда безуспешно) — теперь при коде permission-denied мы явно
-  // ПРИНУДИТЕЛЬНО обновляем токен ещё раз (getIdToken(true)) перед
-  // следующей попыткой — это заставляет Firestore пересоздать credential
-  // и подхватить актуальный токен, и повторное чтение обычно проходит.
+  // есть. В этом случае принудительное обновление токена (getIdToken(true))
+  // перед повтором обычно помогает.
+  //
+  // НО есть и другой случай: сессия могла стать по-настоящему невалидной
+  // (например, повреждённое/частично очищенное локальное хранилище на
+  // телефоне — см. hardResetAuthState). Тогда getIdToken(true) не просто
+  // не помогает — он either выбрасывает ошибку, либо приводит к тому, что
+  // auth.currentUser становится null. Раньше в этом случае код всё равно
+  // показывал "вы залогинены, просто нет связи, нажмите Повторить" — а
+  // повторить было НЕЧЕГО, потому что сессии реально больше не было, и
+  // человек был заперт в бесконечном цикле бесполезных "Повторить попытку".
+  // Здесь мы явно ловим оба признака смерти сессии и сразу прекращаем
+  // ретраи, чтобы можно было честно показать форму входа.
   let lastError = null;
+  let sessionReallyDead = false;
   async function readWithRetry(ref, attempts){
     for(let i=0;i<attempts;i++){
       try{ return await window.__fb.getDoc(ref); }
       catch(e){
         lastError = e;
         console.error('Firestore read failed (attempt '+(i+1)+'/'+attempts+')', e && e.code, e && e.message, e);
+        if(sessionReallyDead) return null;
         if(i < attempts-1){
           if(e && e.code === 'permission-denied' && window.__fb.auth.currentUser){
-            try{ await window.__fb.auth.currentUser.getIdToken(true); }
-            catch(e2){ console.error('Не удалось принудительно обновить токен перед повтором', e2); }
+            try{
+              await window.__fb.auth.currentUser.getIdToken(true);
+              if(!window.__fb.auth.currentUser){
+                // Токен как бы обновился, но сессия при этом пропала —
+                // явный признак того, что сессия была невалидной.
+                sessionReallyDead = true;
+                return null;
+              }
+            }catch(e2){
+              console.error('Принудительное обновление токена провалилось — сессия, судя по всему, мертва', e2);
+              sessionReallyDead = true;
+              return null;
+            }
           }
           await new Promise(r=>setTimeout(r, 700*(i+1)));
         }
@@ -3896,13 +3917,25 @@ async function checkSubscriptionAndRoute(){
     readWithRetry(dbRef, 5)
   ]);
 
+  // Сессия реально умерла (не просто сеть подвела) — честно разлогиниваем
+  // и показываем обычную форму входа с понятным объяснением, вместо
+  // бесполезного "Повторить попытку", которое никогда бы не сработало.
+  if(sessionReallyDead || (!window.__fb.auth.currentUser && (subSnap === null || dbSnap === null))){
+    currentUid = null;
+    appEl.style.display = 'none';
+    paywallScreen.style.display = 'none';
+    authScreen.style.display = 'flex';
+    setAuthScreenMode('form');
+    const authErrEl = document.getElementById('authError');
+    if(authErrEl) authErrEl.textContent = 'Сессия истекла, войдите заново';
+    try{ await window.__fb.signOut(window.__fb.auth); }catch(e){ console.error('signOut после смерти сессии', e); }
+    return;
+  }
+
   if(subSnap === null || dbSnap === null){
-    // Не смогли достучаться до сервера даже после повторных попыток.
-    // ВАЖНО: сессию Firebase НЕ трогаем и НЕ показываем форму
-    // логина/пароля — человек всё ещё залогинен, просто сеть подвела.
-    // Раньше здесь показывалась обычная форма входа, что выглядело так,
-    // будто приложение "выкинуло" и требует войти заново — хотя на самом
-    // деле нужно было просто повторить попытку.
+    // Не смогли достучаться до сервера даже после повторных попыток, но
+    // сессия при этом жива (см. проверку выше) — это временный сбой связи.
+    // Сессию НЕ трогаем и НЕ показываем форму логина/пароля.
     appEl.style.display = 'none';
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
