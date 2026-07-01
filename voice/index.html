@@ -915,6 +915,7 @@
       <label class="input-label">Ваше имя</label>
       <input class="input" id="authName" placeholder="Например: Анна Ковалёва">
     </div>
+    <div id="authTrialBanner" class="lesson-sub-banner" style="display:none;margin-bottom:12px">🎁 <span id="authTrialBannerText"></span></div>
     <div style="margin-bottom:12px">
       <label class="input-label">Номер телефона</label>
       <input class="input" id="authPhone" placeholder="+7 900 123-45-67" autocomplete="tel">
@@ -937,8 +938,8 @@
   <div class="modal" style="width:380px">
     <div style="text-align:center;margin-bottom:18px">
       <div style="font-size:28px">💳</div>
-      <div style="font-size:17px;font-weight:600;margin-top:4px">Подписка не активна</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:6px">Чтобы продолжить пользоваться VoiceLoft CRM, выберите тариф и оплатите подписку</div>
+      <div id="paywallTitle" style="font-size:17px;font-weight:600;margin-top:4px">Подписка не активна</div>
+      <div id="paywallSubtitle" style="font-size:12px;color:var(--text3);margin-top:6px">Чтобы продолжить пользоваться VoiceLoft CRM, выберите тариф и оплатите подписку</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <div class="card" style="padding:14px 16px;cursor:pointer;border:1px solid var(--border)" onclick="startCheckout('month')">
@@ -1313,6 +1314,10 @@ function defaultDB(){
 
 let DB = null;
 let currentUid = null; // ID текущего пользователя Firebase — каждый видит только свой документ
+// Длительность бесплатного пробного периода для новых аккаунтов, в днях.
+// Меняется в одном месте — вся остальная логика (баннер на регистрации,
+// запись в Firestore, проверка при входе) подхватит новое значение сама.
+const TRIAL_DAYS = 7;
 
 async function loadDB(prefetchedSnap){
   let data = null;
@@ -3569,6 +3574,9 @@ function phoneToFakeEmail(normalized){
 function toggleAuthMode(){
   authMode = (authMode === 'login') ? 'register' : 'login';
   document.getElementById('authNameField').style.display = (authMode==='register') ? 'block' : 'none';
+  const trialBanner = document.getElementById('authTrialBanner');
+  trialBanner.style.display = (authMode==='register') ? 'flex' : 'none';
+  document.getElementById('authTrialBannerText').textContent = 'Первые '+TRIAL_DAYS+' дней — бесплатно. Дальше нужна подписка.';
   document.getElementById('authSubmitBtn').textContent = (authMode==='register') ? 'Зарегистрироваться' : 'Войти';
   document.getElementById('authSubtitle').textContent = (authMode==='register') ? 'Создание аккаунта' : 'Вход в аккаунт';
   document.getElementById('authToggleText').textContent = (authMode==='register') ? 'Уже есть аккаунт?' : 'Нет аккаунта?';
@@ -3595,6 +3603,25 @@ async function handleAuthSubmit(){
       const name = document.getElementById('authName').value.trim();
       if(!name){ errEl.textContent = 'Введите имя'; btn.disabled = false; return; }
       const cred = await window.__fb.createUserWithEmailAndPassword(window.__fb.auth, fakeEmail, pass);
+      // Фиксируем начало пробного периода СРАЗУ при регистрации — один
+      // документ на аккаунт, создаётся один раз (правила Firestore не дают
+      // клиенту менять его после создания — см. инструкцию по обновлению
+      // правил). Именно эта запись — источник правды о том, использовал
+      // ли номер телефона свой бесплатный период.
+      try{
+        const now = Date.now();
+        await window.__fb.setDoc(window.__fb.doc(window.__fb.db, 'users', cred.user.uid), {
+          phone: normalized,
+          subscriptionStatus: 'trial',
+          trialStartedAt: now,
+          trialEndsAt: now + TRIAL_DAYS*24*60*60*1000
+        });
+      }catch(e){
+        // Если не удалось создать пробный документ (например, ещё не
+        // обновлены правила Firestore) — не рушим регистрацию, просто
+        // человек попадёт на экран оплаты вместо пробного периода.
+        console.error('Не удалось создать пробный период', e);
+      }
       // Профиль педагога создастся автоматически внутри initApp()/seedDB(),
       // но имя из формы регистрации сразу прокинем в DB после загрузки.
       window.__pendingRegisterName = name;
@@ -3682,7 +3709,14 @@ async function checkSubscriptionAndRoute(){
 
   const sub = subSnap && subSnap.exists() ? subSnap.data() : null;
   const now = Date.now();
-  const isActive = sub && sub.subscriptionStatus === 'active' && sub.expiresAt && sub.expiresAt > now;
+  const paidActive = sub && sub.subscriptionStatus === 'active' && sub.expiresAt && sub.expiresAt > now;
+  const trialActive = sub && sub.subscriptionStatus === 'trial' && sub.trialEndsAt && sub.trialEndsAt > now;
+  const isActive = paidActive || trialActive;
+
+  // Сколько дней пробного периода осталось — используется баннером в
+  // сайдбаре, чтобы человек видел обратный отсчёт и не был застигнут
+  // врасплох в момент, когда доступ вдруг пропадёт.
+  window.__trialDaysLeft = trialActive ? Math.max(1, Math.ceil((sub.trialEndsAt - now) / (24*60*60*1000))) : null;
 
   if(isActive){
     authScreen.style.display = 'none';
@@ -3694,11 +3728,48 @@ async function checkSubscriptionAndRoute(){
       if(t){ t.name = window.__pendingRegisterName; await saveDB(); renderSidebar(); }
       window.__pendingRegisterName = null;
     }
+    renderTrialBanner();
   } else {
     authScreen.style.display = 'none';
     appEl.style.display = 'none';
     paywallScreen.style.display = 'flex';
+    const titleEl = document.getElementById('paywallTitle');
+    const subEl = document.getElementById('paywallSubtitle');
+    if(sub && sub.subscriptionStatus === 'trial'){
+      // Пробный период был, но закончился
+      if(titleEl) titleEl.textContent = 'Пробный период закончился';
+      if(subEl) subEl.textContent = 'Бесплатные '+TRIAL_DAYS+' дней истекли. Чтобы продолжить пользоваться VoiceLoft CRM, оформите подписку';
+    } else if(sub && sub.subscriptionStatus === 'active'){
+      // Была оплаченная подписка, но истёк срок
+      if(titleEl) titleEl.textContent = 'Срок подписки истёк';
+      if(subEl) subEl.textContent = 'Чтобы продолжить пользоваться VoiceLoft CRM, продлите подписку';
+    } else {
+      if(titleEl) titleEl.textContent = 'Подписка не активна';
+      if(subEl) subEl.textContent = 'Чтобы продолжить пользоваться VoiceLoft CRM, выберите тариф и оплатите подписку';
+    }
   }
+}
+
+// Небольшой баннер над сайдбаром с обратным отсчётом пробного периода —
+// чтобы человек видел, сколько дней осталось, и не был неожиданно
+// выброшен из аккаунта в середине рабочего дня.
+function renderTrialBanner(){
+  const old = document.getElementById('trialBanner');
+  if(old) old.remove();
+  if(!window.__trialDaysLeft) return;
+  const sidebar = document.querySelector('.sidebar');
+  if(!sidebar) return;
+  const el = document.createElement('div');
+  el.id = 'trialBanner';
+  el.style.cssText = 'margin:10px 14px;padding:9px 10px;border-radius:9px;background:var(--green-bg);border:1px solid rgba(52,211,153,.35);color:var(--green);font-size:11.5px;font-weight:600;text-align:center;line-height:1.4';
+  el.textContent = '🎁 Пробный период: осталось '+window.__trialDaysLeft+' '+pluralDays(window.__trialDaysLeft);
+  sidebar.insertBefore(el, sidebar.querySelector('.logo').nextSibling);
+}
+function pluralDays(n){
+  const mod10=n%10, mod100=n%100;
+  if(mod10===1 && mod100!==11) return 'день';
+  if([2,3,4].includes(mod10) && ![12,13,14].includes(mod100)) return 'дня';
+  return 'дней';
 }
 
 // ВРЕМЕННАЯ заглушка вместо реального вызова ЮKassa.
@@ -3761,6 +3832,16 @@ window.addEventListener('fb-ready', function(){
       authScreen.style.display = 'flex';
     }
   });
+
+  // Пробный период может закончиться прямо во время работы (человек оставил
+  // вкладку открытой на несколько дней) — перепроверяем статус раз в 10
+  // минут, чтобы доступ закрылся вовремя, а не только при следующей
+  // полной перезагрузке страницы.
+  setInterval(function(){
+    if(currentUid && document.getElementById('app').style.display !== 'none'){
+      checkSubscriptionAndRoute();
+    }
+  }, 10*60*1000);
 });
 
 
