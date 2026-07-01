@@ -1009,7 +1009,22 @@
 </style>
 
 <!-- ===== ЭКРАН ВХОДА / РЕГИСТРАЦИИ (Firebase Auth) ===== -->
-<div id="authScreen" style="display:flex;align-items:center;justify-content:center;min-height:100dvh;min-height:var(--vh100,100dvh);background:var(--bg);padding:20px;box-sizing:border-box">
+<div id="authScreen" style="display:flex;align-items:center;justify-content:center;min-height:100dvh;min-height:var(--vh100,100dvh);background:var(--bg);padding:20px;box-sizing:border-box;flex-direction:column;gap:14px">
+  <!-- Предупреждение про встроенные браузеры мессенджеров (ВК, Telegram,
+       Instagram и т.п.). Такие встроенные окна часто не сохраняют вход
+       между открытиями — это ограничение самого приложения-мессенджера,
+       на уровне сайта это никак не обойти. Единственное решение —
+       открыть ссылку в настоящем Safari/Chrome. Баннер появляется только
+       если код (см. detectInAppBrowser() ниже) реально распознал такой
+       браузер по строке User-Agent — на обычном Safari/Chrome его не будет. -->
+  <div id="inAppBrowserWarning" style="display:none;width:380px;max-width:100%;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--text2);line-height:1.5;box-sizing:border-box">
+    <div style="font-weight:600;color:var(--red);margin-bottom:6px">⚠️ Ссылка открыта во встроенном браузере <span id="inAppBrowserName">приложения</span></div>
+    <div>Такие браузеры часто не сохраняют вход между открытиями — это ограничение самого приложения, а не CRM. Откройте эту ссылку в обычном Safari или Chrome:</div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" style="font-size:12px;padding:7px 12px" onclick="copyCurrentLinkForSafari()" id="copyLinkBtn">Скопировать ссылку</button>
+    </div>
+    <div style="margin-top:6px;font-size:11.5px;color:var(--text3)">Скопируйте, затем откройте Safari и вставьте ссылку в адресную строку — вход сохранится и больше не будет слетать.</div>
+  </div>
   <div class="modal" style="width:380px">
     <div style="text-align:center;margin-bottom:18px">
       <div style="font-size:17px;font-weight:600">VoiceLoft CRM</div>
@@ -1093,7 +1108,7 @@
        видите СТАРУЮ метку — значит телефон показывает закэшированную
        версию, и проблема не в коде, а в кэше браузера/иконки "На экран
        Домой". Меняйте эту строку при каждой публикации новой версии. -->
-  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v7</div>
+  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v8</div>
 </div>
 
 <!-- ===== ЭКРАН ОПЛАТЫ ПОДПИСКИ ===== -->
@@ -3982,6 +3997,68 @@ function doLogout(){
    пользователь его никогда не видит и не вводит.
    ============================================================ */
 let authMode = 'login'; // 'login' | 'register'
+
+// Определяем, открыта ли страница во встроенном браузере мессенджера
+// (ВКонтакте, Telegram, Instagram, WhatsApp и т.п.), а не в настоящем
+// Safari/Chrome. Такие встроенные окна нередко используют урезанное или
+// временное хранилище данных сайта — вход в CRM в них может слетать
+// каждый раз, и это ограничение самого приложения-мессенджера, а не
+// нашего кода. Единственный надёжный способ всё же его обойти — открыть
+// ссылку в настоящем браузере, поэтому просто честно предупреждаем.
+function detectInAppBrowser(){
+  const ua = navigator.userAgent || '';
+  const known = [
+    { test: /VKClient|VK\/|vk\.com.*iOS/i, name: 'ВКонтакте' },
+    { test: /Instagram/i, name: 'Instagram' },
+    { test: /FBAN|FBAV/i, name: 'Facebook' },
+    { test: /Telegram/i, name: 'Telegram' },
+    { test: /MicroMessenger/i, name: 'WeChat' },
+    { test: /Line\//i, name: 'LINE' },
+    { test: /WhatsApp/i, name: 'WhatsApp' }
+  ];
+  let matched = null;
+  for(const k of known){ if(k.test.test(ua)){ matched = k.name; break; } }
+  // Дополнительный признак для iOS: у настоящего Safari в UA всегда есть
+  // одновременно "Safari/" и "Version/". У встроенных браузеров многих
+  // приложений (в т.ч. ВК) токен "Safari/" из строки убирают, хотя движок
+  // тот же самый (WKWebView).
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const looksLikeStrippedIOSWebView = isIOS && /AppleWebKit/i.test(ua) && !/Safari\//i.test(ua);
+  if(!matched && looksLikeStrippedIOSWebView) matched = 'приложения';
+
+  if(matched){
+    const box = document.getElementById('inAppBrowserWarning');
+    const nameEl = document.getElementById('inAppBrowserName');
+    if(nameEl) nameEl.textContent = matched;
+    if(box) box.style.display = 'block';
+  }
+}
+detectInAppBrowser();
+
+async function copyCurrentLinkForSafari(){
+  const btn = document.getElementById('copyLinkBtn');
+  const url = location.href;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(url);
+    } else {
+      // Запасной способ для очень старых/урезанных встроенных браузеров,
+      // где navigator.clipboard недоступен.
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    if(btn){ const old = btn.textContent; btn.textContent = 'Скопировано ✓'; setTimeout(()=>{ btn.textContent = old; }, 2000); }
+  }catch(e){
+    console.error('Не удалось скопировать ссылку', e);
+    if(btn) btn.textContent = 'Не удалось скопировать, выделите ссылку вручную';
+  }
+}
 
 // Переключение видимого состояния экрана входа между тремя режимами:
 // 'loading'   — идёт тихая проверка ранее сохранённой сессии
