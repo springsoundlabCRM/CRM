@@ -1266,6 +1266,7 @@
           <div class="tab" onclick="switchDetailTab(this,'homework-tab')">Задания</div>
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
           <div class="tab" onclick="switchDetailTab(this,'finance-tab')">Финансы</div>
+          <div class="tab" onclick="switchDetailTab(this,'danger-tab')">Удалить карточку</div>
         </div>
         <div id="dtab-profile"></div>
         <div id="dtab-progress-tab" class="hidden"></div>
@@ -1273,6 +1274,7 @@
         <div id="dtab-homework-tab" class="hidden"></div>
         <div id="dtab-history" class="hidden"></div>
         <div id="dtab-finance-tab" class="hidden"></div>
+        <div id="dtab-danger-tab" class="hidden"></div>
       </div>
     </div>
 
@@ -1975,7 +1977,7 @@ function renderCalendar() {
       // полоска слева — статус-цвет в полную силу, а фон всей карточки — тот же
       // самый цвет, только бледнее (ниже непрозрачность), чтобы карточка и
       // полоска явно читались как один и тот же цвет, но с разным "весом".
-      const STATUS_COLORS = { done:'#34d399', planned:'#fbbf24', noshow:'#f87171', cancelled:'#5a5a72' };
+      const STATUS_COLORS = { done:'#34d399', planned:'#a78bfa', noshow:'#f87171', cancelled:'#5a5a72' };
       const statusColor = STATUS_COLORS[ev.status] || STATUS_COLORS.planned;
       evEl.style.borderLeft = '4px solid ' + statusColor;
       evEl.style.background = statusColor + '24'; // ~14% непрозрачности — бледный тон того же цвета
@@ -2335,8 +2337,9 @@ function renderStudentDetailAll(){
   renderDetailHomework();
   renderDetailHistory();
   renderDetailFinance();
+  renderDetailDanger();
   document.querySelectorAll('#page-student-detail .tab-row .tab').forEach((t,i)=>t.classList.toggle('active', i===0));
-  ['profile','progress-tab','repertoire','homework-tab','history','finance-tab'].forEach((t,i)=>{
+  ['profile','progress-tab','repertoire','homework-tab','history','finance-tab','danger-tab'].forEach((t,i)=>{
     document.getElementById('dtab-'+t).classList.toggle('hidden', i!==0);
   });
 }
@@ -2344,7 +2347,7 @@ function renderStudentDetailAll(){
 function switchDetailTab(el, tab){
   document.querySelectorAll('#page-student-detail .tab-row .tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['profile','progress-tab','repertoire','homework-tab','history','finance-tab'].forEach(t=>{
+  ['profile','progress-tab','repertoire','homework-tab','history','finance-tab','danger-tab'].forEach(t=>{
     document.getElementById('dtab-'+t).classList.add('hidden');
   });
   document.getElementById('dtab-'+tab).classList.remove('hidden');
@@ -2783,6 +2786,56 @@ function renderDetailFinance(){
     + debtRow + rows
     +'<div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;color:var(--text3)">Всего уплачено</div><div style="font-size:16px;font-weight:600;color:var(--green)">'+money(totalPaid)+'</div></div>'
     +'</div>';
+}
+
+/* ---------- Опасная зона: удаление карточки ученика ---------- */
+function renderDetailDanger(){
+  const s = studentById(currentStudentId); if(!s) return;
+  const host = document.getElementById('dtab-danger-tab');
+  const payCount = paymentsOfStudent(s.id).length;
+  host.innerHTML =
+    '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--red)">'
+      + '<div class="detail-title" style="color:var(--red)">⚠️ Опасная зона</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-bottom:16px">Действия ниже необратимы. Перед удалением убедитесь, что это действительно нужно.</div>'
+
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px;margin-bottom:10px">'
+        + '<div><div style="font-size:13px;font-weight:600">Очистить историю платежей</div>'
+        + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Удалит все финансовые записи ученика (сейчас: '+payCount+'). Абонементы и уроки останутся.</div></div>'
+        + '<button class="btn btn-ghost" style="border-color:var(--red);color:var(--red);white-space:nowrap" onclick="wipeStudentFinance(\''+s.id+'\')">Очистить</button>'
+      + '</div>'
+
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px">'
+        + '<div><div style="font-size:13px;font-weight:600">Удалить карточку ученика</div>'
+        + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Полностью удалит ученика «'+escapeHTML(s.name)+'», а также все его уроки, платежи, абонементы, задания и репертуар.</div></div>'
+        + '<button class="btn" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')">🗑 Удалить</button>'
+      + '</div>'
+    + '</div>';
+}
+
+function wipeStudentFinance(studentId){
+  const s = studentById(studentId); if(!s) return;
+  if(!confirm('Удалить всю историю платежей ученика «'+s.name+'»? Это действие нельзя отменить.')) return;
+  DB.payments = DB.payments.filter(p=>p.studentId!==studentId);
+  saveDB();
+  renderDetailFinance();
+  renderDetailDanger();
+  toast('История платежей очищена ✓');
+}
+
+function deleteStudentCard(studentId){
+  const s = studentById(studentId); if(!s) return;
+  if(!confirm('Удалить карточку ученика «'+s.name+'» насовсем? Будут удалены все его уроки, платежи, абонементы, задания и репертуар. Это действие нельзя отменить.')) return;
+  DB.students = DB.students.filter(x=>x.id!==studentId);
+  DB.lessons = DB.lessons.filter(x=>x.studentId!==studentId);
+  DB.payments = DB.payments.filter(x=>x.studentId!==studentId);
+  DB.subscriptions = DB.subscriptions.filter(x=>x.studentId!==studentId);
+  if(DB.subHistory) DB.subHistory = DB.subHistory.filter(x=>x.studentId!==studentId);
+  DB.homework = DB.homework.filter(x=>x.studentId!==studentId);
+  DB.repertoire = DB.repertoire.filter(x=>x.studentId!==studentId);
+  saveDB();
+  toast('Карточка ученика удалена ✓');
+  showPage('students');
+  renderSidebar();
 }
 
 function updateStudentField(studentId, field, value){
