@@ -3716,9 +3716,29 @@ window.addEventListener('fb-ready', function(){
     const authScreen = document.getElementById('authScreen');
     const paywallScreen = document.getElementById('paywallScreen');
     const appEl = document.getElementById('app');
+    const authErrEl = document.getElementById('authError');
     if(user){
       currentUid = user.uid;
       authScreen.style.display = 'none';
+      // Важно: дожидаемся, пока ID-токен пользователя реально готов и
+      // прикреплён к клиенту, ПРЕЖДЕ чем делать запросы к Firestore. Без
+      // этого на более медленных устройствах (в первую очередь на телефонах)
+      // запрос к базе иногда улетал до того, как токен авторизации был
+      // полностью готов — сервер видел такой запрос как неавторизованный и
+      // отвечал permission-denied, хотя вход только что прошёл успешно.
+      // Это влияет на ЛЮБОГО пользователя на телефоне, не только на тестовый
+      // аккаунт, поэтому чинится здесь, один раз, для всех.
+      try{
+        await user.getIdToken(true);
+      }catch(e){
+        console.error('Не удалось получить токен авторизации', e);
+        currentUid = null;
+        appEl.style.display = 'none';
+        paywallScreen.style.display = 'none';
+        authScreen.style.display = 'flex';
+        if(authErrEl) authErrEl.textContent = 'Не удалось подтвердить вход. Попробуйте войти ещё раз.';
+        return;
+      }
       await checkSubscriptionAndRoute();
     } else {
       currentUid = null;
