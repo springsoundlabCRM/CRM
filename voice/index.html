@@ -777,7 +777,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    onAuthStateChanged, signOut
+    onAuthStateChanged, signOut, setPersistence,
+    browserLocalPersistence, browserSessionPersistence
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     initializeFirestore, doc, getDoc, setDoc
@@ -794,6 +795,19 @@
 
   const fbApp = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
+  // Явно закрепляем "постоянный" вход (browserLocalPersistence) — сессия
+  // должна переживать полное закрытие приложения/браузера на телефоне, а не
+  // только перезагрузку страницы. Раньше это не задавалось явно, и SDK сам
+  // выбирал режим — на некоторых мобильных браузерах (особенно если это
+  // "домашний экран"/PWA или ограничен доступ к хранилищу) это иногда
+  // приводило к тому, что сессия не сохранялась и приходилось логиниться
+  // заново. Если локальное хранилище недоступно (например, приватный режим),
+  // откатываемся на persistence в рамках вкладки, чтобы вход не сломался
+  // совсем — но постоянного входа в этом случае браузер физически не даст.
+  setPersistence(fbAuth, browserLocalPersistence).catch(e=>{
+    console.error('Не удалось включить постоянный вход, откат на сессионный', e);
+    setPersistence(fbAuth, browserSessionPersistence).catch(e2=>console.error('Persistence полностью недоступна', e2));
+  });
   // Обычный getFirestore() использует потоковое (WebChannel/gRPC) соединение —
   // именно такие соединения многие мобильные операторы в РФ блокируют или
   // режут без VPN, из-за чего приложение зависает/не грузится на обычном
