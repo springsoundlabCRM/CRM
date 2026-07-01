@@ -408,6 +408,14 @@
   .hw-title{font-size:12px;font-weight:500}
   .hw-sub{font-size:11px;color:var(--text3);margin-top:2px}
   .lesson-note{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--border2)}
+  .del-option{cursor:pointer;border-radius:10px;padding:13px 14px;margin-bottom:10px;transition:all .15s;border:1px solid transparent;border-left-width:3px;border-left-style:solid}
+  .del-option:active{transform:scale(.98)}
+  .del-option-danger{background:var(--red-bg);border-color:rgba(248,113,113,.3);border-left-color:var(--red)}
+  .del-option-danger:hover{background:rgba(248,113,113,.22)}
+  .del-option-safe{background:var(--green-bg);border-color:rgba(52,211,153,.3);border-left-color:var(--green)}
+  .del-option-safe:hover{background:rgba(52,211,153,.22)}
+  .del-option-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .del-option-sub{font-size:11.5px;color:var(--text3);margin-top:4px;line-height:1.45}
   .note-date{font-size:10px;color:var(--text3);margin-bottom:4px;display:flex;justify-content:space-between;gap:8px}
   .note-text{font-size:12px;color:var(--text2);line-height:1.6}
   .tab-row{display:flex;gap:2px;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:20px;flex-wrap:wrap}
@@ -3090,7 +3098,7 @@ function buildLessonModal(ctx){
     +'<div class="input-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Статус оплаты</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none" '+(defaultPaid===0?'selected':'')+'>Не оплачено</option><option value="full" '+(defaultPaid>=defaultPrice?'selected':'')+'>Оплачено полностью</option><option value="partial" '+(defaultPaid>0&&defaultPaid<defaultPrice?'selected':'')+'>Частично</option></select></div>'
     +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;'+(defaultPaid>0&&defaultPaid<defaultPrice?'':'display:none')+'"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500" value="'+(defaultPaid>0&&defaultPaid<defaultPrice?defaultPaid:'')+'"></div></div>'
     +'</div>'
-    + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="if(confirm(\'Удалить урок?\')){deleteLesson(\''+lesson.id+'\');closeModal();}">🗑 Удалить урок</button>' : '')
+    + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="deleteLesson(\''+lesson.id+'\')">🗑 Удалить урок</button>' : '')
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>';
 }
 function onLessonStudentChange(){
@@ -3635,6 +3643,33 @@ function selectCalPickerDate(d) {
   closeModal();
 }
 
+/* ---------- Удаление урока по абонементу: списать или вернуть кредит ---------- */
+function buildDeleteLessonModal(ctx){
+  ctx = ctx||{};
+  const l = DB.lessons.find(x=>x.id===ctx.lessonId);
+  if(!l) return '<div class="modal-title">Урок не найден <button class="modal-close" onclick="closeModal()">×</button></div>';
+  const s = studentById(l.studentId);
+  const sub = DB.subscriptions.find(su=>su.id===l.subscriptionId);
+  const left = sub ? Math.max(0, sub.totalLessons - sub.usedLessons) : 0;
+  return '<div class="modal-title">🗑 Удаление урока <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
+      +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
+    +'</div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:14px">'
+      +'Этот урок оплачен абонементом'+(sub?' (осталось <b style="color:var(--text)">'+left+'</b> из '+sub.totalLessons+' занятий)':'')+'. Выберите, что сделать при удалении:'
+    +'</div>'
+    +'<div class="del-option del-option-danger" onclick="finalizeDeleteLesson(\''+l.id+'\', true)">'
+      +'<div class="del-option-title">🎫 Списать урок с абонемента</div>'
+      +'<div class="del-option-sub">Ученик не пришёл и не предупредил — занятие сгорает, баланс абонемента не восстанавливается</div>'
+    +'</div>'
+    +'<div class="del-option del-option-safe" onclick="finalizeDeleteLesson(\''+l.id+'\', false)">'
+      +'<div class="del-option-title">↩️ Удалить без списания</div>'
+      +'<div class="del-option-sub">Урок просто отменяется, занятие вернётся на баланс абонемента</div>'
+    +'</div>'
+    +'<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:2px" onclick="closeModal()">Отмена</button>';
+}
+
 /* ============================================================
    ДИСПЕТЧЕР МОДАЛЬНЫХ ОКОН
    ============================================================ */
@@ -3649,7 +3684,8 @@ const modalBuilders = {
   homework: buildHomeworkModal,
   repertoire: buildRepertoireModal,
   monthInfo: buildMonthInfoModal,
-  calPicker: buildCalPickerModal
+  calPicker: buildCalPickerModal,
+  deleteLesson: buildDeleteLessonModal
 };
 function openModal(type, ctx){
   modalCtx = ctx||{};
@@ -3684,17 +3720,44 @@ function markAttendance(lessonId, status){
 
 function deleteLesson(lessonId){
   const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  // Если урок оплачен абонементом — спрашиваем через стилизованный попап,
+  // списывать ли занятие с абонемента (ученик не пришёл/не предупредил)
+  // или просто удалить урок без списания (вернуть кредит на баланс).
+  if(l.viaSubscription && l.subscriptionId){
+    openModal('deleteLesson', {lessonId});
+    return;
+  }
   if(!confirm('Удалить этот урок из расписания?')) return;
+  DB.payments = DB.payments.filter(p=>p.lessonId!==lessonId);
+  DB.lessons = DB.lessons.filter(x=>x.id!==lessonId);
+  saveDB();
+  closeModal();
+  toast('Урок удалён');
+  refreshAllVisible();
+}
+
+/* Финальное удаление урока, оплаченного абонементом, после выбора в попапе:
+   chargeSubscription=true  -> урок сгорает, кредит НЕ возвращается (ученик не пришёл и не предупредил)
+   chargeSubscription=false -> урок просто отменяется, кредит возвращается на баланс абонемента */
+function finalizeDeleteLesson(lessonId, chargeSubscription){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
   if(l.viaSubscription && l.subscriptionId){
     const sub = DB.subscriptions.find(su=>su.id===l.subscriptionId);
-    if(sub){ sub.usedLessons = Math.max(0, sub.usedLessons-1); sub.active = true;
-      DB.subHistory.push({ id:uid('h'), studentId:l.studentId, subscriptionId:sub.id, type:'topup', lessonsDelta:1, amount:0, date: todayISO(), note:'Урок удалён — кредит возвращён на абонемент' });
+    if(sub){
+      if(chargeSubscription){
+        DB.subHistory.push({ id:uid('h'), studentId:l.studentId, subscriptionId:sub.id, type:'deduct', lessonsDelta:0, amount:0, date: todayISO(), note:'Урок '+formatRu(l.date)+' списан с абонемента — ученик не пришёл и не предупредил' });
+      } else {
+        sub.usedLessons = Math.max(0, sub.usedLessons-1);
+        sub.active = true;
+        DB.subHistory.push({ id:uid('h'), studentId:l.studentId, subscriptionId:sub.id, type:'topup', lessonsDelta:1, amount:0, date: todayISO(), note:'Урок удалён без списания — кредит возвращён на абонемент' });
+      }
     }
   }
   DB.payments = DB.payments.filter(p=>p.lessonId!==lessonId);
   DB.lessons = DB.lessons.filter(x=>x.id!==lessonId);
   saveDB();
-  toast('Урок удалён');
+  closeModal();
+  toast(chargeSubscription ? 'Урок списан с абонемента ✓' : 'Урок удалён, кредит возвращён на абонемент ✓');
   refreshAllVisible();
 }
 
