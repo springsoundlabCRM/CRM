@@ -2898,7 +2898,7 @@ function buildLessonModal(ctx){
     +'</div>'
     +'<div class="input-group"><label class="input-label">Статус урока</label><select class="input" id="f-l-status"><option value="planned" '+(defaultStatus==='planned'?'selected':'')+'>Запланирован</option><option value="done" '+(defaultStatus==='done'?'selected':'')+'>Проведён</option><option value="noshow" '+(defaultStatus==='noshow'?'selected':'')+'>Не пришёл</option><option value="cancelled" '+(defaultStatus==='cancelled'?'selected':'')+'>Отменён</option></select></div>'
     + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="if(confirm(\'Удалить урок?\')){deleteLesson(\''+lesson.id+'\');closeModal();}">🗑 Удалить урок</button>' : '')
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>';
 }
 function onLessonStudentChange(){
   const sid = document.getElementById('f-l-student').value;
@@ -3604,18 +3604,44 @@ async function checkSubscriptionAndRoute(){
   const authScreen = document.getElementById('authScreen');
   const paywallScreen = document.getElementById('paywallScreen');
   const appEl = document.getElementById('app');
+  const authErrEl = document.getElementById('authError');
 
-  // Эти два документа никак не зависят друг от друга, поэтому читаем их
-  // ОДНОВРЕМЕННО (Promise.all), а не один за другим. Раньше тут было
-  // 2 последовательных запроса к Firestore + ещё один (лишний) внутри
-  // loadDB() — итого 3 похода в сеть подряд, прежде чем интерфейс
-  // вообще появлялся. Теперь это 1-2 похода параллельно.
   const subRef = window.__fb.doc(window.__fb.db, 'users', currentUid);
   const dbRef = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
+
+  // Раньше сетевая ошибка при чтении статуса подписки молча превращалась в
+  // null и приравнивалась к "подписки нет" — из-за этого на нестабильном
+  // мобильном интернете реального подписчика перекидывало на экран оплаты,
+  // хотя проблема была просто в связи. Теперь: сетевая ошибка — это
+  // ОТДЕЛЬНОЕ состояние (NETWORK_ERROR), а не "нет подписки". Плюс несколько
+  // автоматических попыток с небольшой паузой, прежде чем сдаться.
+  const NETWORK_ERROR = Symbol('network-error');
+  async function readWithRetry(ref, attempts){
+    for(let i=0;i<attempts;i++){
+      try{ return await window.__fb.getDoc(ref); }
+      catch(e){
+        console.error('Firestore read failed (attempt '+(i+1)+'/'+attempts+')', e);
+        if(i < attempts-1) await new Promise(r=>setTimeout(r, 700*(i+1)));
+      }
+    }
+    return NETWORK_ERROR;
+  }
+
   const [subSnap, dbSnap] = await Promise.all([
-    window.__fb.getDoc(subRef).catch(e=>{ console.error('Не удалось проверить статус подписки', e); return null; }),
-    window.__fb.getDoc(dbRef).catch(e=>{ console.error('Не удалось загрузить данные из Firestore', e); toast('⚠️ Не удалось загрузить данные','red'); return null; })
+    readWithRetry(subRef, 3),
+    readWithRetry(dbRef, 3)
   ]);
+
+  if(subSnap === NETWORK_ERROR || dbSnap === NETWORK_ERROR){
+    // Не смогли достучаться до сервера даже после повторных попыток —
+    // НЕ показываем пейволл (это было бы неверно для реального подписчика).
+    // Возвращаем на экран входа с понятным сообщением, чтобы попробовать ещё раз.
+    appEl.style.display = 'none';
+    paywallScreen.style.display = 'none';
+    authScreen.style.display = 'flex';
+    if(authErrEl) authErrEl.textContent = 'Не удалось подключиться к серверу. Проверьте интернет-соединение и попробуйте войти ещё раз.';
+    return;
+  }
 
   const sub = subSnap && subSnap.exists() ? subSnap.data() : null;
   const now = Date.now();
