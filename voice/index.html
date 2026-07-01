@@ -1100,8 +1100,8 @@
       <div class="topbar">
         <div id="dashGreetWrap"><span class="topbar-title" id="greetTitle">Добрый день 👋</span><span class="topbar-subtitle" id="todayLabel"></span></div>
         <div class="dash-actions">
-          <button class="btn btn-ghost" onclick="openModal('lesson')">+ Урок</button>
-          <button class="btn btn-primary" onclick="openModal('student')">+ Ученик</button>
+          <button class="btn btn-ghost" onclick="openModal('lesson')">Урок</button>
+          <button class="btn btn-primary" onclick="openModal('student')">Ученик</button>
         </div>
       </div>
       <div class="content">
@@ -1170,7 +1170,7 @@
       <div class="topbar">
         <div class="topbar-title">Ученики <span class="topbar-subtitle" id="studentsCountLabel">0 активных</span></div>
         <input class="input" style="width:200px;padding:7px 12px" id="studentSearch" placeholder="🔍 Поиск..." oninput="renderStudents()">
-        <button class="btn btn-primary" onclick="openModal('student')">+ Добавить</button>
+        <button class="btn btn-primary" onclick="openModal('student')">Добавить</button>
       </div>
       <div class="content">
         <div class="tab-row" id="studentFilterTabs">
@@ -1189,7 +1189,7 @@
       <div class="topbar" id="detail-topbar">
         <div class="topbar-title" id="detail-name">Ученик</div>
         <button class="btn btn-ghost" onclick="showPage('students')">← Все ученики</button>
-        <button class="btn btn-blue" onclick="openModal('lesson',{studentId:currentStudentId})">+ Поставить на урок</button>
+        <button class="btn btn-blue" onclick="openModal('lesson',{studentId:currentStudentId})">Поставить на урок</button>
         <button class="btn btn-primary" onclick="openModal('note',{studentId:currentStudentId})">✎ Заметка</button>
       </div>
       <div class="content">
@@ -1214,8 +1214,8 @@
     <div id="page-finances" class="hidden">
       <div class="topbar">
         <div class="topbar-title">Финансы <span class="topbar-subtitle" id="finMonthLabel">—</span></div>
-        <button class="btn btn-ghost" onclick="openModal('subscription')">+ Абонемент</button>
-        <button class="btn btn-primary" onclick="openModal('payment')">+ Платёж</button>
+        <button class="btn btn-ghost" onclick="openModal('subscription')">Абонемент</button>
+        <button class="btn btn-primary" onclick="openModal('payment')">Платёж</button>
       </div>
       <div class="content">
         <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
@@ -1236,7 +1236,7 @@
 
     <!-- HOMEWORK -->
     <div id="page-homework" class="hidden">
-      <div class="topbar"><div class="topbar-title">Задания</div><button class="btn btn-primary" onclick="openModal('homework')">+ Задать ДЗ</button></div>
+      <div class="topbar"><div class="topbar-title">Задания</div><button class="btn btn-primary" onclick="openModal('homework')">Задать ДЗ</button></div>
       <div class="content">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
           <div><div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:10px" id="hwTodoHead">✗ Не сдано (0)</div><div id="hwTodoList"></div></div>
@@ -2612,7 +2612,7 @@ function renderRepertoire(){
     +'<button class="btn btn-ghost btn-sm" onclick="deleteRepertoire(\''+r.id+'\')">✕</button></div>'
   ).join('') : '<div class="empty-state">Репертуар пока пуст</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
-    +'<div class="detail-title">🎵 Репертуар <button class="btn btn-primary btn-sm" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">+ Добавить песню</button></div>'
+    +'<div class="detail-title">🎵 Репертуар <button class="btn btn-primary btn-sm" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
     +'<div id="repertoire-list">'+rows+'</div></div>';
 }
 function updateRepertoireStatus(id, status){
@@ -2642,7 +2642,7 @@ function renderDetailHomework(){
     +'</div></div>'
   ).join('') : '<div class="empty-state">Заданий пока нет</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
-    +'<div class="detail-title">📝 Домашние задания <button class="btn btn-primary btn-sm" onclick="openModal(\'homework\',{studentId:\''+s.id+'\'})">+ Задать ДЗ</button></div>'+rows+'</div>';
+    +'<div class="detail-title">📝 Домашние задания <button class="btn btn-primary btn-sm" onclick="openModal(\'homework\',{studentId:\''+s.id+'\'})">Задать ДЗ</button></div>'+rows+'</div>';
 }
 function cycleHomeworkStatus(id){
   const h = DB.homework.find(x=>x.id===id); if(!h) return;
@@ -2694,7 +2694,7 @@ function renderDetailFinance(){
     '<div class="finance-row" style="cursor:default"><div style="font-size:16px">💸</div><div class="finance-name"><div>'+(typeLabel[p.type]||'Платёж')+'</div><div class="finance-sub">'+escapeHTML(p.note||'')+' · '+formatRu(p.date)+'</div></div><div class="finance-amount paid">+'+money(p.amount)+'</div></div>'
   ).join('') : '<div class="empty-state">Платежей пока нет</div>';
   const debtRow = debt>0 ? '<div class="finance-row" style="cursor:default;border-left:3px solid var(--red)"><div style="font-size:16px">⚠️</div><div class="finance-name"><div>Текущий долг</div><div class="finance-sub">по неоплаченным урокам</div></div><div class="finance-amount debt">−'+money(debt)+'</div></div>' : '';
-  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title">💳 Финансы <button class="btn btn-primary btn-sm" onclick="openModal(\'payment\',{studentId:\''+s.id+'\'})">+ Платёж</button></div>'
+  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title">💳 Финансы <button class="btn btn-primary btn-sm" onclick="openModal(\'payment\',{studentId:\''+s.id+'\'})">Платёж</button></div>'
     + debtRow + rows
     +'<div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;color:var(--text3)">Всего уплачено</div><div style="font-size:16px;font-weight:600;color:var(--green)">'+money(totalPaid)+'</div></div>'
     +'</div>';
