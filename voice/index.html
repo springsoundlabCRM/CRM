@@ -488,6 +488,36 @@
   }
   .input:focus{border-color:var(--accent)}
   .input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  /* ===== Автокомплит выбора ученика в модалке урока ===== */
+  .autocomplete-wrap{position:relative}
+  .autocomplete-dropdown{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;
+    background:var(--card2);border:1px solid var(--border2);border-radius:10px;
+    max-height:230px;overflow-y:auto;box-shadow:0 10px 24px rgba(0,0,0,.28);
+    padding:4px;
+  }
+  .autocomplete-dropdown.open{display:block}
+  .autocomplete-item{
+    display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;
+    cursor:pointer;font-size:13px;color:var(--text);transition:background .12s;
+  }
+  .autocomplete-item:hover,.autocomplete-item.active{background:var(--accent-glow);color:var(--accent)}
+  .autocomplete-avatar{
+    width:24px;height:24px;min-width:24px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;
+  }
+  .autocomplete-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .autocomplete-empty{
+    padding:10px 9px;font-size:12px;color:var(--text3);line-height:1.4;
+  }
+  .autocomplete-new-hint{
+    display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;
+    font-size:12px;color:var(--text3);border-top:1px solid var(--border);margin-top:2px;
+  }
+  @media (max-width:720px){
+    .autocomplete-item{padding:10px 9px;font-size:13.5px}
+    .autocomplete-dropdown{max-height:200px}
+  }
   ::-webkit-scrollbar{width:4px;height:4px}
   ::-webkit-scrollbar-track{background:transparent}
   ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
@@ -2984,6 +3014,11 @@ function studentOptionsHTML(selectedId){
   }
   return list.map(s=>'<option value="'+s.id+'" '+(s.id===selectedId?'selected':'')+'>'+escapeHTML(s.name)+'</option>').join('');
 }
+function studentNameOf(id){
+  if(!id) return '';
+  const s = studentById(id);
+  return s ? s.name : '';
+}
 
 function buildStudentModal(ctx){
   return '<div class="modal-title">Новый ученик <button class="modal-close" onclick="closeModal()">×</button></div>'
@@ -3038,7 +3073,12 @@ function buildLessonModal(ctx){
 
   return '<div class="modal-title">'+(isEdit?'Редактировать урок':'Запланировать урок')+' <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<input type="hidden" id="f-l-lesson-id" value="'+(lesson?lesson.id:'')+'">'
-    +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-l-student" onchange="onLessonStudentChange()">'+studentOptionsHTML(studentId)+'</select></div>'
+    +'<div class="input-group autocomplete-wrap">'
+    +'<label class="input-label">Ученик</label>'
+    +'<input class="input" id="f-l-student-input" type="text" autocomplete="off" placeholder="Введите имя или фамилию..." value="'+escapeHTML(studentNameOf(studentId))+'" oninput="onLessonStudentInput()" onfocus="onLessonStudentInput()" onblur="onLessonStudentBlur()" onkeydown="onLessonStudentKeydown(event)">'
+    +'<input type="hidden" id="f-l-student" value="'+(studentId||'')+'">'
+    +'<div class="autocomplete-dropdown" id="f-l-student-suggest"></div>'
+    +'</div>'
     +'<div class="input-row"><div class="input-group"><label class="input-label">Дата</label><input class="input" id="f-l-date" type="date" value="'+defaultDate+'"></div>'
     +'<div class="input-group"><label class="input-label">Время</label><input class="input" id="f-l-time" type="time" value="'+defaultTime+'"></div></div>'
     +'<div class="input-row"><div class="input-group"><label class="input-label">Длительность</label><select class="input" id="f-l-dur"><option value="30" '+(defaultDur===30?'selected':'')+'>30 мин</option><option value="45" '+(defaultDur===45?'selected':'')+'>45 мин</option><option value="60" '+(defaultDur===60?'selected':'')+'>60 мин</option></select></div>'
@@ -3061,13 +3101,140 @@ function onLessonStudentChange(){
   noteEl.textContent = sub ? '🎫 У ученика активен абонемент — урок будет списан с него автоматически' : '';
   document.getElementById('f-l-price-wrap').style.display = sub ? 'none' : '';
 }
+
+/* ----- Автокомплит поля "Ученик" в модалке урока -----
+   Работает и на компьютере, и на телефоне:
+   - при вводе первых букв имени или фамилии показывает подсказки
+     из уже существующих учеников;
+   - клик/тап по подсказке — выбирает существующего ученика;
+   - если ввести имя/фамилию полностью вручную и такого ученика
+     ещё нет — при сохранении урока такой ученик будет создан
+     автоматически (см. resolveOrCreateStudentByName). */
+function matchesStudentQuery(name, query){
+  const q = (query||'').trim().toLowerCase();
+  if(!q) return true;
+  const n = (name||'').toLowerCase();
+  const words = n.split(/\s+/).filter(Boolean);
+  return words.some(w=>w.startsWith(q)) || n.includes(q);
+}
+function lessonStudentSuggestions(query){
+  const q = (query||'').trim();
+  const all = studentsOfTeacher();
+  if(!q) return all.slice(0,8);
+  return all.filter(s=>matchesStudentQuery(s.name, q)).slice(0,8);
+}
+function onLessonStudentInput(){
+  const inputEl = document.getElementById('f-l-student-input');
+  const hidden = document.getElementById('f-l-student');
+  const box = document.getElementById('f-l-student-suggest');
+  if(!inputEl || !box) return;
+  // Как только пользователь начинает менять текст вручную, сбрасываем
+  // жёсткую привязку к ранее выбранному id — она будет восстановлена
+  // при точном совпадении или создана заново при сохранении.
+  const query = inputEl.value;
+  const current = studentById(hidden.value);
+  if(current && current.name.trim().toLowerCase() !== query.trim().toLowerCase()){
+    hidden.value = '';
+  }
+  const list = lessonStudentSuggestions(query);
+  if(list.length===0){
+    box.innerHTML = query.trim()
+      ? '<div class="autocomplete-empty">Такого ученика ещё нет. Можно ввести имя и фамилию вручную — при сохранении будет создана новая карточка ученика.</div>'
+      : '<div class="autocomplete-empty">Нет учеников — введите имя и фамилию вручную.</div>';
+  } else {
+    box.innerHTML = list.map(s=>
+      '<div class="autocomplete-item" data-sid="'+s.id+'" onmousedown="event.preventDefault();selectLessonStudent(\''+s.id+'\')">'
+      +'<span class="autocomplete-avatar" style="background:'+(s.color||'var(--accent)')+'">'+escapeHTML(s.initials||initialsOf(s.name))+'</span>'
+      +'<span class="autocomplete-name">'+escapeHTML(s.name)+'</span>'
+      +'</div>'
+    ).join('')
+    + (query.trim() ? '<div class="autocomplete-new-hint">✎ Или продолжите вводить своё — можно добавить нового ученика прямо здесь</div>' : '');
+  }
+  box.classList.add('open');
+}
+function selectLessonStudent(id){
+  const s = studentById(id);
+  if(!s) return;
+  const inputEl = document.getElementById('f-l-student-input');
+  const hidden = document.getElementById('f-l-student');
+  const box = document.getElementById('f-l-student-suggest');
+  inputEl.value = s.name;
+  hidden.value = s.id;
+  box.classList.remove('open');
+  box.innerHTML = '';
+  onLessonStudentChange();
+}
+function onLessonStudentBlur(){
+  // Небольшая задержка нужна, чтобы клик/тап по подсказке успел
+  // сработать раньше, чем спрячется список (blur срабатывает первым).
+  setTimeout(()=>{
+    const box = document.getElementById('f-l-student-suggest');
+    if(box) { box.classList.remove('open'); }
+    finalizeLessonStudentSelection();
+  }, 180);
+}
+function onLessonStudentKeydown(e){
+  const box = document.getElementById('f-l-student-suggest');
+  if(e.key==='Escape'){
+    if(box && box.classList.contains('open')){ box.classList.remove('open'); e.stopPropagation(); }
+    return;
+  }
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const first = box && box.querySelector('.autocomplete-item');
+    if(first){ selectLessonStudent(first.getAttribute('data-sid')); }
+    else { box && box.classList.remove('open'); finalizeLessonStudentSelection(); }
+  }
+}
+function finalizeLessonStudentSelection(){
+  const inputEl = document.getElementById('f-l-student-input');
+  const hidden = document.getElementById('f-l-student');
+  if(!inputEl || !hidden) return;
+  const typed = inputEl.value.trim();
+  if(!typed){ hidden.value=''; onLessonStudentChange(); return; }
+  const current = studentById(hidden.value);
+  if(current && current.name.trim().toLowerCase()===typed.toLowerCase()) return; // уже точно выбран
+  // ищем точное совпадение по имени среди учеников преподавателя
+  const exact = studentsOfTeacher().find(s=>s.name.trim().toLowerCase()===typed.toLowerCase());
+  hidden.value = exact ? exact.id : '';
+  onLessonStudentChange();
+}
+function resolveOrCreateStudentByName(name){
+  name = (name||'').trim();
+  if(!name) return null;
+  const existing = studentsOfTeacher().find(s=>s.name.trim().toLowerCase()===name.toLowerCase());
+  if(existing) return existing.id;
+  const id = uid('s');
+  const color = GRADIENTS[DB.students.length % GRADIENTS.length];
+  DB.students.push({
+    id, teacherId: DB.currentTeacherId, name, age: null,
+    birthday: null, voiceType: '',
+    phone: '', telegram: '',
+    goal: '', notes: '', status: 'trial',
+    color, initials: initialsOf(name), createdAt: todayISO(), skills:{breath:'yellow',intonation:'yellow',rhythm:'yellow'}
+  });
+  renderSidebar();
+  const studentsPage = document.getElementById('page-students');
+  if(studentsPage && !studentsPage.classList.contains('hidden')) renderStudents();
+  const dashPage = document.getElementById('page-dashboard');
+  if(dashPage && !dashPage.classList.contains('hidden')) renderDashboard();
+  return id;
+}
 function onLessonPayTypeChange(){
   const v = document.getElementById('f-l-paytype').value;
   document.getElementById('f-l-partial-wrap').style.display = v==='partial' ? '' : 'none';
 }
 function saveLessonForm(){
   const lessonId = document.getElementById('f-l-lesson-id').value || null;
-  const studentId = document.getElementById('f-l-student').value;
+  const typedStudentName = (document.getElementById('f-l-student-input').value||'').trim();
+  let studentId = document.getElementById('f-l-student').value;
+  if(!studentId){
+    // Ученика не выбрали из подсказок — либо поле пустое, либо введено
+    // вручную новое имя. В последнем случае создаём карточку ученика
+    // "на лету", чтобы урок можно было сохранить одним действием.
+    if(!typedStudentName){ toast('Введите имя ученика','red'); return; }
+    studentId = resolveOrCreateStudentByName(typedStudentName);
+  }
   if(!studentId){ toast('Выберите ученика','red'); return; }
   const date = document.getElementById('f-l-date').value || todayISO();
   const time = document.getElementById('f-l-time').value || '12:00';
