@@ -523,6 +523,11 @@
     .student-grid{grid-template-columns:repeat(2,1fr)}
     .schedule-grid{grid-template-columns:repeat(7,minmax(120px,1fr));overflow-x:auto}
     .detail-panel{grid-template-columns:1fr}
+    /* На одной колонке карточки идут друг под другом в порядке DOM,
+       а нам для мобильной версии нужен другой порядок: Голос, Навыки,
+       Заметки, Заметки о голосе (вместо Голос, Заметки, Навыки, ...) */
+    .card-skills{order:2}
+    .card-notes{order:3}
   }
 
   /* ================================================================
@@ -641,6 +646,8 @@
     .student-grid{grid-template-columns:repeat(2,1fr);gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr}
+    .card-skills{order:2}
+    .card-notes{order:3}
     .input-row{grid-template-columns:1fr 1fr}
   }
 
@@ -689,6 +696,8 @@
     #page-progress .content > div{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr;gap:10px}
     .detail-card{padding:12px}
+    .card-skills{order:2}
+    .card-notes{order:3}
 
     /* Формы внутри модалок — поля друг под другом */
     .input-row{grid-template-columns:1fr!important;gap:0}
@@ -2593,7 +2602,7 @@ function renderDetailProgress(){
       +'</div></div>';
   }).join('');
   host.innerHTML = '<div class="detail-panel">'
-    +'<div class="detail-card"><div class="detail-title">🎤 Голос</div>'
+    +'<div class="detail-card card-voice"><div class="detail-title">🎤 Голос</div>'
     +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Диапазон</div>'
     +'<div style="display:flex;gap:8px;margin-bottom:10px">'
     +'<input class="input" id="voice-range-from" style="flex:1" placeholder="От (например: До1)" value="'+escapeHTML(s.rangeFrom||'')+'" onblur="updateStudentField(\''+s.id+'\',\'rangeFrom\',this.value)">'
@@ -2608,13 +2617,13 @@ function renderDetailProgress(){
     + [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']].map(v=>'<option value="'+v[0]+'" '+(v[0]===s.status?'selected':'')+'>'+v[1]+'</option>').join('')
     +'</select></div>'
 
-    +'<div class="detail-card" style="display:flex;flex-direction:column"><div class="detail-title">🎯 Заметки</div>'
+    +'<div class="detail-card card-notes" style="display:flex;flex-direction:column"><div class="detail-title">🎯 Заметки</div>'
     +'<textarea class="input" style="flex:1;resize:none;min-height:80px" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
     +'</div>'
 
-    +'<div class="detail-card full-width"><div class="detail-title">📊 Навыки <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
-    +'<div class="detail-card full-width"><div class="detail-title">📝 Заметки о голосе</div>'
-    +'<textarea class="input" rows="3" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
+    +'<div class="detail-card card-skills"><div class="detail-title">📊 Навыки <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
+    +'<div class="detail-card card-voicenotes" style="display:flex;flex-direction:column"><div class="detail-title">📝 Заметки о голосе</div>'
+    +'<textarea class="input" style="flex:1;resize:none;min-height:80px" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
     +'</div></div>';
 }
 
