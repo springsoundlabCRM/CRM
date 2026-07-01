@@ -911,24 +911,56 @@
       <div style="font-size:17px;font-weight:600;margin-top:4px">VoiceLoft CRM</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px" id="authSubtitle">Вход в аккаунт</div>
     </div>
-    <div id="authNameField" style="display:none;margin-bottom:12px">
-      <label class="input-label">Ваше имя</label>
-      <input class="input" id="authName" placeholder="Например: Анна Ковалёва">
+
+    <!-- Показывается, пока проверяем ранее сохранённый вход (при обычном
+         открытии приложения) — чтобы человек не видел пустую форму входа
+         на долю секунды, если он уже был залогинен. -->
+    <div id="authLoadingBox" style="display:block;text-align:center;padding:20px 0;color:var(--text3);font-size:13px">
+      <div style="font-size:22px;margin-bottom:8px">⏳</div>
+      Входим в аккаунт…
     </div>
-    <div id="authTrialBanner" class="lesson-sub-banner" style="display:none;margin-bottom:12px">🎁 <span id="authTrialBannerText"></span></div>
-    <div style="margin-bottom:12px">
-      <label class="input-label">Номер телефона</label>
-      <input class="input" id="authPhone" placeholder="+7 900 123-45-67" autocomplete="tel">
+
+    <!-- Показывается, когда Firebase точно знает, что человек залогинен
+         (сессия сохранена), но не удалось достучаться до сервера, чтобы
+         проверить подписку/загрузить данные — например, слабый мобильный
+         интернет. Раньше в этом случае человека выкидывало на форму входа
+         и заставляло заново вводить номер и пароль, хотя сама сессия была
+         жива — это и создавало впечатление "мелькнул интерфейс и обратно
+         на вход". Теперь сессию не трогаем, просто предлагаем повторить. -->
+    <div id="authReconnectBox" style="display:none">
+      <div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:14px;line-height:1.5">
+        Вы уже вошли в аккаунт, но не получилось загрузить данные — похоже, проблема со связью.
+      </div>
+      <div id="authReconnectError" style="color:var(--red);font-size:12px;min-height:16px;margin:0 0 10px;text-align:center"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" id="authRetryBtn" onclick="retryAuthConnection()">Повторить попытку</button>
+      <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3)">
+        <a href="javascript:void(0)" onclick="logoutFromAuthScreen()" style="color:var(--accent);font-weight:500">Выйти из аккаунта</a>
+      </div>
     </div>
-    <div style="margin-bottom:6px">
-      <label class="input-label">Пароль</label>
-      <input class="input" id="authPass" type="password" placeholder="Минимум 6 символов" autocomplete="current-password">
-    </div>
-    <div id="authError" style="color:var(--red);font-size:12px;min-height:16px;margin:6px 0 4px"></div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" id="authSubmitBtn" onclick="handleAuthSubmit()">Войти</button>
-    <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3)">
-      <span id="authToggleText">Нет аккаунта?</span>
-      <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--accent);font-weight:500" id="authToggleLink">Зарегистрироваться</a>
+
+    <!-- Обычная форма входа/регистрации — показывается только когда
+         человек ДЕЙСТВИТЕЛЬНО не залогинен (первый вход или осознанный
+         выход из аккаунта). -->
+    <div id="authFormBox" style="display:none">
+      <div id="authNameField" style="display:none;margin-bottom:12px">
+        <label class="input-label">Ваше имя</label>
+        <input class="input" id="authName" placeholder="Например: Анна Ковалёва">
+      </div>
+      <div id="authTrialBanner" class="lesson-sub-banner" style="display:none;margin-bottom:12px">🎁 <span id="authTrialBannerText"></span></div>
+      <div style="margin-bottom:12px">
+        <label class="input-label">Номер телефона</label>
+        <input class="input" id="authPhone" placeholder="+7 900 123-45-67" autocomplete="tel">
+      </div>
+      <div style="margin-bottom:6px">
+        <label class="input-label">Пароль</label>
+        <input class="input" id="authPass" type="password" placeholder="Минимум 6 символов" autocomplete="current-password">
+      </div>
+      <div id="authError" style="color:var(--red);font-size:12px;min-height:16px;margin:6px 0 4px"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" id="authSubmitBtn" onclick="handleAuthSubmit()">Войти</button>
+      <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3)">
+        <span id="authToggleText">Нет аккаунта?</span>
+        <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--accent);font-weight:500" id="authToggleLink">Зарегистрироваться</a>
+      </div>
     </div>
   </div>
 </div>
@@ -3560,6 +3592,32 @@ function doLogout(){
    ============================================================ */
 let authMode = 'login'; // 'login' | 'register'
 
+// Переключение видимого состояния экрана входа между тремя режимами:
+// 'loading'   — идёт тихая проверка ранее сохранённой сессии
+// 'form'      — нужно ввести номер и пароль (реально не залогинены)
+// 'reconnect' — сессия жива, но не получилось загрузить данные с сервера
+function setAuthScreenMode(mode){
+  const loadingBox = document.getElementById('authLoadingBox');
+  const reconnectBox = document.getElementById('authReconnectBox');
+  const formBox = document.getElementById('authFormBox');
+  if(loadingBox) loadingBox.style.display = (mode==='loading') ? 'block' : 'none';
+  if(reconnectBox) reconnectBox.style.display = (mode==='reconnect') ? 'block' : 'none';
+  if(formBox) formBox.style.display = (mode==='form') ? 'block' : 'none';
+}
+
+// Повторная попытка загрузить данные без повторного ввода логина/пароля —
+// сессия в Firebase не трогается, поэтому это безопасно вызывать многократно.
+function retryAuthConnection(){
+  setAuthScreenMode('loading');
+  checkSubscriptionAndRoute();
+}
+
+// Осознанный выход из аккаунта с экрана "не удалось подключиться" —
+// на случай, если человек хочет войти под другим номером телефона.
+function logoutFromAuthScreen(){
+  window.__fb.signOut(window.__fb.auth);
+}
+
 function normalizePhone(raw){
   let digits = (raw||'').replace(/\D/g,'');
   if(digits.length === 11 && digits[0] === '8') digits = '7'+digits.slice(1);
@@ -3647,6 +3705,17 @@ async function handleAuthSubmit(){
         window.__fb.signInWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 15000
       );
     }
+    // Сразу после РЕАЛЬНОГО, только что состоявшегося входа/регистрации
+    // принудительно обновляем токен по сети (в отличие от обычного
+    // открытия приложения, здесь это оправдано: токен только что выдан,
+    // и именно в этот момент возможна задержка его готовности на сервере).
+    // Если это не удастся — не страшно, дальше запросы к Firestore сами
+    // умеют повторить попытку (см. checkSubscriptionAndRoute).
+    try{
+      if(window.__fb.auth.currentUser) await window.__fb.auth.currentUser.getIdToken(true);
+    }catch(e){
+      console.error('Не удалось принудительно обновить токен сразу после входа (не критично)', e);
+    }
     // Дальше подхватит onAuthStateChanged ниже — он сам покажет приложение.
   }catch(e){
     console.error(e);
@@ -3678,14 +3747,14 @@ async function checkSubscriptionAndRoute(){
   const authScreen = document.getElementById('authScreen');
   const paywallScreen = document.getElementById('paywallScreen');
   const appEl = document.getElementById('app');
-  const authErrEl = document.getElementById('authError');
 
   if(!currentUid){
+    // Настоящий разлогин (не сетевой сбой) — здесь действительно нужна форма.
     console.error('checkSubscriptionAndRoute: currentUid не установлен');
     appEl.style.display = 'none';
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
-    if(authErrEl) authErrEl.textContent = 'Внутренняя ошибка: не определён пользователь. Попробуйте войти ещё раз.';
+    setAuthScreenMode('form');
     return;
   }
 
@@ -3717,15 +3786,19 @@ async function checkSubscriptionAndRoute(){
   ]);
 
   if(subSnap === null || dbSnap === null){
-    // Не смогли достучаться до сервера даже после повторных попыток —
-    // НЕ показываем пейволл (это было бы неверно для реального подписчика).
-    // Возвращаем на экран входа с точным кодом ошибки, чтобы можно было
-    // понять реальную причину, а не гадать.
+    // Не смогли достучаться до сервера даже после повторных попыток.
+    // ВАЖНО: сессию Firebase НЕ трогаем и НЕ показываем форму
+    // логина/пароля — человек всё ещё залогинен, просто сеть подвела.
+    // Раньше здесь показывалась обычная форма входа, что выглядело так,
+    // будто приложение "выкинуло" и требует войти заново — хотя на самом
+    // деле нужно было просто повторить попытку.
     appEl.style.display = 'none';
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
+    setAuthScreenMode('reconnect');
     const code = lastError && (lastError.code || lastError.message) ? (lastError.code || lastError.message) : 'неизвестна';
-    if(authErrEl) authErrEl.textContent = 'Не удалось подключиться к серверу (код: '+code+'). Попробуйте ещё раз или сообщите этот код в поддержку.';
+    const reconnectErrEl = document.getElementById('authReconnectError');
+    if(reconnectErrEl) reconnectErrEl.textContent = 'Код ошибки: '+code;
     return;
   }
 
@@ -3823,28 +3896,35 @@ window.addEventListener('fb-ready', function(){
     const authScreen = document.getElementById('authScreen');
     const paywallScreen = document.getElementById('paywallScreen');
     const appEl = document.getElementById('app');
-    const authErrEl = document.getElementById('authError');
     if(user){
       currentUid = user.uid;
-      authScreen.style.display = 'none';
-      // Важно: дожидаемся, пока ID-токен пользователя реально готов и
-      // прикреплён к клиенту, ПРЕЖДЕ чем делать запросы к Firestore. Без
-      // этого на более медленных устройствах (в первую очередь на телефонах)
-      // запрос к базе иногда улетал до того, как токен авторизации был
-      // полностью готов — сервер видел такой запрос как неавторизованный и
-      // отвечал permission-denied, хотя вход только что прошёл успешно.
-      // Это влияет на ЛЮБОГО пользователя на телефоне, не только на тестовый
-      // аккаунт, поэтому чинится здесь, один раз, для всех.
+      // Показываем нейтральный экран "Входим в аккаунт…", а не форму с
+      // пустыми полями — человек уже залогинен (сессия сохранена), просто
+      // идёт тихая проверка перед открытием приложения.
+      appEl.style.display = 'none';
+      paywallScreen.style.display = 'none';
+      authScreen.style.display = 'flex';
+      setAuthScreenMode('loading');
+      // Дожидаемся готовности ID-токена перед запросом к Firestore — но
+      // БЕЗ принудительного обновления по сети (getIdToken(true)) на каждое
+      // открытие приложения. Раньше здесь стоял именно forced-refresh, и
+      // любая заминка мобильной сети при этой проверке приводила к тому,
+      // что человека молча разлогинивало и откатывало на пустую форму
+      // входа — хотя сессия Firebase была совершенно рабочей. Обычный
+      // (некопринудительный) getIdToken() почти всегда берёт токен из
+      // локального кэша и не требует сети вообще, поэтому он намного
+      // надёжнее на слабом мобильном интернете. Принудительное обновление
+      // токена по-прежнему делается — но только сразу после реального
+      // входа/регистрации (см. handleAuthSubmit), где оно действительно
+      // нужно, а не на каждом открытии приложения.
       try{
-        await user.getIdToken(true);
+        await user.getIdToken();
       }catch(e){
-        console.error('Не удалось получить токен авторизации', e);
-        currentUid = null;
-        appEl.style.display = 'none';
-        paywallScreen.style.display = 'none';
-        authScreen.style.display = 'flex';
-        if(authErrEl) authErrEl.textContent = 'Не удалось подтвердить вход. Попробуйте войти ещё раз.';
-        return;
+        // Не удалось даже прочитать токен из кэша — это не повод выкидывать
+        // на форму логина/пароля, сессия в Firebase всё ещё существует.
+        // Просто уходим в состояние "не удалось подключиться" с кнопкой
+        // "Повторить попытку", ничего не сбрасывая.
+        console.error('Не удалось получить токен авторизации (не критично, пробуем всё равно)', e);
       }
       await checkSubscriptionAndRoute();
     } else {
@@ -3852,6 +3932,7 @@ window.addEventListener('fb-ready', function(){
       appEl.style.display = 'none';
       paywallScreen.style.display = 'none';
       authScreen.style.display = 'flex';
+      setAuthScreenMode('form');
     }
   });
 
