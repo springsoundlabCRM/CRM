@@ -3584,6 +3584,21 @@ function toggleAuthMode(){
   document.getElementById('authError').textContent = '';
 }
 
+// Оборачиваем сетевой вызов Firebase Auth таймаутом. Без этого на некоторых
+// мобильных операторах (в первую очередь в РФ, где identitytoolkit.googleapis.com
+// иногда режется без VPN) запрос на вход не завершается ни успехом, ни ошибкой —
+// он просто "зависает" и кнопка "Войти" остаётся заблокированной без всякого
+// сообщения. Firestore-часть эту проблему уже решает через long-polling
+// (см. initializeFirestore выше), но сам вызов signIn/createUser идёт через
+// отдельный сервис Firebase Auth, и туда long-polling не относится — поэтому
+// нужен свой предохранитель именно здесь.
+function withAuthTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject({ code: 'auth/client-timeout' }), ms))
+  ]);
+}
+
 async function handleAuthSubmit(){
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
@@ -3602,7 +3617,9 @@ async function handleAuthSubmit(){
     if(authMode === 'register'){
       const name = document.getElementById('authName').value.trim();
       if(!name){ errEl.textContent = 'Введите имя'; btn.disabled = false; return; }
-      const cred = await window.__fb.createUserWithEmailAndPassword(window.__fb.auth, fakeEmail, pass);
+      const cred = await withAuthTimeout(
+        window.__fb.createUserWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 15000
+      );
       // Фиксируем начало пробного периода СРАЗУ при регистрации — один
       // документ на аккаунт, создаётся один раз (правила Firestore не дают
       // клиенту менять его после создания — см. инструкцию по обновлению
@@ -3626,7 +3643,9 @@ async function handleAuthSubmit(){
       // но имя из формы регистрации сразу прокинем в DB после загрузки.
       window.__pendingRegisterName = name;
     } else {
-      await window.__fb.signInWithEmailAndPassword(window.__fb.auth, fakeEmail, pass);
+      await withAuthTimeout(
+        window.__fb.signInWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 15000
+      );
     }
     // Дальше подхватит onAuthStateChanged ниже — он сам покажет приложение.
   }catch(e){
@@ -3637,7 +3656,10 @@ async function handleAuthSubmit(){
       'auth/user-not-found':'Аккаунт с этим номером не найден',
       'auth/email-already-in-use':'Этот номер уже зарегистрирован',
       'auth/weak-password':'Пароль слишком простой (минимум 6 символов)',
-      'auth/invalid-email':'Некорректный номер телефона'
+      'auth/invalid-email':'Некорректный номер телефона',
+      'auth/network-request-failed':'Нет связи с сервером. Проверьте интернет (на мобильном иногда помогает включить/выключить Wi-Fi или VPN) и попробуйте снова',
+      'auth/client-timeout':'Сервер долго не отвечает. Проверьте интернет-соединение и попробуйте ещё раз',
+      'auth/too-many-requests':'Слишком много попыток входа подряд. Подождите немного и попробуйте снова'
     };
     errEl.textContent = map[e.code] || ('Ошибка: ' + (e.message||e.code||'неизвестная'));
   }
