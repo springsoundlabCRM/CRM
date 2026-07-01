@@ -886,21 +886,13 @@
   // Обычный getFirestore() использует потоковое (WebChannel/gRPC) соединение —
   // именно такие соединения многие мобильные операторы в РФ блокируют или
   // режут без VPN, из-за чего приложение зависает/не грузится на обычном
-  // мобильном интернете.
-  //
-  // Раньше здесь стоял experimentalAutoDetectLongPolling: true — он сам
-  // "пробует" стриминговое соединение и переключается на long-polling
-  // только если пробник подтвердит, что стриминг не работает. Проблема в
-  // том, что сам этот пробник — тоже сетевой запрос, и он может либо
-  // зависать, либо ошибочно решать, что стриминг работает, хотя на самом
-  // деле оператор режет его нестабильно (иногда пропускает, иногда нет).
-  // Раз мы уже точно знаем, что на этой мобильной сети (МТС) есть проблемы
-  // с доступом к сервисам Google, надёжнее включить long-polling
-  // ПРИНУДИТЕЛЬНО и без всяких угадываний — на десктопе/нормальном
-  // интернете эта настройка тоже прекрасно работает, просто чуть менее
-  // "элегантно" технически, зато без сюрпризов.
+  // мобильном интернете. initializeFirestore с experimentalAutoDetectLongPolling
+  // заставляет Firestore самостоятельно определить, что стриминг не работает,
+  // и переключиться на обычные HTTP-запросы (long-polling) — они проходят
+  // через обычные мобильные сети и большинство операторских фильтров
+  // гораздо надёжнее, VPN для этого больше не нужен.
   const fbDb = initializeFirestore(fbApp, {
-    experimentalForceLongPolling: true,
+    experimentalAutoDetectLongPolling: true,
     useFetchStreams: false
   });
 
@@ -1009,22 +1001,7 @@
 </style>
 
 <!-- ===== ЭКРАН ВХОДА / РЕГИСТРАЦИИ (Firebase Auth) ===== -->
-<div id="authScreen" style="display:flex;align-items:center;justify-content:center;min-height:100dvh;min-height:var(--vh100,100dvh);background:var(--bg);padding:20px;box-sizing:border-box;flex-direction:column;gap:14px">
-  <!-- Предупреждение про встроенные браузеры мессенджеров (ВК, Telegram,
-       Instagram и т.п.). Такие встроенные окна часто не сохраняют вход
-       между открытиями — это ограничение самого приложения-мессенджера,
-       на уровне сайта это никак не обойти. Единственное решение —
-       открыть ссылку в настоящем Safari/Chrome. Баннер появляется только
-       если код (см. detectInAppBrowser() ниже) реально распознал такой
-       браузер по строке User-Agent — на обычном Safari/Chrome его не будет. -->
-  <div id="inAppBrowserWarning" style="display:none;width:380px;max-width:100%;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--text2);line-height:1.5;box-sizing:border-box">
-    <div style="font-weight:600;color:var(--red);margin-bottom:6px">⚠️ Ссылка открыта во встроенном браузере <span id="inAppBrowserName">приложения</span></div>
-    <div>Такие браузеры часто не сохраняют вход между открытиями — это ограничение самого приложения, а не CRM. Откройте эту ссылку в обычном Safari или Chrome:</div>
-    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" style="font-size:12px;padding:7px 12px" onclick="copyCurrentLinkForSafari()" id="copyLinkBtn">Скопировать ссылку</button>
-    </div>
-    <div style="margin-top:6px;font-size:11.5px;color:var(--text3)">Скопируйте, затем откройте Safari и вставьте ссылку в адресную строку — вход сохранится и больше не будет слетать.</div>
-  </div>
+<div id="authScreen" style="display:flex;align-items:center;justify-content:center;min-height:100dvh;min-height:var(--vh100,100dvh);background:var(--bg);padding:20px;box-sizing:border-box">
   <div class="modal" style="width:380px">
     <div style="text-align:center;margin-bottom:18px">
       <div style="font-size:17px;font-weight:600">VoiceLoft CRM</div>
@@ -1093,14 +1070,6 @@
         <span id="authToggleText">Нет аккаунта?</span>
         <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--accent);font-weight:500" id="authToggleLink">Зарегистрироваться</a>
       </div>
-      <!-- Актуально в первую очередь для iOS: "На экран Домой" и обычная
-           вкладка Safari хранят данные сайта РАЗДЕЛЬНО, и в хранилище
-           конкретно этого запуска (например, иконки) могут застрять
-           обрывки старой/битой сессии, из-за которых вход не проходит с
-           первого раза. Эта кнопка чистит именно это локальное хранилище. -->
-      <div style="text-align:center;margin-top:10px;font-size:11.5px;color:var(--text3)">
-        <a href="javascript:void(0)" onclick="hardResetAuthState()" style="color:var(--red)">Не входит? Полный сброс входа на этом устройстве</a>
-      </div>
     </div>
   </div>
   <!-- Метка версии файла — видна глазами без всяких инструментов
@@ -1108,7 +1077,7 @@
        видите СТАРУЮ метку — значит телефон показывает закэшированную
        версию, и проблема не в коде, а в кэше браузера/иконки "На экран
        Домой". Меняйте эту строку при каждой публикации новой версии. -->
-  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v8</div>
+  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v5</div>
 </div>
 
 <!-- ===== ЭКРАН ОПЛАТЫ ПОДПИСКИ ===== -->
@@ -3998,68 +3967,6 @@ function doLogout(){
    ============================================================ */
 let authMode = 'login'; // 'login' | 'register'
 
-// Определяем, открыта ли страница во встроенном браузере мессенджера
-// (ВКонтакте, Telegram, Instagram, WhatsApp и т.п.), а не в настоящем
-// Safari/Chrome. Такие встроенные окна нередко используют урезанное или
-// временное хранилище данных сайта — вход в CRM в них может слетать
-// каждый раз, и это ограничение самого приложения-мессенджера, а не
-// нашего кода. Единственный надёжный способ всё же его обойти — открыть
-// ссылку в настоящем браузере, поэтому просто честно предупреждаем.
-function detectInAppBrowser(){
-  const ua = navigator.userAgent || '';
-  const known = [
-    { test: /VKClient|VK\/|vk\.com.*iOS/i, name: 'ВКонтакте' },
-    { test: /Instagram/i, name: 'Instagram' },
-    { test: /FBAN|FBAV/i, name: 'Facebook' },
-    { test: /Telegram/i, name: 'Telegram' },
-    { test: /MicroMessenger/i, name: 'WeChat' },
-    { test: /Line\//i, name: 'LINE' },
-    { test: /WhatsApp/i, name: 'WhatsApp' }
-  ];
-  let matched = null;
-  for(const k of known){ if(k.test.test(ua)){ matched = k.name; break; } }
-  // Дополнительный признак для iOS: у настоящего Safari в UA всегда есть
-  // одновременно "Safari/" и "Version/". У встроенных браузеров многих
-  // приложений (в т.ч. ВК) токен "Safari/" из строки убирают, хотя движок
-  // тот же самый (WKWebView).
-  const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  const looksLikeStrippedIOSWebView = isIOS && /AppleWebKit/i.test(ua) && !/Safari\//i.test(ua);
-  if(!matched && looksLikeStrippedIOSWebView) matched = 'приложения';
-
-  if(matched){
-    const box = document.getElementById('inAppBrowserWarning');
-    const nameEl = document.getElementById('inAppBrowserName');
-    if(nameEl) nameEl.textContent = matched;
-    if(box) box.style.display = 'block';
-  }
-}
-detectInAppBrowser();
-
-async function copyCurrentLinkForSafari(){
-  const btn = document.getElementById('copyLinkBtn');
-  const url = location.href;
-  try{
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      await navigator.clipboard.writeText(url);
-    } else {
-      // Запасной способ для очень старых/урезанных встроенных браузеров,
-      // где navigator.clipboard недоступен.
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    if(btn){ const old = btn.textContent; btn.textContent = 'Скопировано ✓'; setTimeout(()=>{ btn.textContent = old; }, 2000); }
-  }catch(e){
-    console.error('Не удалось скопировать ссылку', e);
-    if(btn) btn.textContent = 'Не удалось скопировать, выделите ссылку вручную';
-  }
-}
-
 // Переключение видимого состояния экрана входа между тремя режимами:
 // 'loading'   — идёт тихая проверка ранее сохранённой сессии
 // 'form'      — нужно ввести номер и пароль (реально не залогинены)
@@ -4209,67 +4116,62 @@ async function handleAuthSubmit(){
   const btn = document.getElementById('authSubmitBtn');
   btn.disabled = true;
   const fakeEmail = phoneToFakeEmail(normalized);
+  let attempts = 0;
+  const maxAttempts = 3; // увеличил до 3 попыток
 
-  try{
-    if(authMode === 'register'){
-      const name = document.getElementById('authName').value.trim();
-      if(!name){ errEl.textContent = 'Введите имя'; btn.disabled = false; return; }
-      const cred = await withAuthTimeout(
-        window.__fb.createUserWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 15000
-      );
-      // Фиксируем начало пробного периода СРАЗУ при регистрации — один
-      // документ на аккаунт, создаётся один раз (правила Firestore не дают
-      // клиенту менять его после создания — см. инструкцию по обновлению
-      // правил). Именно эта запись — источник правды о том, использовал
-      // ли номер телефона свой бесплатный период.
-      try{
-        const now = Date.now();
-        await window.__fb.setDoc(window.__fb.doc(window.__fb.db, 'users', cred.user.uid), {
-          phone: normalized,
-          subscriptionStatus: 'trial',
-          trialStartedAt: now,
-          trialEndsAt: now + TRIAL_DAYS*24*60*60*1000
-        });
-      }catch(e){
-        // Если не удалось создать пробный документ (например, ещё не
-        // обновлены правила Firestore) — не рушим регистрацию, просто
-        // человек попадёт на экран оплаты вместо пробного периода.
-        console.error('Не удалось создать пробный период', e);
+  while(attempts < maxAttempts){
+    try{
+      if(authMode === 'register'){
+        const name = document.getElementById('authName').value.trim();
+        if(!name){ errEl.textContent = 'Введите имя'; btn.disabled = false; return; }
+        // Увеличил таймаут до 60 секунд
+        const cred = await withAuthTimeout(
+          window.__fb.createUserWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 60000
+        );
+        try{
+          const now = Date.now();
+          await window.__fb.setDoc(window.__fb.doc(window.__fb.db, 'users', cred.user.uid), {
+            phone: normalized,
+            subscriptionStatus: 'trial',
+            trialStartedAt: now,
+            trialEndsAt: now + TRIAL_DAYS*24*60*60*1000
+          });
+        }catch(e){
+          console.error('Не удалось создать пробный период', e);
+        }
+        window.__pendingRegisterName = name;
+      } else {
+        await withAuthTimeout(
+          window.__fb.signInWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 60000
+        );
       }
-      // Профиль педагога создастся автоматически внутри initApp()/seedDB(),
-      // но имя из формы регистрации сразу прокинем в DB после загрузки.
-      window.__pendingRegisterName = name;
-    } else {
-      await withAuthTimeout(
-        window.__fb.signInWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 15000
-      );
+      // Успешно, выходим из цикла
+      break;
+    } catch(e){
+      console.error(e);
+      attempts++;
+      // Если это не сетевая ошибка или последняя попытка — показываем ошибку
+      if(e.code !== 'auth/network-request-failed' || attempts >= maxAttempts){
+        const map = {
+          'auth/invalid-credential':'Неверный номер телефона или пароль',
+          'auth/wrong-password':'Неверный пароль',
+          'auth/user-not-found':'Аккаунт с этим номером не найден',
+          'auth/email-already-in-use':'Этот номер уже зарегистрирован',
+          'auth/weak-password':'Пароль слишком простой (минимум 6 символов)',
+          'auth/invalid-email':'Некорректный номер телефона',
+          'auth/network-request-failed':'Нет связи с сервером. Проверьте интернет (в PWA-режиме на iOS иногда требуется повторный вход) и попробуйте снова',
+          'auth/client-timeout':'Сервер долго не отвечает. Проверьте интернет-соединение и попробуйте ещё раз',
+          'auth/too-many-requests':'Слишком много попыток входа подряд. Подождите немного и попробуйте снова'
+        };
+        errEl.textContent = map[e.code] || ('Ошибка: ' + (e.message||e.code||'неизвестная'));
+        btn.disabled = false;
+        return;
+      } else {
+        // Повторяем попытку после задержки
+        errEl.textContent = 'Сетевая ошибка, повторная попытка... ('+attempts+'/'+maxAttempts+')';
+        await new Promise(r => setTimeout(r, 2000));
+      }
     }
-    // ВАЖНО: раньше здесь принудительно обновлялся токен по сети сразу
-    // после входа (getIdToken(true)). Оказалось, что на некоторых мобильных
-    // операторах в РФ (в частности МТС) именно этот сетевой запрос
-    // блокируется — хотя сам вход (signIn) прекрасно проходит, потому что
-    // идёт на другой адрес. В сочетании с проверкой в checkSubscriptionAndRoute
-    // это давало замкнутый круг: успешный вход -> принудительное обновление
-    // токена не проходит из-за блокировки оператора -> код ошибочно решает,
-    // что сессия мертва -> разлогинивает -> человек вводит пароль заново ->
-    // и всё повторяется. Поэтому принудительное обновление токена здесь
-    // полностью убрано. Свежевыданного токена достаточно — он действителен
-    // около часа, и Firestore SDK сам разберётся с ним без сетевого форс-рефреша.
-    // Дальше подхватит onAuthStateChanged ниже — он сам покажет приложение.
-  }catch(e){
-    console.error(e);
-    const map = {
-      'auth/invalid-credential':'Неверный номер телефона или пароль',
-      'auth/wrong-password':'Неверный пароль',
-      'auth/user-not-found':'Аккаунт с этим номером не найден',
-      'auth/email-already-in-use':'Этот номер уже зарегистрирован',
-      'auth/weak-password':'Пароль слишком простой (минимум 6 символов)',
-      'auth/invalid-email':'Некорректный номер телефона',
-      'auth/network-request-failed':'Нет связи с сервером. Проверьте интернет (на мобильном иногда помогает включить/выключить Wi-Fi или VPN) и попробуйте снова',
-      'auth/client-timeout':'Сервер долго не отвечает. Проверьте интернет-соединение и попробуйте ещё раз',
-      'auth/too-many-requests':'Слишком много попыток входа подряд. Подождите немного и попробуйте снова'
-    };
-    errEl.textContent = map[e.code] || ('Ошибка: ' + (e.message||e.code||'неизвестная'));
   }
   btn.disabled = false;
 }
@@ -4300,56 +4202,43 @@ async function checkSubscriptionAndRoute(){
   const subRef = window.__fb.doc(window.__fb.db, 'users', currentUid);
   const dbRef = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
 
-  // Раньше сетевая ошибка при чтении статуса подписки молча превращалась в
-  // null и приравнивалась к "подписки нет". Теперь сетевая/любая другая
-  // ошибка — ОТДЕЛЬНОЕ состояние, и мы сохраняем её реальный код/текст
-  // (permission-denied, unavailable, и т.п.), чтобы показать точную причину,
-  // а не общую фразу "проверьте интернет", которая не позволяет понять,
-  // в чём дело на самом деле.
-  //
-  // ВАЖНО: раньше здесь при permission-denied делался ПРИНУДИТЕЛЬНЫЙ
-  // сетевой refresh токена (getIdToken(true)) перед повтором, и если он не
-  // удавался — код решал, что сессия "мертва", и разлогинивал человека.
-  // На практике это оказалось хуже, чем сама исходная проблема: на
-  // некоторых мобильных операторах в РФ (в частности МТС) именно этот
-  // конкретный сетевой запрос (обмен refresh-токена на новый ID-токен)
-  // регулярно блокируется, хотя сам вход и обычные запросы к Firestore
-  // прекрасно проходят. В результате принудительный refresh почти всегда
-  // проваливался НЕ потому что сессия и правда умерла, а потому что
-  // оператор режет именно этот адрес — и человека выкидывало обратно на
-  // форму входа даже сразу после успешного входа, по кругу.
-  //
-  // Поэтому здесь мы НИКОГДА не форсируем обновление токена вручную.
-  // Просто повторяем само чтение с паузой — Firestore SDK сам следит за
-  // авторизацией через встроенный слушатель и подхватывает актуальный
-  // токен на соединение без нашего вмешательства, только чуть медленнее
-  // на первых миллисекундах после входа. "Сессия мертва" — это состояние,
-  // которое определяет ТОЛЬКО сам Firebase (когда auth.currentUser
-  // становится null сам по себе, без нашего участия), а не наши
-  // собственные попытки что-то принудительно обновить.
   let lastError = null;
+  let sessionReallyDead = false;
   async function readWithRetry(ref, attempts){
     for(let i=0;i<attempts;i++){
       try{ return await window.__fb.getDoc(ref); }
       catch(e){
         lastError = e;
         console.error('Firestore read failed (attempt '+(i+1)+'/'+attempts+')', e && e.code, e && e.message, e);
-        if(!window.__fb.auth.currentUser) return null; // сессия реально пропала сама по себе
-        if(i < attempts-1) await new Promise(r=>setTimeout(r, 700*(i+1)));
+        if(sessionReallyDead) return null;
+        if(i < attempts-1){
+          if(e && e.code === 'permission-denied' && window.__fb.auth.currentUser){
+            try{
+              await window.__fb.auth.currentUser.getIdToken(true);
+              if(!window.__fb.auth.currentUser){
+                sessionReallyDead = true;
+                return null;
+              }
+            }catch(e2){
+              console.error('Принудительное обновление токена провалилось — сессия, судя по всему, мертва', e2);
+              sessionReallyDead = true;
+              return null;
+            }
+          }
+          await new Promise(r=>setTimeout(r, 1000*(i+1))); // увеличил задержку
+        }
       }
     }
     return null;
   }
 
+  // Увеличил количество попыток до 7
   const [subSnap, dbSnap] = await Promise.all([
-    readWithRetry(subRef, 5),
-    readWithRetry(dbRef, 5)
+    readWithRetry(subRef, 7),
+    readWithRetry(dbRef, 7)
   ]);
 
-  // Сессия реально умерла САМА ПО СЕБЕ (Firebase больше не считает нас
-  // залогиненными) — честно разлогиниваем и показываем обычную форму
-  // входа с понятным объяснением.
-  if(!window.__fb.auth.currentUser && (subSnap === null || dbSnap === null)){
+  if(sessionReallyDead || (!window.__fb.auth.currentUser && (subSnap === null || dbSnap === null))){
     currentUid = null;
     appEl.style.display = 'none';
     paywallScreen.style.display = 'none';
@@ -4362,10 +4251,6 @@ async function checkSubscriptionAndRoute(){
   }
 
   if(subSnap === null || dbSnap === null){
-    // Не смогли прочитать данные даже после повторных попыток, но Firebase
-    // при этом ПОДТВЕРЖДАЕТ, что сессия жива (auth.currentUser на месте) —
-    // это временный сбой связи/прав, а не разлогин. Сессию НЕ трогаем и
-    // НЕ показываем форму логина/пароля.
     appEl.style.display = 'none';
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
@@ -4373,9 +4258,6 @@ async function checkSubscriptionAndRoute(){
     const code = lastError && (lastError.code || lastError.message) ? (lastError.code || lastError.message) : 'неизвестна';
     const reconnectErrEl = document.getElementById('authReconnectError');
     if(reconnectErrEl) reconnectErrEl.textContent = 'Код ошибки: '+code;
-    // Диагностику собираем сразу (но не показываем, пока не нажмут
-    // "Показать диагностику") — чтобы данные были свежими на момент сбоя,
-    // а не собранными постфактум, когда состояние уже могло измениться.
     try{
       const diagText = await collectAuthDiagnostics(lastError);
       const diagBox = document.getElementById('authDiagBox');
@@ -4390,9 +4272,6 @@ async function checkSubscriptionAndRoute(){
   const trialActive = sub && sub.subscriptionStatus === 'trial' && sub.trialEndsAt && sub.trialEndsAt > now;
   const isActive = paidActive || trialActive;
 
-  // Сколько дней пробного периода осталось — используется баннером в
-  // сайдбаре, чтобы человек видел обратный отсчёт и не был застигнут
-  // врасплох в момент, когда доступ вдруг пропадёт.
   window.__trialDaysLeft = trialActive ? Math.max(1, Math.ceil((sub.trialEndsAt - now) / (24*60*60*1000))) : null;
 
   if(isActive){
@@ -4413,11 +4292,9 @@ async function checkSubscriptionAndRoute(){
     const titleEl = document.getElementById('paywallTitle');
     const subEl = document.getElementById('paywallSubtitle');
     if(sub && sub.subscriptionStatus === 'trial'){
-      // Пробный период был, но закончился
       if(titleEl) titleEl.textContent = 'Пробный период закончился';
       if(subEl) subEl.textContent = 'Бесплатные '+TRIAL_DAYS+' дней истекли. Чтобы продолжить пользоваться VoiceLoft CRM, оформите подписку';
     } else if(sub && sub.subscriptionStatus === 'active'){
-      // Была оплаченная подписка, но истёк срок
       if(titleEl) titleEl.textContent = 'Срок подписки истёк';
       if(subEl) subEl.textContent = 'Чтобы продолжить пользоваться VoiceLoft CRM, продлите подписку';
     } else {
@@ -4427,9 +4304,6 @@ async function checkSubscriptionAndRoute(){
   }
 }
 
-// Небольшой баннер над сайдбаром с обратным отсчётом пробного периода —
-// чтобы человек видел, сколько дней осталось, и не был неожиданно
-// выброшен из аккаунта в середине рабочего дня.
 function renderTrialBanner(){
   const old = document.getElementById('trialBanner');
   if(old) old.remove();
@@ -4449,19 +4323,11 @@ function pluralDays(n){
   return 'дней';
 }
 
-// ВРЕМЕННАЯ заглушка вместо реального вызова ЮKassa.
-// Когда касса будет подключена, эта функция должна:
-// 1) дернуть вашу Cloud Function / backend, который создаст платёж в ЮKassa
-// 2) получить ссылку на оплату и сделать location.href = ссылка
-// Сейчас она просто показывает, что сервер ещё не настроен.
 async function startCheckout(plan){
   const errEl = document.getElementById('paywallError');
   errEl.textContent = '';
   try{
     // TODO: заменить на реальный запрос к серверу, который создаёт платёж в ЮKassa
-    // const res = await fetch('/api/create-payment', { method:'POST', body: JSON.stringify({ uid: currentUid, plan }) });
-    // const { confirmationUrl } = await res.json();
-    // location.href = confirmationUrl;
     errEl.textContent = 'Оплата пока не подключена. Это будет настроено на следующем шаге (ЮKassa).';
   }catch(e){
     console.error(e);
@@ -4480,31 +4346,13 @@ window.addEventListener('fb-ready', function(){
     const appEl = document.getElementById('app');
     if(user){
       currentUid = user.uid;
-      // Показываем нейтральный экран "Входим в аккаунт…", а не форму с
-      // пустыми полями — человек уже залогинен (сессия сохранена), просто
-      // идёт тихая проверка перед открытием приложения.
       appEl.style.display = 'none';
       paywallScreen.style.display = 'none';
       authScreen.style.display = 'flex';
       setAuthScreenMode('loading');
-      // Дожидаемся готовности ID-токена перед запросом к Firestore — но
-      // БЕЗ принудительного обновления по сети (getIdToken(true)). Раньше
-      // здесь стоял именно forced-refresh, и любая заминка мобильной сети
-      // (или блокировка конкретного эндпоинта оператором — см. подробности
-      // в checkSubscriptionAndRoute) приводила к тому, что человека молча
-      // разлогинивало и откатывало на форму входа, хотя сессия Firebase
-      // была совершенно рабочей. Обычный (некопринудительный) getIdToken()
-      // почти всегда берёт токен из локального кэша и не требует сети
-      // вообще, поэтому он намного надёжнее на слабом мобильном интернете.
-      // Принудительное обновление токена теперь нигде в приложении не
-      // используется — ни здесь, ни сразу после входа (см. handleAuthSubmit).
       try{
-        await withAuthTimeout(user.getIdToken(), 10000);
+        await user.getIdToken();
       }catch(e){
-        // Не удалось даже прочитать токен из кэша — это не повод выкидывать
-        // на форму логина/пароля, сессия в Firebase всё ещё существует.
-        // Просто уходим в состояние "не удалось подключиться" с кнопкой
-        // "Повторить попытку", ничего не сбрасывая.
         console.error('Не удалось получить токен авторизации (не критично, пробуем всё равно)', e);
       }
       await checkSubscriptionAndRoute();
@@ -4517,10 +4365,6 @@ window.addEventListener('fb-ready', function(){
     }
   });
 
-  // Пробный период может закончиться прямо во время работы (человек оставил
-  // вкладку открытой на несколько дней) — перепроверяем статус раз в 10
-  // минут, чтобы доступ закрылся вовремя, а не только при следующей
-  // полной перезагрузке страницы.
   setInterval(function(){
     if(currentUid && document.getElementById('app').style.display !== 'none'){
       checkSubscriptionAndRoute();
@@ -4540,8 +4384,6 @@ async function initApp(prefetchedDbSnap){
   isMobileDevice = window.innerWidth <= 768;
 
   // ===== ФИКС НИЖНЕГО МЕНЮ: убираем зазор снизу =====
-  // Используем visualViewport вместо window.innerHeight для корректной работы
-  // при скрытом/видимом адресном баре в Safari/Chrome на iOS
   function fixBottomNav() {
     const nav = document.getElementById('bottomNav');
     if (!nav) return;
@@ -4554,7 +4396,6 @@ async function initApp(prefetchedDbSnap){
   }
   fixBottomNav();
   fixAppHeight();
-  // Повторно после рендера навигации
   setTimeout(fixAppHeight, 100);
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', () => { fixBottomNav(); fixAppHeight(); });
@@ -4571,8 +4412,6 @@ async function initApp(prefetchedDbSnap){
   });
 
   // ===== СВАЙП ДЛЯ БОКОВОГО МЕНЮ + КЛИК ВНЕ МЕНЮ =====
-  // Открытие: свайп вправо от левого края экрана (зона 40px)
-  // Закрытие: свайп влево по открытому меню ИЛИ клик вне меню
   let _sbTouchStartX = 0, _sbTouchStartY = 0;
   const _SB_EDGE_ZONE = 40;
   document.addEventListener('touchstart', function(e) {
@@ -4588,11 +4427,9 @@ async function initApp(prefetchedDbSnap){
       const diffX = _sbTouchStartX - touchEndX;
       const diffY = Math.abs(_sbTouchStartY - touchEndY);
       const sidebar = document.getElementById('sidebar');
-      // Закрыть меню: свайп влево > 50px, горизонтальный
       if (sidebar && sidebar.classList.contains('mobile-open')) {
         if (diffX > 50 && diffX > diffY) closeMobileSidebar();
       }
-      // Открыть меню: свайп вправо от левого края
       if (sidebar && !sidebar.classList.contains('mobile-open')) {
         const swipeRight = touchEndX - _sbTouchStartX;
         if (_sbTouchStartX < _SB_EDGE_ZONE && swipeRight > 50 && swipeRight > diffY) {
@@ -4601,10 +4438,8 @@ async function initApp(prefetchedDbSnap){
       }
     }
   }, { passive: true });
-  // Клик вне меню — закрыть
   document.addEventListener('click', function(e) {
     const sidebar = document.getElementById('sidebar');
-    // Учитываем ОБЕ кнопки открытия меню: обычный гамбургер и кнопку Расписания
     const isMenuToggle = e.target.closest && e.target.closest('.hamburger-btn, .schedule-menu-btn');
     if (sidebar && sidebar.classList.contains('mobile-open')) {
       if (!sidebar.contains(e.target) && !isMenuToggle) {
@@ -4630,10 +4465,6 @@ async function initApp(prefetchedDbSnap){
     console.warn('theme-color adapt failed:', e);
   }
 })();
-
-/* Приложение теперь запускается не сразу, а из onAuthStateChanged
-   (см. блок window.addEventListener('fb-ready', ...) выше) —
-   initApp() вызывается там только после подтверждённого входа. */
 
 </script>
 </body>
