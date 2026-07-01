@@ -2987,7 +2987,6 @@ function buildLessonModal(ctx){
   const defaultFormat = lesson ? lesson.format : 'offline';
   const defaultPrice = lesson ? lesson.price : 1500;
   const defaultPaid = lesson ? lesson.paid : 0;
-  const defaultStatus = lesson ? lesson.status : 'planned';
   const defaultPlan = lesson ? lesson.plan : '';
   const isEdit = !!lesson;
 
@@ -3005,7 +3004,6 @@ function buildLessonModal(ctx){
     +'<div class="input-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Статус оплаты</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none" '+(defaultPaid===0?'selected':'')+'>Не оплачено</option><option value="full" '+(defaultPaid>=defaultPrice?'selected':'')+'>Оплачено полностью</option><option value="partial" '+(defaultPaid>0&&defaultPaid<defaultPrice?'selected':'')+'>Частично</option></select></div>'
     +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;'+(defaultPaid>0&&defaultPaid<defaultPrice?'':'display:none')+'"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500" value="'+(defaultPaid>0&&defaultPaid<defaultPrice?defaultPaid:'')+'"></div></div>'
     +'</div>'
-    +'<div class="input-group"><label class="input-label">Статус урока</label><select class="input" id="f-l-status"><option value="planned" '+(defaultStatus==='planned'?'selected':'')+'>Запланирован</option><option value="done" '+(defaultStatus==='done'?'selected':'')+'>Проведён</option><option value="noshow" '+(defaultStatus==='noshow'?'selected':'')+'>Не пришёл</option><option value="cancelled" '+(defaultStatus==='cancelled'?'selected':'')+'>Отменён</option></select></div>'
     + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="if(confirm(\'Удалить урок?\')){deleteLesson(\''+lesson.id+'\');closeModal();}">🗑 Удалить урок</button>' : '')
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>';
 }
@@ -3030,7 +3028,6 @@ function saveLessonForm(){
   const duration = Number(document.getElementById('f-l-dur').value)||60;
   const format = document.getElementById('f-l-format').value;
   const plan = document.getElementById('f-l-plan').value.trim();
-  const status = document.getElementById('f-l-status').value;
   const sub = activeSubscriptionOf(studentId);
 
   if(lessonId) {
@@ -3044,7 +3041,9 @@ function saveLessonForm(){
     lesson.duration = duration;
     lesson.format = format;
     lesson.plan = plan;
-    lesson.status = status;
+    // Статус урока (запланирован/проведён/не пришёл/отменён) теперь
+    // ставится только отдельно — через отметку посещаемости в дашборде
+    // или карточке ученика, а не здесь при редактировании времени/цены.
     // Цена/оплата
     if(!lesson.viaSubscription){
       const price = Number(document.getElementById('f-l-price').value)||0;
@@ -3063,7 +3062,7 @@ function saveLessonForm(){
   }
 
   // Создание нового урока
-  let lesson = { id:uid('l'), studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status, plan, workedOn:'', createdAt: todayISO() };
+  let lesson = { id:uid('l'), studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status:'planned', plan, workedOn:'', createdAt: todayISO() };
   if(sub){
     lesson.viaSubscription = true; lesson.subscriptionId = sub.id; lesson.price = sub.pricePerLesson; lesson.paid = sub.pricePerLesson;
     sub.usedLessons += 1;
