@@ -1431,7 +1431,7 @@
 </div>
 
 <!-- MODAL -->
-<div class="modal-bg hidden" id="modal-bg" onclick="closeModal(event)">
+<div class="modal-bg hidden" id="modal-bg" onmousedown="handleModalBgMouseDown(event)" onclick="closeModal(event)">
   <div class="modal" id="modal-content"></div>
 </div>
 
@@ -3768,8 +3768,28 @@ function openModal(type, ctx){
   if(type==='lesson') onLessonStudentChange();
   if(type==='calPicker') renderCalPickerCalendar();
 }
+// Флаг: было ли нажатие мыши (mousedown) именно на фоне модалки,
+// а не начато внутри окна (например, при выделении текста мышкой).
+// Событие "click" в браузере срабатывает на общем родителе точек
+// mousedown и mouseup — поэтому если человек начал выделять текст
+// внутри окна (mousedown на инпуте) и, не отпуская кнопку, увёл
+// курсор за пределы окна и отпустил там (mouseup на фоне), click
+// всё равно считается "кликом по фону" и раньше закрывал модалку.
+// Теперь закрываем по клику мимо только если И нажатие, И отпускание
+// мыши произошли именно на самом фоне.
+let modalBgMouseDownOnBg = false;
+function handleModalBgMouseDown(e){
+  modalBgMouseDownOnBg = (e.target && e.target.id === 'modal-bg');
+}
 function closeModal(e){
-  if(!e || e.target.id==='modal-bg' || (e.target && e.target.closest && e.target.closest('.modal-close'))){
+  if(!e){
+    document.getElementById('modal-bg').classList.add('hidden');
+    document.getElementById('modal-content').innerHTML='';
+    return;
+  }
+  const clickedCloseBtn = e.target && e.target.closest && e.target.closest('.modal-close');
+  const clickedBgOnly = e.target.id==='modal-bg' && modalBgMouseDownOnBg;
+  if(clickedCloseBtn || clickedBgOnly){
     document.getElementById('modal-bg').classList.add('hidden');
     document.getElementById('modal-content').innerHTML='';
   }
