@@ -3617,25 +3617,35 @@ async function checkSubscriptionAndRoute(){
   const appEl = document.getElementById('app');
   const authErrEl = document.getElementById('authError');
 
+  if(!currentUid){
+    console.error('checkSubscriptionAndRoute: currentUid не установлен');
+    appEl.style.display = 'none';
+    paywallScreen.style.display = 'none';
+    authScreen.style.display = 'flex';
+    if(authErrEl) authErrEl.textContent = 'Внутренняя ошибка: не определён пользователь. Попробуйте войти ещё раз.';
+    return;
+  }
+
   const subRef = window.__fb.doc(window.__fb.db, 'users', currentUid);
   const dbRef = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
 
   // Раньше сетевая ошибка при чтении статуса подписки молча превращалась в
-  // null и приравнивалась к "подписки нет" — из-за этого на нестабильном
-  // мобильном интернете реального подписчика перекидывало на экран оплаты,
-  // хотя проблема была просто в связи. Теперь: сетевая ошибка — это
-  // ОТДЕЛЬНОЕ состояние (NETWORK_ERROR), а не "нет подписки". Плюс несколько
-  // автоматических попыток с небольшой паузой, прежде чем сдаться.
-  const NETWORK_ERROR = Symbol('network-error');
+  // null и приравнивалась к "подписки нет". Теперь сетевая/любая другая
+  // ошибка — ОТДЕЛЬНОЕ состояние, и мы сохраняем её реальный код/текст
+  // (permission-denied, unavailable, и т.п.), чтобы показать точную причину,
+  // а не общую фразу "проверьте интернет", которая не позволяет понять,
+  // в чём дело на самом деле.
+  let lastError = null;
   async function readWithRetry(ref, attempts){
     for(let i=0;i<attempts;i++){
       try{ return await window.__fb.getDoc(ref); }
       catch(e){
-        console.error('Firestore read failed (attempt '+(i+1)+'/'+attempts+')', e);
+        lastError = e;
+        console.error('Firestore read failed (attempt '+(i+1)+'/'+attempts+')', e && e.code, e && e.message, e);
         if(i < attempts-1) await new Promise(r=>setTimeout(r, 700*(i+1)));
       }
     }
-    return NETWORK_ERROR;
+    return null;
   }
 
   const [subSnap, dbSnap] = await Promise.all([
@@ -3643,14 +3653,16 @@ async function checkSubscriptionAndRoute(){
     readWithRetry(dbRef, 3)
   ]);
 
-  if(subSnap === NETWORK_ERROR || dbSnap === NETWORK_ERROR){
+  if(subSnap === null || dbSnap === null){
     // Не смогли достучаться до сервера даже после повторных попыток —
     // НЕ показываем пейволл (это было бы неверно для реального подписчика).
-    // Возвращаем на экран входа с понятным сообщением, чтобы попробовать ещё раз.
+    // Возвращаем на экран входа с точным кодом ошибки, чтобы можно было
+    // понять реальную причину, а не гадать.
     appEl.style.display = 'none';
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
-    if(authErrEl) authErrEl.textContent = 'Не удалось подключиться к серверу. Проверьте интернет-соединение и попробуйте войти ещё раз.';
+    const code = lastError && (lastError.code || lastError.message) ? (lastError.code || lastError.message) : 'неизвестна';
+    if(authErrEl) authErrEl.textContent = 'Не удалось подключиться к серверу (код: '+code+'). Попробуйте ещё раз или сообщите этот код в поддержку.';
     return;
   }
 
