@@ -1078,6 +1078,14 @@
         <span id="authToggleText">Нет аккаунта?</span>
         <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--accent);font-weight:500" id="authToggleLink">Зарегистрироваться</a>
       </div>
+      <!-- Актуально в первую очередь для iOS: "На экран Домой" и обычная
+           вкладка Safari хранят данные сайта РАЗДЕЛЬНО, и в хранилище
+           конкретно этого запуска (например, иконки) могут застрять
+           обрывки старой/битой сессии, из-за которых вход не проходит с
+           первого раза. Эта кнопка чистит именно это локальное хранилище. -->
+      <div style="text-align:center;margin-top:10px;font-size:11.5px;color:var(--text3)">
+        <a href="javascript:void(0)" onclick="hardResetAuthState()" style="color:var(--red)">Не входит? Полный сброс входа на этом устройстве</a>
+      </div>
     </div>
   </div>
   <!-- Метка версии файла — видна глазами без всяких инструментов
@@ -1085,7 +1093,7 @@
        видите СТАРУЮ метку — значит телефон показывает закэшированную
        версию, и проблема не в коде, а в кэше браузера/иконки "На экран
        Домой". Меняйте эту строку при каждой публикации новой версии. -->
-  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v6</div>
+  <div style="position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:var(--text3);opacity:.5;pointer-events:none">build 2026-07-01-v7</div>
 </div>
 
 <!-- ===== ЭКРАН ОПЛАТЫ ПОДПИСКИ ===== -->
