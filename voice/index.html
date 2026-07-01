@@ -3767,6 +3767,20 @@ async function checkSubscriptionAndRoute(){
   // (permission-denied, unavailable, и т.п.), чтобы показать точную причину,
   // а не общую фразу "проверьте интернет", которая не позволяет понять,
   // в чём дело на самом деле.
+  //
+  // ВАЖНО про permission-denied: это НЕ всегда означает, что человек
+  // реально не имеет доступа. У Firestore (особенно в режиме long-polling,
+  // который мы специально включили для мобильных сетей — см. initializeFirestore
+  // выше) внутренний слой авторизации иногда открывает соединение со
+  // "старым" снимком токена уже ПОСЛЕ того, как наш собственный код успешно
+  // дождался готовности токена. То есть у нас в руках уже свежий токен, а
+  // Firestore внутри себя ещё не успел его подхватить на конкретное
+  // соединение — и получаем permission-denied, хотя доступ на самом деле
+  // есть. Раньше в такой ситуации ничего не помогало, кроме как ждать
+  // (иногда безуспешно) — теперь при коде permission-denied мы явно
+  // ПРИНУДИТЕЛЬНО обновляем токен ещё раз (getIdToken(true)) перед
+  // следующей попыткой — это заставляет Firestore пересоздать credential
+  // и подхватить актуальный токен, и повторное чтение обычно проходит.
   let lastError = null;
   async function readWithRetry(ref, attempts){
     for(let i=0;i<attempts;i++){
@@ -3774,15 +3788,21 @@ async function checkSubscriptionAndRoute(){
       catch(e){
         lastError = e;
         console.error('Firestore read failed (attempt '+(i+1)+'/'+attempts+')', e && e.code, e && e.message, e);
-        if(i < attempts-1) await new Promise(r=>setTimeout(r, 700*(i+1)));
+        if(i < attempts-1){
+          if(e && e.code === 'permission-denied' && window.__fb.auth.currentUser){
+            try{ await window.__fb.auth.currentUser.getIdToken(true); }
+            catch(e2){ console.error('Не удалось принудительно обновить токен перед повтором', e2); }
+          }
+          await new Promise(r=>setTimeout(r, 700*(i+1)));
+        }
       }
     }
     return null;
   }
 
   const [subSnap, dbSnap] = await Promise.all([
-    readWithRetry(subRef, 3),
-    readWithRetry(dbRef, 3)
+    readWithRetry(subRef, 5),
+    readWithRetry(dbRef, 5)
   ]);
 
   if(subSnap === null || dbSnap === null){
