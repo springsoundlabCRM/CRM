@@ -2255,10 +2255,8 @@ function renderStudents(){
     const bdayTag = (bdays!==null && bdays<=7) ? '<span class="tag bday-tag">🎂 '+(bdays===0?'сегодня':bdays+' дн.')+'</span>' : '';
     const next = studentNextLesson(s.id);
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' '+next.time) : 'не запланирован';
-    const progress = studentProgress(s.id);
     const card=document.createElement('div'); card.className='student-card';
     card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div><div class="student-name">'+escapeHTML(s.name)+'</div><div class="student-meta">'+(s.age?s.age+' лет · ':'')+s.voiceType+'</div></div></div>'
-      +'<div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:var(--accent)"></div></div><div class="progress-label"><span>Прогресс</span><span>'+progress+'%</span></div>'
       +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'<span class="tag tag-blue">'+studentLessonsCount(s.id)+' уроков</span></div>'
       +'<div style="font-size:10px;color:var(--text3);margin-top:8px">Следующий: '+nextLabel+'</div>';
     card.onclick=()=>openStudent(s);
@@ -2538,11 +2536,13 @@ function renderDetailProfile(){
   if(sub){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
-    subBlock = '<div class="detail-card"><div class="detail-title">💳 Абонемент</div>'
+    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title">💳 Абонемент</div>'
+      +'<div style="flex:1">'
       +'<div style="font-size:22px;font-weight:600;margin-bottom:4px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
       +'<div style="font-size:11px;color:var(--text3);margin-bottom:12px">Осталось '+left+' '+(left===1?'урок':'уроков')+'</div>'
       +'<div style="font-size:12px;color:var(--text3)">Куплен</div><div style="font-size:14px;font-weight:500;margin-top:2px">'+money(sub.totalPrice)+' · '+formatRu(sub.purchaseDate)+'</div>'
+      +'</div>'
       +'<div style="margin-top:10px;display:flex;gap:6px">'
       +'<button class="btn btn-primary sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subTopup\',{studentId:\''+s.id+'\'})">Пополнить</button>'
       +'<button class="btn btn-ghost sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История</button>'
