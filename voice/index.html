@@ -780,7 +780,7 @@
     onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, setDoc
+    initializeFirestore, doc, getDoc, setDoc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -794,7 +794,18 @@
 
   const fbApp = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
-  const fbDb = getFirestore(fbApp);
+  // Обычный getFirestore() использует потоковое (WebChannel/gRPC) соединение —
+  // именно такие соединения многие мобильные операторы в РФ блокируют или
+  // режут без VPN, из-за чего приложение зависает/не грузится на обычном
+  // мобильном интернете. initializeFirestore с experimentalAutoDetectLongPolling
+  // заставляет Firestore самостоятельно определить, что стриминг не работает,
+  // и переключиться на обычные HTTP-запросы (long-polling) — они проходят
+  // через обычные мобильные сети и большинство операторских фильтров
+  // гораздо надёжнее, VPN для этого больше не нужен.
+  const fbDb = initializeFirestore(fbApp, {
+    experimentalAutoDetectLongPolling: true,
+    useFetchStreams: false
+  });
 
   // Делаем доступным для обычных (не-module) скриптов ниже на странице
   window.__fb = {
