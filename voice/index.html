@@ -2306,16 +2306,29 @@ function renderStudents(){
   g.innerHTML='';
   if(!list.length){ g.innerHTML='<div class="empty-state full-width">Учеников не найдено</div>'; return; }
   list.forEach(s=>{
+    const lessonsCount = studentLessonsCount(s.id);
+    // ВАЖНО: у ученика, которому ещё не назначили ни одного урока,
+    // не может быть тега "✓ Оплачено" — раньше studentPaymentTag()
+    // по умолчанию считал студента "оплаченным", если у него просто
+    // нет долга (а долга и не может быть, если уроков вообще не было).
+    // Теперь тег "Оплачено" показываем только когда есть хотя бы один урок.
     const tag = studentPaymentTag(s.id);
-    const payTag = tag==='paid' ? '<span class="tag tag-green">✓ Оплачено</span>' : tag==='debt' ? '<span class="tag tag-red">✗ Долг '+money(studentDebt(s.id))+'</span>' : '<span class="tag tag-amber">Абонемент</span>';
-    const statusTag = s.status==='paused' ? '<span class="tag tag-grey">На паузе</span>' : s.status==='trial' ? '<span class="tag tag-blue">Пробный</span>' : s.status==='inactive' ? '<span class="tag tag-grey">Неактивный</span>' : '';
+    const payTag = tag==='debt' ? '<span class="tag tag-red">✗ Долг '+money(studentDebt(s.id))+'</span>'
+      : tag==='sub' ? '<span class="tag tag-amber">Абонемент</span>'
+      : (tag==='paid' && lessonsCount>0) ? '<span class="tag tag-green">✓ Оплачено</span>' : '';
+    // Аналогично: тег "Пробный" не показываем, пока пробный урок не
+    // назначен (нет ни одного урока) — только что созданная карточка
+    // ученика должна показывать просто "0 уроков" и ничего больше.
+    const statusTag = s.status==='paused' ? '<span class="tag tag-grey">На паузе</span>'
+      : (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-blue">Пробный</span>'
+      : s.status==='inactive' ? '<span class="tag tag-grey">Неактивный</span>' : '';
     const bdays = daysUntilBirthday(s.birthday);
     const bdayTag = (bdays!==null && bdays<=7) ? '<span class="tag bday-tag">🎂 '+(bdays===0?'сегодня':bdays+' дн.')+'</span>' : '';
     const next = studentNextLesson(s.id);
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' '+next.time) : 'не запланирован';
     const card=document.createElement('div'); card.className='student-card';
     card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div><div class="student-name">'+escapeHTML(s.name)+'</div><div class="student-meta">'+(s.age?s.age+' лет':'')+(s.age&&s.voiceType?' · ':'')+(s.voiceType||'')+'</div></div></div>'
-      +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'<span class="tag tag-blue">'+studentLessonsCount(s.id)+' уроков</span></div>'
+      +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'<span class="tag tag-blue">'+lessonsCount+' уроков</span></div>'
       +'<div style="font-size:10px;color:var(--text3);margin-top:8px">Следующий: '+nextLabel+'</div>';
     card.onclick=()=>openStudent(s);
     g.appendChild(card);
@@ -3121,7 +3134,12 @@ function buildLessonModal(ctx){
   if(lessonId) {
     lesson = DB.lessons.find(l=>l.id===lessonId);
   }
-  const studentId = lesson ? lesson.studentId : (ctx.studentId || (studentsOfTeacher()[0]||{}).id);
+  // ВАЖНО: при создании НОВОГО урока поле "Ученик" должно быть пустым,
+  // если ученик не передан явно (например, кнопкой "Поставить на урок"
+  // из карточки ученика). Раньше здесь стоял (studentsOfTeacher()[0]||{}).id,
+  // из-за чего при открытии "Запланировать урок" из расписания/календаря
+  // всегда автоматически подставлялся первый ученик из списка.
+  const studentId = lesson ? lesson.studentId : (ctx.studentId || null);
   const sub = lesson ? null : activeSubscriptionOf(studentId);
   const defaultDate = lesson ? lesson.date : (ctx.date || todayISO());
   const defaultTime = lesson ? lesson.time : (ctx.time || '15:00');
