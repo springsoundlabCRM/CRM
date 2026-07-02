@@ -1590,8 +1590,31 @@ let currentUid = null; // ID текущего пользователя Firebase 
 // запись в Firestore, проверка при входе) подхватит новое значение сама.
 const TRIAL_DAYS = 7;
 
+// ---------- Мгновенный локальный кэш (localStorage) ----------
+// Firestore — это сеть, и запись туда всегда занимает какое-то время
+// (даже небольшое). Если человек обновляет страницу (F5) или закрывает
+// вкладку ровно в этот момент, браузер может оборвать ещё не подтверждённый
+// сетевой запрос — и последнее изменение теряется. localStorage.setItem же
+// выполняется СИНХРОННО и завершается мгновенно, до того как страница вообще
+// может начать закрываться — поэтому мы держим "зеркальную" копию данных
+// там же, отдельно на каждого пользователя (по currentUid), и при следующей
+// загрузке сверяем: если локальная копия свежее той, что успела дойти до
+// Firestore — используем её и сразу же дошлём на сервер.
+function localCacheKey(){ return STORAGE_KEY+'_'+(currentUid||'anon'); }
+function writeLocalCache(){
+  try{ localStorage.setItem(localCacheKey(), JSON.stringify({ payload: JSON.stringify(DB), updatedAt: Date.now() })); }
+  catch(e){ /* приватный режим браузера и т.п. — не критично, просто нет доп. подстраховки */ }
+}
+function readLocalCache(){
+  try{
+    const raw = localStorage.getItem(localCacheKey());
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
 async function loadDB(prefetchedSnap){
   let data = null;
+  let remoteUpdatedAt = 0;
   try{
     let snap = prefetchedSnap;
     if(!snap){
@@ -1600,12 +1623,20 @@ async function loadDB(prefetchedSnap){
       const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
       snap = await window.__fb.getDoc(ref);
     }
-    if(snap && snap.exists()) data = snap.data().payload;
+    if(snap && snap.exists()){ data = snap.data().payload; remoteUpdatedAt = snap.data().updatedAt||0; }
   }catch(e){ console.error('Не удалось загрузить данные из Firestore', e); toast('⚠️ Не удалось загрузить данные','red'); }
 
   let needsSave = false;
   if(data){
     try{ DB = JSON.parse(data); }catch(e){ console.warn('Повреждённые данные, создаю новую базу',e); DB=null; }
+  }
+  // Сверяем с локальным кэшем — если он новее того, что подтвердил
+  // Firestore (то есть последняя запись не успела дойти до сервера до
+  // закрытия/обновления страницы), берём его и тут же пересохраняем.
+  const cache = readLocalCache();
+  if(cache && typeof cache.updatedAt==='number' && cache.updatedAt>remoteUpdatedAt){
+    try{ DB = JSON.parse(cache.payload); needsSave = true; }
+    catch(e){ console.warn('Повреждённый локальный кэш, игнорирую',e); }
   }
   if(!DB){ DB = defaultDB(); seedEmptyTeacher(); needsSave = true; }
   if(!DB.teachers || !DB.teachers.length){ DB = defaultDB(); seedEmptyTeacher(); needsSave = true; }
@@ -1641,6 +1672,10 @@ async function loadDB(prefetchedSnap){
 let __saveQueue = Promise.resolve();
 async function saveDB(){
   if(!currentUid) return;
+  // Мгновенно, синхронно — см. комментарий у writeLocalCache() выше.
+  // Это происходит ДО любого ожидания сети, поэтому успевает сохраниться,
+  // даже если человек обновит страницу через долю секунды после ввода.
+  writeLocalCache();
   window.__pendingSaves = (window.__pendingSaves||0) + 1;
   const payload = JSON.stringify(DB); // снимок состояния прямо сейчас, до ожидания очереди
   const run = __saveQueue.then(async ()=>{
@@ -1656,15 +1691,13 @@ async function saveDB(){
   __saveQueue = run.catch(()=>{});
   return run;
 }
-// Защита: если есть незавершённое сохранение в Firestore — предупреждаем перед
-// закрытием вкладки или обновлением страницы, чтобы данные не "терялись" из-за
-// слишком быстрого refresh сразу после добавления ученика/урока/абонемента и т.д.
-window.addEventListener('beforeunload', function(e){
-  if(window.__pendingSaves > 0){
-    e.preventDefault();
-    e.returnValue = '';
-  }
-});
+// Раньше здесь было окно-предупреждение браузера "Обновить страницу? Изменения
+// могут не сохраниться" (beforeunload + preventDefault), которое выскакивало
+// почти при каждом обновлении страницы и очень мешало. Оно было нужно как
+// подстраховка на случай незавершённого сохранения в Firestore — но теперь
+// эту же роль синхронно и мгновенно играет localStorage-кэш (writeLocalCache
+// выше), который надёжнее и не требует никаких диалогов. Поэтому диалог
+// убран полностью — обновление/закрытие страницы больше ничего не спрашивает.
 
 /* ---------- Утилиты дат ---------- */
 function pad2(n){ return String(n).padStart(2,'0'); }
@@ -1802,6 +1835,9 @@ function seedDB(){
    ПРОИЗВОДНЫЕ ДАННЫЕ / ВЫЧИСЛЕНИЯ
    ============================================================ */
 let currentStudentId = null;
+// Какая страница сейчас открыта — нужно, чтобы при обновлении страницы (F5)
+// вернуть человека туда же, где он был, а не всегда на дашборд.
+let currentPageName = 'dashboard';
 let studentFilter = 'all';
 let financeFilter = 'all';
 let scheduleWeekStart = startOfWeek(new Date());
@@ -2495,6 +2531,30 @@ function renderStudents(){
 const DETAIL_TABS = ['profile','progress-tab','repertoire','homework-tab','history','finance-tab','danger-tab'];
 let currentDetailTab = 'profile';
 
+// ---------- Восстановление раздела после обновления страницы ----------
+// Раньше при любом F5 приложение всегда открывалось на дашборде — даже если
+// человек был в карточке ученика во вкладке "Задания". Теперь при каждом
+// переходе запоминаем "где мы сейчас" в localStorage (мгновенно, синхронно —
+// не зависит от сети/Firestore), а при следующем запуске приложения
+// открываем именно этот раздел (и, если это карточка ученика — того же
+// ученика и ту же вкладку). Хранится отдельно на каждого пользователя.
+function navCacheKey(){ return 'voiceloft_crm_nav_'+(currentUid||'anon'); }
+function saveNavState(){
+  try{
+    localStorage.setItem(navCacheKey(), JSON.stringify({
+      page: currentPageName,
+      studentId: currentPageName==='student-detail' ? currentStudentId : null,
+      tab: currentPageName==='student-detail' ? currentDetailTab : null
+    }));
+  }catch(e){ /* приватный режим и т.п. — не критично, просто откроется дашборд */ }
+}
+function readNavState(){
+  try{
+    const raw = localStorage.getItem(navCacheKey());
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
 function openStudent(s){
   if(!s) return;
   currentStudentId = s.id;
@@ -2526,9 +2586,11 @@ function switchDetailTab(el, tab){
     document.getElementById('dtab-'+t).classList.add('hidden');
   });
   document.getElementById('dtab-'+tab).classList.remove('hidden');
+  saveNavState();
 }
 
 function showPage(name){
+  currentPageName = name;
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
   document.getElementById('page-'+name).classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
@@ -2547,6 +2609,7 @@ function showPage(name){
   renderBottomNav();
   const contentEl = document.querySelector('#page-'+name+' .content');
   if(contentEl) contentEl.scrollTop = 0;
+  saveNavState();
 }
 
 /* ============================================================
@@ -4812,7 +4875,31 @@ async function initApp(prefetchedDbSnap){
   applyTheme();
   renderSidebar();
   insertHamburgers();
-  showPage('dashboard');
+  // Восстанавливаем раздел, в котором человек был до обновления страницы
+  // (см. saveNavState/readNavState выше), вместо того чтобы всегда
+  // открывать дашборд. Если это была карточка ученика — открываем того же
+  // ученика и ту же вкладку (например, "Задания"). Если ученик был удалён
+  // или сохранённое состояние повреждено/отсутствует — тихо откатываемся
+  // на дашборд.
+  const nav = readNavState();
+  let restored = false;
+  if(nav && nav.page && document.getElementById('page-'+nav.page)){
+    if(nav.page==='student-detail'){
+      const s = nav.studentId ? studentById(nav.studentId) : null;
+      if(s){
+        currentStudentId = s.id;
+        currentDetailTab = DETAIL_TABS.includes(nav.tab) ? nav.tab : 'profile';
+        document.getElementById('detail-name').textContent = s.name;
+        showPage('student-detail');
+        renderStudentDetailAll();
+        restored = true;
+      }
+    } else {
+      showPage(nav.page);
+      restored = true;
+    }
+  }
+  if(!restored) showPage('dashboard');
   adaptScheduleTopbar();
   isMobileDevice = window.innerWidth <= 768;
 
