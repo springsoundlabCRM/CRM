@@ -183,7 +183,7 @@
   .section-link{font-size:11px;color:var(--accent);cursor:pointer}
   .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
   .student-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px;cursor:pointer;transition:all .2s;position:relative}
-  .student-card:hover{border-color:var(--border2);background:var(--card2);transform:translateY(-1px)}
+  .student-card:hover{border-color:var(--border2);background:var(--card2)}
   .student-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .student-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
   .student-name{font-size:12px;font-weight:600;line-height:1.2}
@@ -415,14 +415,14 @@
      это и есть индикатор "выбрано". Никакой анимации нажатия (scale) —
      только сама подсветка. */
   .hw-status-pills{display:flex;align-items:center;gap:4px}
-  /* Кнопки статуса ДЗ теперь в состоянии покоя ВСЕГДА серые (только рамка и
-     иконка приглушённого серого цвета — но саму иконку видно), чтобы сразу
-     было понятно, что это набор из трёх одинаковых кнопок, а не то, что
-     статус уже как-то выбран. Никакой анимации/подсветки при наведении —
-     единственное, что меняется, это .active. Когда кнопку нажимают —
-     она красится в свой цвет (рамка + иконка + мягкая цветная заливка),
-     БЕЗ дополнительного свечения (box-shadow). Повторный клик по уже
-     активной кнопке возвращает её обратно в серое состояние — см. JS
+  /* Кнопки статуса ДЗ в состоянии покоя показывают серую рамку, но сама
+     иконка (✓ / ⏳ / ✗) всегда в своём цвете — зелёная/жёлтая/красная,
+     чтобы сразу было видно, что это за кнопка (так же, как эмодзи ⏳
+     и так уже цветное "из коробки"). Никакой анимации/подсветки при
+     наведении — единственное, что меняется, это .active. Когда кнопку
+     нажимают — вокруг всей кнопки появляется цветная рамка + мягкая
+     заливка фона, БЕЗ дополнительного свечения (box-shadow). Повторный
+     клик по уже активной кнопке убирает рамку и заливку обратно — см. JS
      setHomeworkStatus(), который переключает (toggle) статус. */
   .hw-status-pill{
     display:inline-flex;align-items:center;justify-content:center;
@@ -430,6 +430,14 @@
     border:1px solid var(--border2);color:var(--text3);background:transparent;cursor:pointer;
     transition:background .15s,border-color .15s,color .15s;
   }
+  /* Сама иконка (✓ / ⏳ / ✗) всегда окрашена в свой цвет — так же, как эмодзи
+     ⏳ у средней кнопки итак цветное "из коробки", независимо от состояния
+     .active. А вот заливка фона и цветная рамка вокруг всей кнопки
+     появляются ТОЛЬКО после нажатия (см. .active ниже) — это и есть
+     индикатор "выбрано". */
+  .hw-status-pill.pill-green{color:var(--green)}
+  .hw-status-pill.pill-amber{color:var(--amber)}
+  .hw-status-pill.pill-red{color:var(--red)}
   .hw-status-pill.pill-red.active{border-color:var(--red);color:var(--red);background:var(--red-bg)}
   .hw-status-pill.pill-amber.active{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
   .hw-status-pill.pill-green.active{border-color:var(--green);color:var(--green);background:var(--green-bg)}
@@ -443,7 +451,13 @@
     padding:20px;display:flex;flex-direction:column;position:relative;overflow:hidden;
     transition:border-color .2s,transform .2s,box-shadow .2s;
   }
-  .hw-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.16)}
+  /* Раньше здесь был transform:translateY(-3px) — карточка сдвигалась вверх
+     прямо из-под курсора при наведении. Из-за этого курсор "выпадал" из
+     границ карточки, hover сбрасывался, карточка съезжала обратно вниз —
+     курсор снова оказывался над ней, hover включался опять, и так по кругу.
+     Именно это ощущалось как "дёрганье" при клике на кнопки внутри карточки
+     (пилюли статуса, корзина). Оставляем только подсветку тенью, без сдвига. */
+  .hw-card:hover{box-shadow:0 10px 24px rgba(0,0,0,.16)}
   /* Тонкая обводка карточки перекрашивается в цвет выбранного статуса —
      только рамка, без подсветки/заливки фона карточки. */
   .hw-card.hw-card-status-todo{border-color:var(--red)}
@@ -489,7 +503,9 @@
   .hw-card-footer{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-shrink:0}
   .hw-card-footer .hw-status-pill{flex:1;width:auto;height:32px;font-size:14px}
   .hw-card-footer .btn-delete-icon{width:32px;height:32px;flex-shrink:0}
-  .btn-delete-icon:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 4px 12px var(--red-glow)}
+  /* Без сдвига/масштабирования на hover — по той же причине, что и у
+     .hw-card выше: смещение кнопки из-под курсора вызывало дёрганье. */
+  .btn-delete-icon:hover{box-shadow:0 4px 12px var(--red-glow)}
   .lesson-note{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--border2)}
   .del-option{cursor:pointer;border-radius:10px;padding:13px 14px;margin-bottom:10px;transition:all .15s;border:1px solid transparent;border-left-width:3px;border-left-style:solid}
   .del-option:active{transform:scale(.98)}
@@ -1612,15 +1628,33 @@ async function loadDB(prefetchedSnap){
   if(needsSave) await saveDB();
 }
 
+// Очередь сохранений: гарантирует, что запросы к Firestore улетают и
+// ЗАВЕРШАЮТСЯ строго в том порядке, в котором были вызваны.
+// Раньше несколько saveDB() (например, быстро добавили подряд 3 карточки
+// домашнего задания) уходили в сеть параллельно — и если более ранний запрос
+// (с ещё неполными данными) по сети отвечал ПОЗЖЕ, чем более поздний
+// (уже с тремя карточками), то именно он "побеждал" и затирал в Firestore
+// более свежие данные. Из-за этого при обновлении страницы новые карточки
+// пропадали. Теперь каждое сохранение ждёт завершения предыдущего, а сам
+// снимок данных (payload) берётся СИНХРОННО в момент вызова saveDB(), поэтому
+// финальная запись в очереди всегда содержит самое актуальное состояние.
+let __saveQueue = Promise.resolve();
 async function saveDB(){
   if(!currentUid) return;
   window.__pendingSaves = (window.__pendingSaves||0) + 1;
-  try{
-    const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
-    await window.__fb.setDoc(ref, { payload: JSON.stringify(DB), updatedAt: Date.now() });
-  }
-  catch(e){ console.error('Не удалось сохранить данные в Firestore',e); toast('⚠️ Не удалось сохранить данные','red'); }
-  finally{ window.__pendingSaves = Math.max(0, (window.__pendingSaves||1) - 1); }
+  const payload = JSON.stringify(DB); // снимок состояния прямо сейчас, до ожидания очереди
+  const run = __saveQueue.then(async ()=>{
+    try{
+      const ref = window.__fb.doc(window.__fb.db, 'users', currentUid, 'data', 'main');
+      await window.__fb.setDoc(ref, { payload, updatedAt: Date.now() });
+    }
+    catch(e){ console.error('Не удалось сохранить данные в Firestore',e); toast('⚠️ Не удалось сохранить данные','red'); }
+    finally{ window.__pendingSaves = Math.max(0, (window.__pendingSaves||1) - 1); }
+  });
+  // Даже если конкретное сохранение упало с ошибкой, очередь не должна
+  // "застрять" навсегда — следующее сохранение всё равно должно пойти.
+  __saveQueue = run.catch(()=>{});
+  return run;
 }
 // Защита: если есть незавершённое сохранение в Firestore — предупреждаем перед
 // закрытием вкладки или обновлением страницы, чтобы данные не "терялись" из-за
