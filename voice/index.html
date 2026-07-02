@@ -434,11 +434,13 @@
   .hw-status-pill.pill-amber.active{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
   .hw-status-pill.pill-green.active{border-color:var(--green);color:var(--green);background:var(--green-bg)}
 
-  /* ===== Квадратные карточки домашних заданий (вкладка "Задания" у ученика) ===== */
-  .hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+  /* ===== Квадратные карточки домашних заданий (вкладка "Задания" у ученика) =====
+     Карточка увеличена (минимальная ширина колонки удвоена) — на компьютере
+     теперь она заметно крупнее и просторнее, текст в ней читается свободно. */
+  .hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(460px,1fr));gap:16px}
   .hw-card{
     aspect-ratio:1/1;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
-    padding:14px;display:flex;flex-direction:column;position:relative;overflow:hidden;
+    padding:20px;display:flex;flex-direction:column;position:relative;overflow:hidden;
     transition:border-color .2s,transform .2s,box-shadow .2s;
   }
   .hw-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.16)}
@@ -447,9 +449,9 @@
   .hw-card.hw-card-status-todo{border-color:var(--red)}
   .hw-card.hw-card-status-progress{border-color:var(--amber)}
   .hw-card.hw-card-status-done{border-color:var(--green)}
-  .hw-card-student{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-shrink:0}
-  .hw-card-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;color:#fff;flex-shrink:0}
-  .hw-card-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hw-card-student{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-shrink:0}
+  .hw-card-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:#fff;flex-shrink:0}
+  .hw-card-name{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* overflow:hidden (а не overflow-y:auto) — раньше карточка позволяла себе
      скроллиться, а из-за того что overflow-y был задан, а overflow-x — нет,
      браузер сам превращал overflow-x в auto, и над кнопками статуса
@@ -457,15 +459,16 @@
      непереносимом слове. Теперь оба поля ниже сами переносят текст
      (overflow-wrap), и скроллить внутри карточки ничего не нужно. */
   .hw-card-body{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
-  .hw-card-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:flex;align-items:baseline;gap:5px}
-  .hw-card-label .hw-card-label-hint{font-size:9px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);opacity:.75}
+  .hw-card-label{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:flex;align-items:baseline;gap:6px}
+  .hw-card-label .hw-card-label-hint{font-size:10px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);opacity:.75}
   /* Поля названия/комментария теперь ВСЕГДА (не только при наведении) видны
      как отдельная кликабельная область: приглушённый серый фон + пунктирная
      рамка. При фокусе (реально печатаем текст) — фон чуть светлее и
-     фиолетовое кольцо вместо пунктира, как и раньше. */
+     фиолетовое кольцо вместо пунктира, как и раньше. Шрифт увеличен —
+     карточка теперь крупнее, текст должен читаться свободно. */
   .hw-card-title{
-    font-size:13.5px;font-weight:500;color:var(--text);line-height:1.45;
-    outline:none;cursor:text;border-radius:8px;padding:5px 7px;margin:-1px -2px 0;
+    font-size:16px;font-weight:500;color:var(--text);line-height:1.5;
+    outline:none;cursor:text;border-radius:8px;padding:7px 9px;margin:-1px -2px 0;
     background:var(--bg3);border:1px dashed var(--border2);
     overflow-wrap:break-word;word-break:break-word;
     transition:background .15s,box-shadow .15s,border-color .15s;
@@ -474,8 +477,8 @@
   .hw-card-title:focus{background:var(--bg3);border-color:var(--accent);border-style:solid;box-shadow:0 0 0 2px var(--accent-glow)}
   .hw-card-sub{
     flex:1;min-height:34px;display:block;
-    font-size:11.5px;color:var(--text2);line-height:1.4;margin-top:8px;
-    outline:none;cursor:text;border-radius:8px;padding:7px;
+    font-size:14px;color:var(--text2);line-height:1.5;margin-top:10px;
+    outline:none;cursor:text;border-radius:8px;padding:9px;
     background:var(--bg3);border:1px dashed var(--border2);
     overflow-wrap:break-word;word-break:break-word;
     transition:background .15s,box-shadow .15s,border-color .15s;
@@ -619,10 +622,15 @@
   @media (max-width:720px){
     .autocomplete-item{padding:10px 9px;font-size:13.5px}
     .autocomplete-dropdown{max-height:200px}
-    /* На телефоне квадратные карточки ДЗ неудобны — одна колонка,
-       высота по содержимому вместо строгого квадрата */
+    /* На телефоне карточка не квадратная — растёт по высоте вместе с
+       вводимым текстом и остаётся такого размера после того, как поле
+       потеряло фокус (ничего не нужно сворачивать/скрывать). Верхняя
+       граница высоты — просто предохранитель на случай вставки огромного
+       куска текста, чтобы карточка не растянулась на несколько экранов;
+       в обычной работе она никак не проявляется. */
     .hw-grid{grid-template-columns:1fr;gap:10px}
-    .hw-card{aspect-ratio:auto;min-height:150px}
+    .hw-card{aspect-ratio:auto;min-height:170px;max-height:82vh;max-height:82dvh}
+    .hw-card-body{overflow-y:auto}
   }
   ::-webkit-scrollbar{width:4px;height:4px}
   ::-webkit-scrollbar-track{background:transparent}
@@ -2872,8 +2880,8 @@ function renderDetailHomework(){
       +'<div class="hw-card-student"><div class="hw-card-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="hw-card-name">'+escapeHTML(s.name)+'</div></div>'
       +'<div class="hw-card-body">'
         +'<div class="hw-card-label">📝 Задание <span class="hw-card-label-hint">✎ нажмите, чтобы изменить</span></div>'
-        +'<div class="hw-card-title" contenteditable="true" spellcheck="false" title="Нажмите, чтобы отредактировать" onblur="updateHomeworkField(\''+h.id+'\',\'title\',this.innerText)">'+escapeHTML(h.title)+'</div>'
-        +'<div class="hw-card-sub" contenteditable="true" spellcheck="false" title="Комментарий (необязательно)" onblur="updateHomeworkField(\''+h.id+'\',\'sub\',this.innerText)">'+escapeHTML(h.sub||'')+'</div>'
+        +'<div class="hw-card-title" contenteditable="true" spellcheck="false" title="Нажмите, чтобы отредактировать" oninput="keepCaretInView(this)" onblur="updateHomeworkField(\''+h.id+'\',\'title\',this.innerText)">'+escapeHTML(h.title)+'</div>'
+        +'<div class="hw-card-sub" contenteditable="true" spellcheck="false" title="Комментарий (необязательно)" oninput="keepCaretInView(this)" onblur="updateHomeworkField(\''+h.id+'\',\'sub\',this.innerText)">'+escapeHTML(h.sub||'')+'</div>'
       +'</div>'
       +'<div class="hw-card-footer">'
         +statusPillsHTML(h)
@@ -2885,7 +2893,30 @@ function renderDetailHomework(){
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
     +'<div class="detail-title">📝 Домашние задания <button class="btn btn-primary btn-sm" onclick="openModal(\'homework\',{studentId:\''+s.id+'\'})">Задать ДЗ</button></div>'+body+'</div>';
 }
-// Сохранение текста задания/комментария при выходе из режима редактирования
+// Пока печатаешь в растущем поле (заголовок/комментарий ДЗ), курсор может
+// оказаться ниже видимой части экрана — особенно на телефоне, где ещё и
+// клавиатура забирает половину высоты. Раньше из-за этого казалось, что
+// текст "улетает" куда-то мимо окна. Подтягиваем поле (а по возможности —
+// и саму строку с курсором) в видимую область при каждом вводе символа.
+function keepCaretInView(el){
+  try{
+    el.scrollIntoView({ block:'nearest', inline:'nearest' });
+    const sel = window.getSelection();
+    if(sel && sel.rangeCount>0){
+      const range = sel.getRangeAt(0).cloneRange();
+      range.collapse(false);
+      const rects = range.getClientRects();
+      if(rects && rects.length){
+        const r = rects[rects.length-1];
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        if(r.bottom > vh - 8 || r.top < 0){
+          el.scrollIntoView({ block: r.bottom > vh - 8 ? 'end' : 'start', inline:'nearest' });
+        }
+      }
+    }
+  }catch(e){ /* не критично — просто пропускаем прокрутку */ }
+}
+
 // (contenteditable-поле прямо внутри квадратной карточки — без отдельной формы).
 function updateHomeworkField(id, field, value){
   const h = DB.homework.find(x=>x.id===id); if(!h) return;
