@@ -31,9 +31,9 @@
     --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--card:#1a1a24;--card2:#22222e;
     --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
     --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.15);
-    --green:#34d399;--green-bg:rgba(52,211,153,0.12);
-    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);
-    --red:#f87171;--red-bg:rgba(248,113,113,0.12);
+    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-glow:rgba(52,211,153,0.4);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-glow:rgba(251,191,36,0.4);
+    --red:#f87171;--red-bg:rgba(248,113,113,0.12);--red-glow:rgba(248,113,113,0.4);
     --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);
     --pink:#f472b6;--pink-bg:rgba(244,114,182,0.12);
     --wa:#34d399;
@@ -44,9 +44,9 @@
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
     --border:#dddde8;--border2:#c8c8d8;--text:#1e1e2a;--text2:#5a5a72;--text3:#9090a8;
     --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
-    --green:#059669;--green-bg:rgba(5,150,105,0.1);
-    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);
-    --red:#dc2626;--red-bg:rgba(220,38,38,0.1);
+    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-glow:rgba(5,150,105,0.35);
+    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-glow:rgba(217,119,6,0.35);
+    --red:#dc2626;--red-bg:rgba(220,38,38,0.1);--red-glow:rgba(220,38,38,0.35);
     --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
     --pink:#db2777;--pink-bg:rgba(219,39,119,0.1);
   }
@@ -407,20 +407,56 @@
   .hw-content{flex:1;min-width:0}
   .hw-title{font-size:12px;font-weight:500}
   .hw-sub{font-size:11px;color:var(--text3);margin-top:2px}
-  /* Кликабельные цветные "пилюли" статуса ДЗ (справа, рядом с корзиной) */
+  /* Кликабельные цветные "пилюли" статуса ДЗ + анимация при наведении
+     (лёгкий подъём и цветное свечение — чтобы на десктопе было явно видно,
+     что с кнопкой можно взаимодействовать) */
   .hw-status-pills{display:flex;align-items:center;gap:4px}
   .hw-status-pill{
     display:inline-flex;align-items:center;justify-content:center;
     width:30px;height:26px;border-radius:7px;font-size:13px;line-height:1;
     border:1px solid var(--border);background:transparent;cursor:pointer;
-    opacity:.45;transition:opacity .15s,transform .1s,background .15s,border-color .15s;
+    opacity:.45;transition:opacity .15s,transform .15s,background .15s,border-color .15s,box-shadow .15s;
   }
-  .hw-status-pill:hover{opacity:.8}
+  .hw-status-pill:hover{opacity:.9;transform:translateY(-2px) scale(1.05)}
   .hw-status-pill:active{transform:scale(.92)}
   .hw-status-pill.active{opacity:1}
   .hw-status-pill.pill-red.active{background:var(--red-bg);border-color:var(--red);color:var(--red)}
   .hw-status-pill.pill-amber.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
   .hw-status-pill.pill-green.active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .hw-status-pill.pill-red:hover{border-color:var(--red);box-shadow:0 4px 12px var(--red-glow)}
+  .hw-status-pill.pill-amber:hover{border-color:var(--amber);box-shadow:0 4px 12px var(--amber-glow)}
+  .hw-status-pill.pill-green:hover{border-color:var(--green);box-shadow:0 4px 12px var(--green-glow)}
+
+  /* ===== Квадратные карточки домашних заданий (вкладка "Задания" у ученика) ===== */
+  .hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+  .hw-card{
+    aspect-ratio:1/1;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+    padding:14px;display:flex;flex-direction:column;position:relative;overflow:hidden;
+    transition:border-color .2s,transform .2s,box-shadow .2s;
+  }
+  .hw-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.16)}
+  .hw-card-student{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-shrink:0}
+  .hw-card-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;color:#fff;flex-shrink:0}
+  .hw-card-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hw-card-body{flex:1;min-height:0;overflow-y:auto}
+  .hw-card-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+  .hw-card-title{
+    font-size:13.5px;font-weight:500;color:var(--text);line-height:1.45;
+    outline:none;cursor:text;border-radius:6px;padding:3px 5px;margin:-3px -5px;transition:background .15s,box-shadow .15s;
+  }
+  .hw-card-title:hover{background:var(--bg3)}
+  .hw-card-title:focus{background:var(--bg3);box-shadow:0 0 0 2px var(--accent-glow)}
+  .hw-card-sub{
+    font-size:11.5px;color:var(--text2);line-height:1.4;margin-top:8px;
+    outline:none;cursor:text;border-radius:6px;padding:3px 5px;margin-left:-5px;margin-right:-5px;transition:background .15s,box-shadow .15s;
+  }
+  .hw-card-sub:hover{background:var(--bg3)}
+  .hw-card-sub:focus{background:var(--bg3);box-shadow:0 0 0 2px var(--accent-glow)}
+  .hw-card-sub:empty:before{content:'+ добавить комментарий';color:var(--text3)}
+  .hw-card-footer{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-shrink:0}
+  .hw-card-footer .hw-status-pill{flex:1;width:auto;height:32px;font-size:14px}
+  .hw-card-footer .btn-delete-icon{width:32px;height:32px;flex-shrink:0}
+  .btn-delete-icon:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 4px 12px var(--red-glow)}
   .lesson-note{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--border2)}
   .del-option{cursor:pointer;border-radius:10px;padding:13px 14px;margin-bottom:10px;transition:all .15s;border:1px solid transparent;border-left-width:3px;border-left-style:solid}
   .del-option:active{transform:scale(.98)}
@@ -553,6 +589,10 @@
   @media (max-width:720px){
     .autocomplete-item{padding:10px 9px;font-size:13.5px}
     .autocomplete-dropdown{max-height:200px}
+    /* На телефоне квадратные карточки ДЗ неудобны — одна колонка,
+       высота по содержимому вместо строгого квадрата */
+    .hw-grid{grid-template-columns:1fr;gap:10px}
+    .hw-card{aspect-ratio:auto;min-height:150px}
   }
   ::-webkit-scrollbar{width:4px;height:4px}
   ::-webkit-scrollbar-track{background:transparent}
@@ -2783,30 +2823,51 @@ function renderDetailHomework(){
   const s = studentById(currentStudentId); if(!s) return;
   const host = document.getElementById('dtab-homework-tab');
   const list = homeworkOfStudent(s.id).sort((a,b)=> a.assignedDate<b.assignedDate?1:-1);
-  // Три кликабельные цветные "пилюли" статуса, ставятся слева от корзины.
-  // Кликнул — статус переключился сразу на этот, без выпадающего списка.
+  // Три кликабельные цветные "пилюли" статуса + кнопка удаления — все четыре
+  // теперь внизу квадратной карточки, одним рядом.
   const STATUS_PILLS = [
     {key:'todo', cls:'pill-red', icon:'✗', title:'Не сдано'},
     {key:'progress', cls:'pill-amber', icon:'⏳', title:'В процессе'},
     {key:'done', cls:'pill-green', icon:'✓', title:'Сдано'}
   ];
   function statusPillsHTML(h){
-    return '<div class="hw-status-pills">'
-      + STATUS_PILLS.map(p=>
-          '<button type="button" class="hw-status-pill '+p.cls+(h.status===p.key?' active':'')+'" title="'+p.title+'" onclick="setHomeworkStatus(\''+h.id+'\',\''+p.key+'\')">'+p.icon+'</button>'
-        ).join('')
-      + '</div>';
+    return STATUS_PILLS.map(p=>
+      '<button type="button" class="hw-status-pill '+p.cls+(h.status===p.key?' active':'')+'" title="'+p.title+'" onclick="setHomeworkStatus(\''+h.id+'\',\''+p.key+'\')">'+p.icon+'</button>'
+    ).join('');
   }
-  const rows = list.length ? list.map(h=>
-    '<div class="homework-item"><div class="hw-icon">'+(h.icon||'🎵')+'</div><div class="hw-content"><div class="hw-title">'+escapeHTML(h.title)+'</div>'
-    +(h.sub?'<div class="hw-sub">'+escapeHTML(h.sub)+'</div>':'')+'</div>'
-    +'<div style="display:flex;align-items:center;gap:8px">'
-    +statusPillsHTML(h)
-    +'<button class="btn-delete-icon" title="Удалить задание" onclick="deleteHomework(\''+h.id+'\')"><i class="fa-solid fa-trash"></i></button>'
-    +'</div></div>'
-  ).join('') : '<div class="empty-state">Заданий пока нет</div>';
+  const cards = list.map(h=>
+    '<div class="hw-card">'
+      +'<div class="hw-card-student"><div class="hw-card-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="hw-card-name">'+escapeHTML(s.name)+'</div></div>'
+      +'<div class="hw-card-body">'
+        +'<div class="hw-card-label">📝 Задание</div>'
+        +'<div class="hw-card-title" contenteditable="true" spellcheck="false" title="Нажмите, чтобы отредактировать" onblur="updateHomeworkField(\''+h.id+'\',\'title\',this.innerText)">'+escapeHTML(h.title)+'</div>'
+        +'<div class="hw-card-sub" contenteditable="true" spellcheck="false" title="Комментарий (необязательно)" onblur="updateHomeworkField(\''+h.id+'\',\'sub\',this.innerText)">'+escapeHTML(h.sub||'')+'</div>'
+      +'</div>'
+      +'<div class="hw-card-footer">'
+        +statusPillsHTML(h)
+        +'<button class="btn-delete-icon" title="Удалить задание" onclick="confirmDeleteHomework(\''+h.id+'\')"><i class="fa-solid fa-trash"></i></button>'
+      +'</div>'
+    +'</div>'
+  ).join('');
+  const body = list.length ? '<div class="hw-grid" style="margin-top:12px">'+cards+'</div>' : '<div class="empty-state">Заданий пока нет</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
-    +'<div class="detail-title">📝 Домашние задания <button class="btn btn-primary btn-sm" onclick="openModal(\'homework\',{studentId:\''+s.id+'\'})">Задать ДЗ</button></div>'+rows+'</div>';
+    +'<div class="detail-title">📝 Домашние задания <button class="btn btn-primary btn-sm" onclick="openModal(\'homework\',{studentId:\''+s.id+'\'})">Задать ДЗ</button></div>'+body+'</div>';
+}
+// Сохранение текста задания/комментария при выходе из режима редактирования
+// (contenteditable-поле прямо внутри квадратной карточки — без отдельной формы).
+function updateHomeworkField(id, field, value){
+  const h = DB.homework.find(x=>x.id===id); if(!h) return;
+  const v = (value||'').trim().replace(/\s+\n/g,'\n');
+  if(field==='title' && !v){
+    toast('Задание не может быть пустым','red');
+    renderDetailHomework(); // вернуть прежний текст в поле
+    return;
+  }
+  if(h[field]===v) return;
+  h[field] = v;
+  saveDB();
+  if(!document.getElementById('page-homework').classList.contains('hidden')) renderHomework();
+  renderSidebar();
 }
 function setHomeworkStatus(id, status){
   const h = DB.homework.find(x=>x.id===id); if(!h) return;
@@ -2817,7 +2878,7 @@ function setHomeworkStatus(id, status){
 }
 // Используется на общей странице "Задания" (канбан-колонки по статусам) —
 // там кнопка просто перемещает карточку в следующую колонку по кругу.
-// В карточке ученика вместо этого теперь выпадающий список (см. setHomeworkStatus).
+// В карточке ученика вместо этого теперь цветные пилюли (см. setHomeworkStatus).
 function cycleHomeworkStatus(id){
   const h = DB.homework.find(x=>x.id===id); if(!h) return;
   h.status = h.status==='todo' ? 'progress' : h.status==='progress' ? 'done' : 'todo';
@@ -2825,12 +2886,22 @@ function cycleHomeworkStatus(id){
   if(!document.getElementById('page-homework').classList.contains('hidden')) renderHomework();
   renderSidebar();
 }
-function deleteHomework(id){
+// Удаление задания теперь всегда идёт через стилизованное модальное окно
+// с подтверждением (см. buildDeleteHomeworkModal) — раньше карточка
+// удалялась сразу по клику на корзину, без единого запроса "вы уверены?".
+function confirmDeleteHomework(id){
+  openModal('deleteHomework', {hwId:id});
+}
+function finalizeDeleteHomework(id){
   DB.homework = DB.homework.filter(x=>x.id!==id);
-  saveDB(); renderDetailHomework();
+  saveDB();
+  closeModal();
+  toast('Задание удалено ✓');
+  renderDetailHomework();
   if(!document.getElementById('page-homework').classList.contains('hidden')) renderHomework();
   renderSidebar();
 }
+
 
 /* ---------- История уроков ---------- */
 function lessonStatusLabel(l){
@@ -3848,6 +3919,24 @@ function buildDeleteLessonModal(ctx){
     +'<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:2px" onclick="closeModal()">Отмена</button>';
 }
 
+/* ---------- Подтверждение удаления домашнего задания ---------- */
+function buildDeleteHomeworkModal(ctx){
+  ctx = ctx||{};
+  const h = DB.homework.find(x=>x.id===ctx.hwId);
+  if(!h) return '<div class="modal-title">Задание не найдено <button class="modal-close" onclick="closeModal()">×</button></div>';
+  const s = studentById(h.studentId);
+  return '<div class="modal-title">🗑 Удалить задание? <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
+      +'<div style="font-size:12.5px;color:var(--text2);margin-top:4px;line-height:1.4">'+escapeHTML(h.title)+'</div>'
+    +'</div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Это действие нельзя отменить.</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteHomework(\''+h.id+'\')">🗑 Удалить</button>'
+    +'</div>';
+}
+
 /* ============================================================
    ДИСПЕТЧЕР МОДАЛЬНЫХ ОКОН
    ============================================================ */
@@ -3863,7 +3952,8 @@ const modalBuilders = {
   repertoire: buildRepertoireModal,
   monthInfo: buildMonthInfoModal,
   calPicker: buildCalPickerModal,
-  deleteLesson: buildDeleteLessonModal
+  deleteLesson: buildDeleteLessonModal,
+  deleteHomework: buildDeleteHomeworkModal
 };
 function openModal(type, ctx){
   modalCtx = ctx||{};
