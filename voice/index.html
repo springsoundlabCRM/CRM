@@ -523,8 +523,8 @@
   .tab-row{display:flex;gap:2px;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:20px;flex-wrap:wrap}
   .tab-row.scrolly{overflow-x:auto;flex-wrap:nowrap}
   .tab{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:#ffffff;transition:all .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.22)}
-  .tab.active{background:var(--card2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3);border-color:rgba(255,255,255,.35)}
-  .tab:hover:not(.active){color:var(--text2);border-color:rgba(255,255,255,.4)}
+  .tab.active{background:var(--accent-glow);color:#ffffff;box-shadow:0 1px 3px rgba(0,0,0,.3);border-color:var(--accent)}
+  .tab:hover:not(.active){background:var(--accent-glow);color:#ffffff;border-color:var(--accent)}
   .lesson-sub-banner{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
@@ -612,6 +612,9 @@
   }
   .input:focus{border-color:var(--accent)}
   .input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .topup-row{align-items:start}
+  .topup-row .input-label{font-size:9.5px;letter-spacing:.2px;white-space:nowrap;margin-bottom:8px}
+  .topup-row .input-group{display:flex;flex-direction:column}
   /* ===== Автокомплит выбора ученика в модалке урока ===== */
   .autocomplete-wrap{position:relative}
   .autocomplete-dropdown{
@@ -3862,7 +3865,7 @@ function buildSubTopupModal(ctx){
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
       +'<div style="font-size:12px;color:var(--text3);margin-top:8px">Осталось <b style="color:var(--text)">'+left+'</b> '+(left===1?'урок':'уроков')+' из '+sub.totalLessons+'</div>'
     +'</div>'
-    +'<div class="input-row"><div class="input-group"><label class="input-label">Добавить уроков</label><input class="input" id="f-topup-lessons" type="number" min="1" value="4" oninput="recalcTopupTotal()"></div>'
+    +'<div class="input-row topup-row"><div class="input-group"><label class="input-label">Добавить уроков</label><input class="input" id="f-topup-lessons" type="number" min="1" value="4" oninput="recalcTopupTotal()"></div>'
     +'<div class="input-group"><label class="input-label">Стоимость одного занятия (₽)</label><input class="input" id="f-topup-price" type="number" min="0" value="'+defaultPrice+'" oninput="recalcTopupTotal()"></div></div>'
     +'<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:8px;padding:10px 12px;margin:4px 0 8px">'
       +'<span style="font-size:13px;color:var(--text3)">Итого за пополнение</span>'
