@@ -1458,7 +1458,7 @@ const GRADIENTS = [
 function uid(prefix){ return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
 
 function defaultDB(){
-  return { version:1, teachers:[], currentTeacherId:null, students:[], subscriptions:[], subHistory:[], lessons:[], payments:[], homework:[], repertoire:[] };
+  return { version:1, teachers:[], currentTeacherId:null, students:[], subscriptions:[], subHistory:[], lessons:[], payments:[], homework:[], repertoire:[], settings:{ defaultLessonPrice:null } };
 }
 
 let DB = null;
@@ -1489,6 +1489,13 @@ async function loadDB(prefetchedSnap){
   if(!DB.teachers || !DB.teachers.length){ DB = defaultDB(); seedEmptyTeacher(); needsSave = true; }
   if(!DB.currentTeacherId || !DB.teachers.find(t=>t.id===DB.currentTeacherId)){
     DB.currentTeacherId = DB.teachers[0].id;
+    needsSave = true;
+  }
+  // Для баз, сохранённых до появления настроек (например, "цена занятия
+  // по умолчанию" для абонементов) — добиваем объект settings, чтобы
+  // остальной код мог безопасно обращаться к DB.settings.*
+  if(!DB.settings){
+    DB.settings = { defaultLessonPrice:null };
     needsSave = true;
   }
   // Раньше здесь был безусловный await saveDB() — то есть КАЖДЫЙ запуск
@@ -1607,7 +1614,7 @@ function seedDB(){
     const subId = uid('sub');
     const hasDebt = i===2 || i===5;
     if(!hasDebt){
-      DB.subscriptions.push({ id:subId, studentId, title:'Абонемент '+total+' урок'+(total>4?'ов':'а'), totalLessons:total, usedLessons:used, pricePerLesson:ppl, totalPrice:price, purchaseDate: iso(-used*7-3), active:true });
+      DB.subscriptions.push({ id:subId, studentId, title:'Абонемент '+total+' урок'+(total>4?'ов':'а'), totalLessons:total, usedLessons:used, pricePerLesson:ppl, totalPrice:price, purchasePrice:price, purchaseDate: iso(-used*7-3), active:true });
       DB.subHistory.push({ id:uid('h'), studentId, subscriptionId:subId, type:'purchase', lessonsDelta:total, amount:price, date: iso(-used*7-3), note:'Покупка абонемента' });
       DB.payments.push({ id:uid('p'), studentId, date: iso(-used*7-3), amount:price, type:'subscription_purchase', note:'Абонемент '+total+' уроков' });
     }
@@ -2613,7 +2620,8 @@ function renderDetailProfile(){
       +'<div style="font-size:22px;font-weight:600;margin-bottom:4px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
       +'<div style="font-size:11px;color:var(--text3);margin-bottom:12px">Осталось '+left+' '+(left===1?'урок':'уроков')+'</div>'
-      +'<div style="font-size:12px;color:var(--text3)">Куплен</div><div style="font-size:14px;font-weight:500;margin-top:2px">'+money(sub.totalPrice)+' · '+formatRu(sub.purchaseDate)+'</div>'
+      +'<div style="font-size:12px;color:var(--text3)">Куплен</div><div style="font-size:14px;font-weight:500;margin-top:2px">'+money(sub.purchasePrice!=null?sub.purchasePrice:sub.totalPrice)+' · '+formatRu(sub.purchaseDate)+'</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:10px">Общая стоимость абонемента</div><div style="font-size:16px;font-weight:700;margin-top:2px;color:var(--accent)">'+money(sub.totalPrice)+'</div>'
       +'</div>'
       +'<div style="margin-top:10px;display:flex;gap:6px">'
       +'<button class="btn btn-primary sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subTopup\',{studentId:\''+s.id+'\'})">Пополнить</button>'
@@ -3454,6 +3462,7 @@ function savePaymentForm(){
 function buildSubscriptionModal(ctx){
   ctx = ctx||{};
   const studentId = ctx.studentId || (studentsOfTeacher()[0]||{}).id;
+  const savedPrice = (DB.settings && DB.settings.defaultLessonPrice) || 1000;
   return '<div class="modal-title">Новый абонемент <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-sub-student">'+studentOptionsHTML(studentId)+'</select></div>'
     +'<div class="input-group">'
@@ -3465,11 +3474,16 @@ function buildSubscriptionModal(ctx){
       +'</div>'
       +'<input class="input" id="f-sub-total" type="number" min="1" value="8" oninput="recalcSubTotal()">'
     +'</div>'
-    +'<div class="input-group"><label class="input-label">Стоимость одного занятия (₽)</label><input class="input" id="f-sub-price" type="number" min="0" value="1000" oninput="recalcSubTotal()"></div>'
+    +'<div class="input-group"><label class="input-label">Стоимость одного занятия (₽)</label>'
+      +'<div style="display:flex;gap:6px">'
+        +'<input class="input" id="f-sub-price" type="number" min="0" value="'+savedPrice+'" oninput="recalcSubTotal()" style="flex:1">'
+        +'<button type="button" class="btn btn-ghost" style="white-space:nowrap" onclick="saveDefaultLessonPrice()" title="Запомнить эту сумму как цену по умолчанию для новых абонементов">Сохранить</button>'
+      +'</div>'
+    +'</div>'
     +'<div class="input-group"><label class="input-label">Дата покупки</label><input class="input" id="f-sub-date" type="date" value="'+todayISO()+'"></div>'
     +'<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:8px;padding:10px 12px;margin:4px 0 8px">'
       +'<span style="font-size:13px;color:var(--text3)">Итого</span>'
-      +'<span style="font-size:16px;font-weight:700" id="f-sub-totalDisplay">8 000₽</span>'
+      +'<span style="font-size:16px;font-weight:700" id="f-sub-totalDisplay">'+money(8*savedPrice)+'</span>'
     +'</div>'
     +'<button class="btn btn-primary" style="width:100%;margin-top:4px;justify-content:center" onclick="saveSubscriptionForm()">Создать абонемент</button>';
 }
@@ -3482,6 +3496,17 @@ function recalcSubTotal(){
   const pricePerLesson = Number(document.getElementById('f-sub-price').value)||0;
   document.getElementById('f-sub-totalDisplay').textContent = money(total*pricePerLesson);
 }
+// Запоминаем цену одного занятия как значение по умолчанию: при следующем
+// открытии окна "Новый абонемент" поле уже будет заполнено этой суммой,
+// и не придётся вводить её каждый раз заново.
+function saveDefaultLessonPrice(){
+  const price = Number(document.getElementById('f-sub-price').value)||0;
+  if(price<=0){ toast('Укажите сумму больше нуля','red'); return; }
+  DB.settings = DB.settings || {};
+  DB.settings.defaultLessonPrice = price;
+  saveDB();
+  toast('Сумма сохранена как значение по умолчанию ✓');
+}
 function saveSubscriptionForm(){
   const studentId = document.getElementById('f-sub-student').value;
   const total = Number(document.getElementById('f-sub-total').value)||0;
@@ -3492,7 +3517,7 @@ function saveSubscriptionForm(){
   if(activeSubscriptionOf(studentId)){ toast('У ученика уже есть активный абонемент','red'); return; }
   const id = uid('sub');
   const titleWord = total===1?'урок': (total>=2&&total<=4?'урока':'уроков');
-  DB.subscriptions.push({ id, studentId, title:'Абонемент '+total+' '+titleWord, totalLessons: total, usedLessons:0, pricePerLesson: pricePerLesson, totalPrice: price, purchaseDate: date, active:true });
+  DB.subscriptions.push({ id, studentId, title:'Абонемент '+total+' '+titleWord, totalLessons: total, usedLessons:0, pricePerLesson: pricePerLesson, totalPrice: price, purchasePrice: price, purchaseDate: date, active:true });
   DB.subHistory.push({ id:uid('h'), studentId, subscriptionId:id, type:'purchase', lessonsDelta:total, amount:price, date, note:'Покупка абонемента' });
   DB.payments.push({ id:uid('p'), studentId, date, amount:price, type:'subscription_purchase', note:'Абонемент '+total+' '+titleWord });
   saveDB();
@@ -3506,16 +3531,33 @@ function buildSubTopupModal(ctx){
   ctx = ctx||{};
   const sub = activeSubscriptionOf(ctx.studentId);
   if(!sub) return '<div class="modal-title">Нет активного абонемента <button class="modal-close" onclick="closeModal()">×</button></div>';
+  const left = sub.totalLessons - sub.usedLessons;
+  const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
+  const defaultPrice = sub.pricePerLesson || (DB.settings && DB.settings.defaultLessonPrice) || 1000;
   return '<div class="modal-title">Пополнить абонемент <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--text3)">Сейчас на абонементе: <b style="color:var(--text)">'+(sub.totalLessons-sub.usedLessons)+'</b> уроков осталось из '+sub.totalLessons+'</div>'
-    +'<div class="input-row"><div class="input-group"><label class="input-label">Добавить уроков</label><input class="input" id="f-topup-lessons" type="number" value="4"></div>'
-    +'<div class="input-group"><label class="input-label">Сумма (₽)</label><input class="input" id="f-topup-price" type="number" value="4000"></div></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveTopupForm(\''+sub.id+'\',\''+ctx.studentId+'\')">Пополнить</button>';
+    +'<div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:16px">'
+      +'<div style="font-size:22px;font-weight:600;margin-bottom:4px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
+      +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:8px">Осталось <b style="color:var(--text)">'+left+'</b> '+(left===1?'урок':'уроков')+' из '+sub.totalLessons+'</div>'
+    +'</div>'
+    +'<div class="input-row"><div class="input-group"><label class="input-label">Добавить уроков</label><input class="input" id="f-topup-lessons" type="number" min="1" value="4" oninput="recalcTopupTotal()"></div>'
+    +'<div class="input-group"><label class="input-label">Стоимость одного занятия (₽)</label><input class="input" id="f-topup-price" type="number" min="0" value="'+defaultPrice+'" oninput="recalcTopupTotal()"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:8px;padding:10px 12px;margin:4px 0 8px">'
+      +'<span style="font-size:13px;color:var(--text3)">Итого за пополнение</span>'
+      +'<span style="font-size:16px;font-weight:700" id="f-topup-totalDisplay">'+money(4*defaultPrice)+'</span>'
+    +'</div>'
+    +'<button class="btn btn-primary" style="width:100%;margin-top:4px;justify-content:center" onclick="saveTopupForm(\''+sub.id+'\',\''+ctx.studentId+'\')">Пополнить</button>';
+}
+function recalcTopupTotal(){
+  const lessons = Number(document.getElementById('f-topup-lessons').value)||0;
+  const price = Number(document.getElementById('f-topup-price').value)||0;
+  document.getElementById('f-topup-totalDisplay').textContent = money(lessons*price);
 }
 function saveTopupForm(subId, studentId){
   const sub = DB.subscriptions.find(x=>x.id===subId); if(!sub) return;
   const addLessons = Number(document.getElementById('f-topup-lessons').value)||0;
-  const addPrice = Number(document.getElementById('f-topup-price').value)||0;
+  const pricePerLesson = Number(document.getElementById('f-topup-price').value)||0;
+  const addPrice = addLessons*pricePerLesson;
   if(addLessons<=0){ toast('Укажите количество уроков','red'); return; }
   sub.totalLessons += addLessons;
   sub.totalPrice += addPrice;
