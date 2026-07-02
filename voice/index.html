@@ -4269,7 +4269,7 @@ async function handleAuthSubmit(){
    Пока ЮKassa не подключена, документ просто не существует ни у кого,
    и paywall будет показываться всем — это ожидаемо и безопасно.
    ============================================================ */
-async function checkSubscriptionAndRoute(){
+async function checkSubscriptionAndRoute(isPeriodicCheck){
   const authScreen = document.getElementById('authScreen');
   const paywallScreen = document.getElementById('paywallScreen');
   const appEl = document.getElementById('app');
@@ -4401,6 +4401,20 @@ async function checkSubscriptionAndRoute(){
   window.__trialDaysLeft = trialActive ? Math.max(1, Math.ceil((sub.trialEndsAt - now) / (24*60*60*1000))) : null;
 
   if(isActive){
+    // ВАЖНО: этот блок выполняется не только при первом входе, но и каждые
+    // 10 минут фоновой проверкой (см. setInterval ниже) — чтобы вовремя
+    // закрыть доступ, если пробный период истёк прямо во время работы.
+    // Раньше на каждой такой фоновой проверке безусловно вызывался
+    // initApp(), который заново грузит данные и делает showPage('dashboard'),
+    // — из-за этого человека каждые 10 минут выкидывало на дашборд, даже
+    // если он в этот момент сидел в карточке ученика или в расписании.
+    // Теперь при фоновой проверке (isPeriodicCheck=true), если подписка
+    // всё ещё активна, мы ничего не трогаем — просто обновляем баннер
+    // пробного периода в сайдбаре и выходим, не переключая экран.
+    if(isPeriodicCheck){
+      renderTrialBanner();
+      return;
+    }
     authScreen.style.display = 'none';
     paywallScreen.style.display = 'none';
     appEl.style.display = 'flex';
@@ -4529,7 +4543,7 @@ window.addEventListener('fb-ready', function(){
   // полной перезагрузке страницы.
   setInterval(function(){
     if(currentUid && document.getElementById('app').style.display !== 'none'){
-      checkSubscriptionAndRoute();
+      checkSubscriptionAndRoute(true);
     }
   }, 10*60*1000);
 });
