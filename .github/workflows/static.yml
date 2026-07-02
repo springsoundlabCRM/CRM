@@ -3,7 +3,6 @@ name: Deploy static content to Pages
 on:
   push:
     branches: ["main"]
-
   workflow_dispatch:
 
 permissions:
@@ -19,7 +18,6 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps: //github.com/springsoundlabcrm/CRM/actions/runs/28608893412 }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
