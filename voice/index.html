@@ -29,7 +29,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
     --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--card:#1a1a24;--card2:#22222e;
-    --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+    --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#ffffff;--text3:#ffffff;
     --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.15);
     --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-glow:rgba(52,211,153,0.4);
     --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-glow:rgba(251,191,36,0.4);
@@ -387,7 +387,9 @@
   .carryover-badge{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);color:var(--text2);border:1px solid var(--border2);font-size:9px;padding:2px 6px;border-radius:6px;margin-left:6px}
   .detail-panel{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .detail-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
-  .detail-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+  .detail-title{font-size:12px;font-weight:600;color:#ffffff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+  .detail-title-label{display:inline-flex;align-items:center;gap:6px;background:var(--accent-glow);border:1px solid var(--accent);border-radius:7px;padding:4px 10px;color:#ffffff}
+  .detail-title-label.danger{background:var(--red-bg);border-color:var(--red);color:var(--red)}
   .skill-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .skill-name{font-size:12px;width:110px;flex-shrink:0;color:var(--text2)}
   .skill-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
@@ -520,9 +522,9 @@
   .note-text{font-size:12px;color:var(--text2);line-height:1.6}
   .tab-row{display:flex;gap:2px;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:20px;flex-wrap:wrap}
   .tab-row.scrolly{overflow-x:auto;flex-wrap:nowrap}
-  .tab{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text3);transition:all .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center}
-  .tab.active{background:var(--card2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3)}
-  .tab:hover:not(.active){color:var(--text2)}
+  .tab{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:#ffffff;transition:all .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.22)}
+  .tab.active{background:var(--card2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3);border-color:rgba(255,255,255,.35)}
+  .tab:hover:not(.active){color:var(--text2);border-color:rgba(255,255,255,.4)}
   .lesson-sub-banner{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
@@ -1460,13 +1462,13 @@
       <div class="topbar"><div class="topbar-title">Аналитика прогресса</div></div>
       <div class="content">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-          <div class="detail-card full-width"><div class="detail-title">📊 Средний уровень (все ученики)</div><div id="avgSkillsBox"></div></div>
-          <div class="detail-card"><div class="detail-title">🏆 Топ прогресса</div><div id="topProgressBox"></div></div>
-          <div class="detail-card"><div class="detail-title">⚠️ Требуют внимания</div><div id="attentionBox"></div></div>
+          <div class="detail-card full-width"><div class="detail-title"><span class="detail-title-label">📊 Средний уровень (все ученики)</span></div><div id="avgSkillsBox"></div></div>
+          <div class="detail-card"><div class="detail-title"><span class="detail-title-label">🏆 Топ прогресса</span></div><div id="topProgressBox"></div></div>
+          <div class="detail-card"><div class="detail-title"><span class="detail-title-label">⚠️ Требуют внимания</span></div><div id="attentionBox"></div></div>
         </div>
         <div class="detail-card full-width">
           <div class="detail-title" style="margin-bottom:6px">
-            <span>💵 Доход по месяцам — <span id="yearLabel">2026</span></span>
+            <span class="detail-title-label">💵 Доход по месяцам — <span id="yearLabel">2026</span></span>
             <span style="display:flex;gap:6px">
               <button class="btn btn-ghost btn-sm" onclick="shiftYear(-1)">◀</button>
               <button class="btn btn-ghost btn-sm" onclick="shiftYear(1)">▶</button>
@@ -2852,7 +2854,7 @@ function renderDetailProfile(){
   if(sub){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
-    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title">💳 Абонемент</div>'
+    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
       +'<div style="flex:1">'
       +'<div style="font-size:22px;font-weight:600;margin-bottom:4px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
@@ -2868,7 +2870,7 @@ function renderDetailProfile(){
       +'</div>';
   } else {
     const hasHistory = subHistoryOf(s.id).length>0;
-    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title">💳 Абонемент</div>'
+    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
       +'<div class="empty-state" style="margin-bottom:10px;flex:1">Нет активного абонемента</div>'
       +'<button class="btn btn-primary sub-new-btn" style="width:100%;justify-content:center;flex:2;font-size:13px;font-weight:600" onclick="openModal(\'subscription\',{studentId:\''+s.id+'\'})">Новый абонемент</button>'
       + (hasHistory ? '<button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История абонементов</button>' : '')
@@ -2878,7 +2880,7 @@ function renderDetailProfile(){
   const bdayStr = s.birthday ? formatRu(s.birthday)+(ageFromBirthday(s.birthday)!==null?' · исполнится '+(ageFromBirthday(s.birthday)+1)+' лет':'') : 'не указан';
 
   host.innerHTML = '<div class="detail-panel">'
-    +'<div class="detail-card"><div class="detail-title">👤 Контакт</div>'
+    +'<div class="detail-card"><div class="detail-title"><span class="detail-title-label">👤 Контакт</span></div>'
     +'<div style="font-size:13px;margin-bottom:4px;font-weight:500">'+escapeHTML(s.name)+'</div>'
     +'<div style="font-size:12px;color:var(--text3);margin-bottom:12px">'+(s.age?s.age+' лет · ':'')+'занимается с '+formatRu(s.studySince||s.createdAt)+'</div>'
     +'<div style="display:flex;flex-direction:column;gap:8px">'
@@ -2910,7 +2912,7 @@ function renderDetailProgress(){
       +'</div></div>';
   }).join('');
   host.innerHTML = '<div class="detail-panel">'
-    +'<div class="detail-card card-voice"><div class="detail-title">🎤 Голос</div>'
+    +'<div class="detail-card card-voice"><div class="detail-title"><span class="detail-title-label">🎤 Голос</span></div>'
     +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Диапазон</div>'
     +'<div style="display:flex;gap:8px;margin-bottom:10px">'
     +'<input class="input" id="voice-range-from" style="flex:1" placeholder="От (например: До1)" value="'+escapeHTML(s.rangeFrom||'')+'" onblur="updateStudentField(\''+s.id+'\',\'rangeFrom\',this.value)">'
@@ -2926,12 +2928,12 @@ function renderDetailProgress(){
     + [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']].map(v=>'<option value="'+v[0]+'" '+(v[0]===s.status?'selected':'')+'>'+v[1]+'</option>').join('')
     +'</select></div>'
 
-    +'<div class="detail-card card-notes" style="display:flex;flex-direction:column"><div class="detail-title">🎯 Заметки</div>'
+    +'<div class="detail-card card-notes" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">🎯 Заметки</span></div>'
     +'<textarea class="input" style="flex:1;resize:none;min-height:80px" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
     +'</div>'
 
-    +'<div class="detail-card card-skills"><div class="detail-title">📊 Навыки <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
-    +'<div class="detail-card card-voicenotes" style="display:flex;flex-direction:column"><div class="detail-title">📝 Заметки о голосе</div>'
+    +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
+    +'<div class="detail-card card-voicenotes" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">📝 Заметки о голосе</span></div>'
     +'<textarea class="input" style="flex:1;resize:none;min-height:80px" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
     +'</div></div>';
 }
@@ -2958,7 +2960,7 @@ function renderRepertoire(){
     +'<button class="btn-delete-icon" title="Удалить" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
   ).join('') : '<div class="empty-state">Репертуар пока пуст</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
-    +'<div class="detail-title">🎵 Репертуар <button class="btn btn-primary btn-sm" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
+    +'<div class="detail-title"><span class="detail-title-label">🎵 Репертуар</span> <button class="btn btn-primary btn-sm" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
     +'<div id="repertoire-list">'+rows+'</div></div>';
 }
 function updateRepertoireStatus(id, status){
@@ -3007,7 +3009,7 @@ function renderDetailHomework(){
   ).join('');
   const body = list.length ? '<div class="hw-grid" style="margin-top:12px">'+cards+'</div>' : '<div class="empty-state">Заданий пока нет</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
-    +'<div class="detail-title">📝 Домашние задания <button class="btn btn-primary btn-sm" onclick="openModal(\'homework\',{studentId:\''+s.id+'\'})">Задать ДЗ</button></div>'+body+'</div>';
+    +'<div class="detail-title"><span class="detail-title-label">📝 Домашние задания</span> <button class="btn btn-primary btn-sm" onclick="openModal(\'homework\',{studentId:\''+s.id+'\'})">Задать ДЗ</button></div>'+body+'</div>';
 }
 // Пока печатаешь в растущем поле (заголовок/комментарий ДЗ), курсор может
 // оказаться ниже видимой части экрана — особенно на телефоне, где ещё и
@@ -3105,7 +3107,7 @@ function renderDetailHistory(){
       +(l.homeworkText ? '<div class="note-text" style="margin-top:4px;color:var(--text3)">ДЗ: '+escapeHTML(l.homeworkText)+'</div>' : '')
       +'</div>';
   }).join('') : '<div class="empty-state">Уроков пока не было</div>';
-  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title">📓 История уроков</div>'+rows+'</div>';
+  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title"><span class="detail-title-label">📓 История уроков</span></div>'+rows+'</div>';
 }
 
 /* ---------- Финансы ученика ---------- */
@@ -3120,7 +3122,7 @@ function renderDetailFinance(){
     '<div class="finance-row" style="cursor:default"><div style="font-size:16px">💸</div><div class="finance-name"><div>'+(typeLabel[p.type]||'Платёж')+'</div><div class="finance-sub">'+escapeHTML(p.note||'')+' · '+formatRu(p.date)+'</div></div><div class="finance-amount paid">+'+money(p.amount)+'</div></div>'
   ).join('') : '<div class="empty-state">Платежей пока нет</div>';
   const debtRow = debt>0 ? '<div class="finance-row" style="cursor:default;border-left:3px solid var(--red)"><div style="font-size:16px">⚠️</div><div class="finance-name"><div>Текущий долг</div><div class="finance-sub">по неоплаченным урокам</div></div><div class="finance-amount debt">−'+money(debt)+'</div></div>' : '';
-  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title">💳 Финансы <button class="btn btn-primary btn-sm" onclick="openModal(\'payment\',{studentId:\''+s.id+'\'})">Платёж</button></div>'
+  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title"><span class="detail-title-label">💳 Финансы</span> <button class="btn btn-primary btn-sm" onclick="openModal(\'payment\',{studentId:\''+s.id+'\'})">Платёж</button></div>'
     + debtRow + rows
     +'<div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;color:var(--text3)">Всего уплачено</div><div style="font-size:16px;font-weight:600;color:var(--green)">'+money(totalPaid)+'</div></div>'
     +'</div>';
@@ -3133,7 +3135,7 @@ function renderDetailDanger(){
   const payCount = paymentsOfStudent(s.id).length;
   host.innerHTML =
     '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--red)">'
-      + '<div class="detail-title" style="color:var(--red)">⚠️ Опасная зона</div>'
+      + '<div class="detail-title"><span class="detail-title-label danger">⚠️ Опасная зона</span></div>'
       + '<div style="font-size:12px;color:var(--text2);margin-bottom:16px">Действия ниже необратимы. Перед удалением убедитесь, что это действительно нужно.</div>'
 
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px;margin-bottom:10px">'
