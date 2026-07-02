@@ -415,19 +415,24 @@
      это и есть индикатор "выбрано". Никакой анимации нажатия (scale) —
      только сама подсветка. */
   .hw-status-pills{display:flex;align-items:center;gap:4px}
+  /* Кнопки статуса ДЗ теперь в состоянии покоя ВСЕГДА серые (только рамка и
+     иконка приглушённого серого цвета — но саму иконку видно), чтобы сразу
+     было понятно, что это набор из трёх одинаковых кнопок, а не то, что
+     статус уже как-то выбран. Никакой анимации/подсветки при наведении —
+     единственное, что меняется, это .active. Когда кнопку нажимают —
+     она красится в свой цвет (рамка + иконка + мягкая цветная заливка),
+     БЕЗ дополнительного свечения (box-shadow). Повторный клик по уже
+     активной кнопке возвращает её обратно в серое состояние — см. JS
+     setHomeworkStatus(), который переключает (toggle) статус. */
   .hw-status-pill{
     display:inline-flex;align-items:center;justify-content:center;
     width:30px;height:26px;border-radius:7px;font-size:13px;line-height:1;
-    border:1px solid var(--border2);background:transparent;cursor:pointer;
-    transition:background .15s,transform .15s,box-shadow .15s;
+    border:1px solid var(--border2);color:var(--text3);background:transparent;cursor:pointer;
+    transition:background .15s,border-color .15s,color .15s;
   }
-  .hw-status-pill:hover{transform:translateY(-2px)}
-  .hw-status-pill.pill-red{border-color:var(--red);color:var(--red)}
-  .hw-status-pill.pill-amber{border-color:var(--amber);color:var(--amber)}
-  .hw-status-pill.pill-green{border-color:var(--green);color:var(--green)}
-  .hw-status-pill.pill-red:hover,.hw-status-pill.pill-red.active{background:var(--red-bg);box-shadow:0 4px 12px var(--red-glow)}
-  .hw-status-pill.pill-amber:hover,.hw-status-pill.pill-amber.active{background:var(--amber-bg);box-shadow:0 4px 12px var(--amber-glow)}
-  .hw-status-pill.pill-green:hover,.hw-status-pill.pill-green.active{background:var(--green-bg);box-shadow:0 4px 12px var(--green-glow)}
+  .hw-status-pill.pill-red.active{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+  .hw-status-pill.pill-amber.active{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+  .hw-status-pill.pill-green.active{border-color:var(--green);color:var(--green);background:var(--green-bg)}
 
   /* ===== Квадратные карточки домашних заданий (вкладка "Задания" у ученика) ===== */
   .hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
@@ -445,21 +450,39 @@
   .hw-card-student{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-shrink:0}
   .hw-card-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;color:#fff;flex-shrink:0}
   .hw-card-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hw-card-body{flex:1;min-height:0;overflow-y:auto}
-  .hw-card-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+  /* overflow:hidden (а не overflow-y:auto) — раньше карточка позволяла себе
+     скроллиться, а из-за того что overflow-y был задан, а overflow-x — нет,
+     браузер сам превращал overflow-x в auto, и над кнопками статуса
+     появлялась лишняя горизонтальная полоса прокрутки при длинном
+     непереносимом слове. Теперь оба поля ниже сами переносят текст
+     (overflow-wrap), и скроллить внутри карточки ничего не нужно. */
+  .hw-card-body{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+  .hw-card-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:flex;align-items:baseline;gap:5px}
+  .hw-card-label .hw-card-label-hint{font-size:9px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);opacity:.75}
+  /* Поля названия/комментария теперь ВСЕГДА (не только при наведении) видны
+     как отдельная кликабельная область: приглушённый серый фон + пунктирная
+     рамка. При фокусе (реально печатаем текст) — фон чуть светлее и
+     фиолетовое кольцо вместо пунктира, как и раньше. */
   .hw-card-title{
     font-size:13.5px;font-weight:500;color:var(--text);line-height:1.45;
-    outline:none;cursor:text;border-radius:6px;padding:3px 5px;margin:-3px -5px;transition:background .15s,box-shadow .15s;
+    outline:none;cursor:text;border-radius:8px;padding:5px 7px;margin:-1px -2px 0;
+    background:var(--bg3);border:1px dashed var(--border2);
+    overflow-wrap:break-word;word-break:break-word;
+    transition:background .15s,box-shadow .15s,border-color .15s;
   }
-  .hw-card-title:hover{background:var(--bg3)}
-  .hw-card-title:focus{background:var(--bg3);box-shadow:0 0 0 2px var(--accent-glow)}
+  .hw-card-title:hover{background:var(--card2);border-color:var(--border2)}
+  .hw-card-title:focus{background:var(--bg3);border-color:var(--accent);border-style:solid;box-shadow:0 0 0 2px var(--accent-glow)}
   .hw-card-sub{
+    flex:1;min-height:34px;display:block;
     font-size:11.5px;color:var(--text2);line-height:1.4;margin-top:8px;
-    outline:none;cursor:text;border-radius:6px;padding:3px 5px;margin-left:-5px;margin-right:-5px;transition:background .15s,box-shadow .15s;
+    outline:none;cursor:text;border-radius:8px;padding:7px;
+    background:var(--bg3);border:1px dashed var(--border2);
+    overflow-wrap:break-word;word-break:break-word;
+    transition:background .15s,box-shadow .15s,border-color .15s;
   }
-  .hw-card-sub:hover{background:var(--bg3)}
-  .hw-card-sub:focus{background:var(--bg3);box-shadow:0 0 0 2px var(--accent-glow)}
-  .hw-card-sub:empty:before{content:'+ добавить комментарий';color:var(--text3)}
+  .hw-card-sub:hover{background:var(--card2);border-color:var(--border2)}
+  .hw-card-sub:focus{background:var(--bg3);border-color:var(--accent);border-style:solid;box-shadow:0 0 0 2px var(--accent-glow)}
+  .hw-card-sub:empty:before{content:'+ нажмите, чтобы добавить комментарий';color:var(--text3)}
   .hw-card-footer{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-shrink:0}
   .hw-card-footer .hw-status-pill{flex:1;width:auto;height:32px;font-size:14px}
   .hw-card-footer .btn-delete-icon{width:32px;height:32px;flex-shrink:0}
@@ -2848,7 +2871,7 @@ function renderDetailHomework(){
     '<div class="hw-card hw-card-status-'+h.status+'">'
       +'<div class="hw-card-student"><div class="hw-card-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="hw-card-name">'+escapeHTML(s.name)+'</div></div>'
       +'<div class="hw-card-body">'
-        +'<div class="hw-card-label">📝 Задание</div>'
+        +'<div class="hw-card-label">📝 Задание <span class="hw-card-label-hint">✎ нажмите, чтобы изменить</span></div>'
         +'<div class="hw-card-title" contenteditable="true" spellcheck="false" title="Нажмите, чтобы отредактировать" onblur="updateHomeworkField(\''+h.id+'\',\'title\',this.innerText)">'+escapeHTML(h.title)+'</div>'
         +'<div class="hw-card-sub" contenteditable="true" spellcheck="false" title="Комментарий (необязательно)" onblur="updateHomeworkField(\''+h.id+'\',\'sub\',this.innerText)">'+escapeHTML(h.sub||'')+'</div>'
       +'</div>'
@@ -2880,7 +2903,9 @@ function updateHomeworkField(id, field, value){
 }
 function setHomeworkStatus(id, status){
   const h = DB.homework.find(x=>x.id===id); if(!h) return;
-  h.status = status;
+  // Повторный клик по уже выбранному статусу отжимает кнопку обратно —
+  // карточка и сама кнопка возвращаются в серое состояние "не размечено".
+  h.status = (h.status === status) ? '' : status;
   saveDB(); renderDetailHomework();
   if(!document.getElementById('page-homework').classList.contains('hidden')) renderHomework();
   renderSidebar();
@@ -3144,7 +3169,10 @@ function renderHomework(){
   const myIds = new Set(studentsOfTeacher().map(s=>s.id));
   const all = DB.homework.filter(h=>myIds.has(h.studentId));
   const groups = {todo:[], progress:[], done:[]};
-  all.forEach(h=> groups[h.status] && groups[h.status].push(h));
+  // Задания без явно выбранного статуса (серые кнопки на карточке ученика)
+  // на общей странице "Задания" тоже должны быть видны — попадают в
+  // колонку "Не сдано", чтобы не потеряться из виду.
+  all.forEach(h=> (groups[h.status] || groups.todo).push(h));
 
   document.getElementById('hwTodoHead').textContent = '✗ Не сдано ('+groups.todo.length+')';
   document.getElementById('hwProgressHead').textContent = '⏳ В процессе ('+groups.progress.length+')';
@@ -3764,7 +3792,7 @@ function saveNoteForm(studentId){
   const l = DB.lessons.find(x=>x.id===lessonId);
   if(l){ l.workedOn = worked; l.homeworkText = hw; l.rating = rating; l.mood = mood; if(l.status==='planned') l.status='done'; }
   if(hw){
-    DB.homework.push({ id:uid('hw'), studentId, title: hw, sub:'', status:'todo', icon:'🎤', assignedDate: todayISO() });
+    DB.homework.push({ id:uid('hw'), studentId, title: hw, sub:'', status:'', icon:'🎤', assignedDate: todayISO() });
   }
   saveDB();
   closeModal();
@@ -3787,7 +3815,7 @@ function saveHomeworkForm(){
   const title = document.getElementById('f-hw-title').value.trim();
   if(!title){ toast('Введите задание','red'); return; }
   const sub = document.getElementById('f-hw-sub').value.trim();
-  DB.homework.push({ id:uid('hw'), studentId, title, sub, status:'todo', icon:'🎵', assignedDate: todayISO() });
+  DB.homework.push({ id:uid('hw'), studentId, title, sub, status:'', icon:'🎵', assignedDate: todayISO() });
   saveDB();
   closeModal();
   toast('Задание добавлено ✓');
