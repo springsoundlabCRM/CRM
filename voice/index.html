@@ -193,6 +193,11 @@
   .student-meta{font-size:10px;color:var(--text3);margin-top:1px}
   .student-lesson-badge{flex-shrink:0;background:var(--accent-glow);border:1px solid var(--accent);color:#ffffff;font-weight:600;border-radius:7px;white-space:nowrap;margin-left:4px;width:58px;height:20px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0 4px;overflow:hidden;font-size:10px}
   .student-lesson-badge .lesson-badge-text{display:inline-block;max-width:100%;overflow:hidden;white-space:nowrap}
+  /* Имя ученика над вкладками "Профиль/Прогресс/..." дублировало то же имя,
+     которое теперь крупно показано в карточке "Контакт" — убрали отсюда
+     (но оставили элемент с flex:1 в разметке невидимым, чтобы кнопки
+     "Назад"/"Поставить на урок"/"Заметка" не съехали влево). */
+  #detail-topbar #detail-name{visibility:hidden}
   .student-next-lesson{font-size:10px;color:#ffffff;margin-top:auto;padding-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;min-width:0}
   .next-lesson-badge{display:inline-block;background:transparent;border:none;padding:0;color:#ffffff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
   .progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin:8px 0 4px}
@@ -2940,9 +2945,8 @@ function renderDetailProfile(){
 
   host.innerHTML = '<div class="detail-panel">'
     +'<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title" style="margin-bottom:18px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
-    +'<span class="detail-title-label" style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;max-width:60%">'
-    +'<span style="font-size:13px;font-weight:600;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escapeHTML(s.name)+'</span>'
-    +'<span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;opacity:.85">'+(s.age?s.age+' лет · ':'')+'занимается с '+formatRu(s.studySince||s.createdAt)+'</span>'
+    +'<span class="detail-title-label" style="display:inline-flex;align-items:center;text-align:left;max-width:60%;padding:6px 14px">'
+    +'<span style="font-size:17px;font-weight:700;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escapeHTML(s.name)+'</span>'
     +'</span>'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:16px;flex:1;justify-content:space-between">'
