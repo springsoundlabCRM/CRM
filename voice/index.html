@@ -202,6 +202,7 @@
   .tag-purple{background:var(--accent-glow);color:var(--accent)}
   .tag-blue{background:var(--blue-bg);color:var(--blue)}
   .tag-orange{background:var(--orange-bg);color:var(--orange)}
+  .tag-dark{background:rgba(0,0,0,.4);color:#ffffff}
   .tag-pink{background:var(--pink-bg);color:var(--pink)}
   .tag-grey{background:var(--bg3);color:var(--text3)}
   .bday-tag{background:linear-gradient(135deg,rgba(244,114,182,.18),rgba(167,139,250,.18));color:var(--pink);border:1px solid rgba(244,114,182,.3)}
@@ -2539,7 +2540,7 @@ function renderStudents(){
     // назначен (нет ни одного урока) — только что созданная карточка
     // ученика должна показывать просто "0 уроков" и ничего больше.
     const statusTag = s.status==='paused' ? '<span class="tag tag-grey">На паузе</span>'
-      : (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-orange">Пробный</span>'
+      : (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-blue">Пробный</span>'
       : s.status==='inactive' ? '<span class="tag tag-grey">Неактивный</span>' : '';
     const bdays = daysUntilBirthday(s.birthday);
     const bdayTag = (bdays!==null && bdays<=7) ? '<span class="tag bday-tag">🎂 '+(bdays===0?'сегодня':bdays+' дн.')+'</span>' : '';
@@ -2547,7 +2548,7 @@ function renderStudents(){
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' в '+next.time) : 'не запланирован';
     const card=document.createElement('div'); card.className='student-card';
     card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div><div class="student-name">'+escapeHTML(s.name)+'</div><div class="student-meta">'+(s.age?s.age+' лет':'')+(s.age&&s.voiceType?' · ':'')+(s.voiceType||'')+'</div></div></div>'
-      +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'<span class="tag tag-blue">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div>'
+      +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'<span class="tag tag-dark">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div>'
       +'<div class="student-next-lesson">Следующий: <span class="next-lesson-badge">'+nextLabel+'</span></div>';
     card.onclick=()=>openStudent(s);
     g.appendChild(card);
