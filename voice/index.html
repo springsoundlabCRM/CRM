@@ -191,7 +191,8 @@
   .student-header-text{flex:1;min-width:0}
   .student-name{font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .student-meta{font-size:10px;color:var(--text3);margin-top:1px}
-  .student-lesson-badge{flex-shrink:0;background:var(--accent-glow);border:1px solid var(--accent);color:#ffffff;font-size:10px;font-weight:600;padding:3px 8px;border-radius:7px;white-space:nowrap;margin-left:4px}
+  .student-lesson-badge{flex-shrink:0;background:var(--accent-glow);border:1px solid var(--accent);color:#ffffff;font-weight:600;border-radius:7px;white-space:nowrap;margin-left:4px;width:58px;height:20px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0 4px;overflow:hidden;font-size:10px}
+  .student-lesson-badge .lesson-badge-text{display:inline-block;max-width:100%;overflow:hidden;white-space:nowrap}
   .student-next-lesson{font-size:10px;color:#ffffff;margin-top:auto;padding-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;min-width:0}
   .next-lesson-badge{display:inline-block;background:transparent;border:none;padding:0;color:#ffffff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
   .progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin:8px 0 4px}
@@ -717,7 +718,7 @@
     .student-avatar{width:40px;height:40px;font-size:15px}
     .student-name{font-size:15px}
     .student-meta{font-size:13px;margin-top:1px}
-    .student-lesson-badge{font-size:12px;padding:4px 10px;border-radius:7px}
+    .student-lesson-badge{width:68px;height:24px;font-size:12px;padding:0 6px;border-radius:7px}
     .student-next-lesson{font-size:13px;margin-top:auto!important;padding-top:11px}
     .student-card .tag{font-size:12px;padding:3px 9px;border-radius:8px;margin-top:8px;margin-right:5px;gap:4px}
   }
@@ -879,7 +880,7 @@
     .student-avatar{width:26px;height:26px;font-size:11px}
     .student-name{font-size:11.5px;line-height:1.15}
     .student-meta{font-size:9.5px}
-    .student-lesson-badge{font-size:9px;padding:2px 6px;border-radius:7px}
+    .student-lesson-badge{width:50px;height:18px;font-size:9px;padding:0 3px;border-radius:7px}
     .student-card .tag{font-size:9px;padding:2px 6px;margin-top:4px;margin-right:3px}
 
     /* Дашборд: триколонка → одна колонка */
@@ -980,7 +981,7 @@
     .student-avatar{width:24px;height:24px;font-size:10px}
     .student-name{font-size:10.5px}
     .student-meta{font-size:9px}
-    .student-lesson-badge{font-size:8.5px;padding:2px 5px;border-radius:7px}
+    .student-lesson-badge{width:44px;height:16px;font-size:8.5px;padding:0 2px;border-radius:7px}
     .student-card .tag{font-size:8.5px;padding:1px 5px;margin-top:3px;margin-right:2px}
     .bn-item{font-size:8.5px}
     .bn-item .bn-icon{font-size:16px}
@@ -2552,13 +2553,48 @@ function renderStudents(){
     const next = studentNextLesson(s.id);
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' в '+next.time) : 'не запланирован';
     const card=document.createElement('div'); card.className='student-card';
-    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</div></div>'
+    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'"><span class="lesson-badge-text">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div></div>'
       +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'</div>'
       +'<div class="student-next-lesson">Следующий: <span class="next-lesson-badge">'+nextLabel+'</span></div>';
     card.onclick=()=>openStudent(s);
     g.appendChild(card);
   });
+  fitAllLessonBadges();
 }
+
+/* Счётчик уроков в правом верхнем углу карточки ученика ("1 урок", "20 уроков"
+   и т.п.) — рамка (.student-lesson-badge) всегда одного фиксированного размера
+   (задан в CSS через width/height для каждого брейкпоинта), а вот сам текст
+   внутри неё может быть разной длины ("0 уроков" короче, чем "20 уроков").
+   Чтобы длинный текст не вылезал за рамку и не переносился, а рамка при этом
+   никогда не "растягивалась" под контент, здесь мы после отрисовки карточек
+   замеряем реальную ширину текста и, если он не помещается, постепенно
+   уменьшаем font-size у текста (не у самой рамки) пока он не влезет. */
+function fitLessonBadge(el){
+  const span = el.querySelector('.lesson-badge-text');
+  if(!span) return;
+  const baseSize = parseFloat(getComputedStyle(el).fontSize) || 10;
+  let size = baseSize;
+  span.style.fontSize = size+'px';
+  const styles = getComputedStyle(el);
+  const avail = el.clientWidth - (parseFloat(styles.paddingLeft)||0) - (parseFloat(styles.paddingRight)||0) - 2;
+  let guard = 0;
+  while(span.scrollWidth > avail && size > 6 && guard < 40){
+    size -= 0.5;
+    span.style.fontSize = size+'px';
+    guard++;
+  }
+}
+function fitAllLessonBadges(){
+  document.querySelectorAll('.student-lesson-badge').forEach(fitLessonBadge);
+}
+// Брейкпоинты меняют и размер рамки, и базовый размер шрифта — при повороте
+// экрана/изменении размера окна нужно пересчитать подгонку заново.
+let _lessonBadgeResizeTimer=null;
+window.addEventListener('resize', function(){
+  clearTimeout(_lessonBadgeResizeTimer);
+  _lessonBadgeResizeTimer = setTimeout(fitAllLessonBadges, 150);
+});
 
 // Список вкладок карточки ученика + какая вкладка сейчас открыта.
 // ВАЖНО: renderStudentDetailAll() вызывается не только при первом открытии
@@ -2904,10 +2940,10 @@ function renderDetailProfile(){
 
   host.innerHTML = '<div class="detail-panel">'
     +'<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title" style="margin-bottom:18px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
-    +'<div style="text-align:right;min-width:0">'
-    +'<div style="font-size:15px;font-weight:600;color:#ffffff;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHTML(s.name)+'</div>'
-    +'<div style="font-size:12px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:normal;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(s.age?s.age+' лет · ':'')+'занимается с '+formatRu(s.studySince||s.createdAt)+'</div>'
-    +'</div>'
+    +'<span class="detail-title-label" style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;max-width:60%">'
+    +'<span style="font-size:13px;font-weight:600;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escapeHTML(s.name)+'</span>'
+    +'<span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;opacity:.85">'+(s.age?s.age+' лет · ':'')+'занимается с '+formatRu(s.studySince||s.createdAt)+'</span>'
+    +'</span>'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:16px;flex:1;justify-content:space-between">'
     +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">📱</span><input class="input" id="contact-phone" style="padding:9px 12px;font-size:13px" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00" onchange="saveContactField(\''+s.id+'\',\'phone\',this.value)">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
