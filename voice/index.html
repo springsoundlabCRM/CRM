@@ -1609,7 +1609,7 @@ const GRADIENTS = [
 function uid(prefix){ return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
 
 function defaultDB(){
-  return { version:1, teachers:[], currentTeacherId:null, students:[], subscriptions:[], subHistory:[], lessons:[], payments:[], homework:[], repertoire:[], settings:{ defaultLessonPrice:null } };
+  return { version:1, teachers:[], currentTeacherId:null, students:[], subscriptions:[], subHistory:[], lessons:[], payments:[], homework:[], repertoire:[], settings:{ defaultLessonPrice:null, defaultLessonModalPrice:null, defaultTrialPrice:null } };
 }
 
 let DB = null;
@@ -1677,9 +1677,13 @@ async function loadDB(prefetchedSnap){
   // по умолчанию" для абонементов) — добиваем объект settings, чтобы
   // остальной код мог безопасно обращаться к DB.settings.*
   if(!DB.settings){
-    DB.settings = { defaultLessonPrice:null };
+    DB.settings = { defaultLessonPrice:null, defaultLessonModalPrice:null, defaultTrialPrice:null };
     needsSave = true;
   }
+  // Патчим базы, сохранённые до появления полей "цена урока по умолчанию
+  // в модалке 'Запланировать урок'" и "цена пробного урока по умолчанию".
+  if(DB.settings.defaultLessonModalPrice === undefined){ DB.settings.defaultLessonModalPrice = null; needsSave = true; }
+  if(DB.settings.defaultTrialPrice === undefined){ DB.settings.defaultTrialPrice = null; needsSave = true; }
   // Раньше здесь был безусловный await saveDB() — то есть КАЖДЫЙ запуск
   // приложения делал лишнюю запись в Firestore сразу после чтения, даже
   // если ничего не изменилось. Это удваивало время до отрисовки интерфейса
@@ -3487,7 +3491,7 @@ function buildLessonModal(ctx){
   const defaultTime = lesson ? lesson.time : (ctx.time || '15:00');
   const defaultDur = lesson ? lesson.duration : 60;
   const defaultFormat = lesson ? lesson.format : 'offline';
-  const defaultPrice = lesson ? lesson.price : 1500;
+  const defaultPrice = lesson ? lesson.price : ((DB.settings && DB.settings.defaultLessonModalPrice) || 1500);
   const defaultPaid = lesson ? lesson.paid : 0;
   const defaultPlan = lesson ? lesson.plan : '';
   const isEdit = !!lesson;
@@ -3507,7 +3511,8 @@ function buildLessonModal(ctx){
     +'<div class="input-group"><label class="input-label">Что планируем</label><textarea class="input" id="f-l-plan" rows="2" placeholder="Упражнения на микст...">'+escapeHTML(defaultPlan)+'</textarea></div>'
     +'<div id="f-l-sub-note" class="lesson-sub-banner" style="'+(sub?'':'display:none')+'">'+(sub?'🎫 У ученика активен абонемент — урок будет списан с него автоматически':'')+'</div>'
     +'<div class="input-group" id="f-l-price-wrap" style="'+(sub?'display:none':'')+'">'
-    +'<label class="input-label">Стоимость урока (₽)</label><input class="input" id="f-l-price" type="number" placeholder="1500" value="'+defaultPrice+'">'
+    +'<div class="input-row lesson-modal-row"><div class="input-group" style="margin-bottom:0"><label class="input-label">Стоимость урока (₽)</label><input class="input" id="f-l-price" type="number" placeholder="1500" value="'+defaultPrice+'" data-mode="regular" onchange="onLessonPriceChange(this)"></div>'
+    +'<div class="input-group" style="margin-bottom:0"><label class="input-label">&nbsp;</label><button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;white-space:nowrap" onclick="onTrialPriceBtnClick()">🎓 Пробный урок</button></div></div>'
     +'<div class="input-row lesson-modal-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Статус оплаты</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none" '+(defaultPaid===0?'selected':'')+'>Не оплачено</option><option value="full" '+(defaultPaid>=defaultPrice?'selected':'')+'>Оплачено полностью</option><option value="partial" '+(defaultPaid>0&&defaultPaid<defaultPrice?'selected':'')+'>Частично</option></select></div>'
     +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;'+(defaultPaid>0&&defaultPaid<defaultPrice?'':'display:none')+'"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500" value="'+(defaultPaid>0&&defaultPaid<defaultPrice?defaultPaid:'')+'"></div></div>'
     +'</div>'
@@ -3521,6 +3526,43 @@ function onLessonStudentChange(){
   noteEl.style.display = sub ? '' : 'none';
   noteEl.textContent = sub ? '🎫 У ученика активен абонемент — урок будет списан с него автоматически' : '';
   document.getElementById('f-l-price-wrap').style.display = sub ? 'none' : '';
+}
+
+/* Кнопка "Пробный урок" в модалке урока.
+   Подставляет в поле "Стоимость урока" сумму, сохранённую с прошлого
+   раза (DB.settings.defaultTrialPrice). Если пробный урок ещё ни разу
+   не вносился — поле очищается, и преподаватель вводит сумму вручную;
+   как только он её введёт (событие change на поле), она сохранится
+   как цена пробного урока по умолчанию — см. onLessonPriceChange. */
+function onTrialPriceBtnClick(){
+  const priceEl = document.getElementById('f-l-price');
+  if(!priceEl) return;
+  const trial = (DB.settings && DB.settings.defaultTrialPrice) || '';
+  priceEl.value = trial;
+  priceEl.dataset.mode = 'trial';
+  priceEl.focus();
+  if(trial){
+    // Значение уже известно с прошлого раза — сохранять заново не нужно,
+    // но пересчитаем select "Статус оплаты", у которого есть сравнение
+    // с текущей стоимостью урока (см. верстку выше: defaultPaid>=defaultPrice).
+    onLessonPayTypeChange();
+  }
+}
+
+/* Мгновенное сохранение цены урока — без отдельной кнопки "Сохранить".
+   В зависимости от того, в каком режиме сейчас поле (обычная цена или
+   цена пробного урока, см. data-mode), сумма запоминается в соответствующей
+   настройке и в следующий раз подставляется по умолчанию. */
+async function onLessonPriceChange(el){
+  const val = parseInt(el.value, 10) || 0;
+  if(!val) return;
+  DB.settings = DB.settings || {};
+  if(el.dataset.mode === 'trial'){
+    DB.settings.defaultTrialPrice = val;
+  } else {
+    DB.settings.defaultLessonModalPrice = val;
+  }
+  await saveDB();
 }
 
 /* ----- Автокомплит поля "Ученик" в модалке урока -----
