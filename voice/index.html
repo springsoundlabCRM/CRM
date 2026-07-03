@@ -2552,7 +2552,7 @@ function renderStudents(){
     const next = studentNextLesson(s.id);
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' в '+next.time) : 'не запланирован';
     const card=document.createElement('div'); card.className='student-card';
-    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div><div class="student-meta">'+(s.age?s.age+' лет':'')+(s.age&&s.voiceType?' · ':'')+(s.voiceType||'')+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</div></div>'
+    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</div></div>'
       +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'</div>'
       +'<div class="student-next-lesson">Следующий: <span class="next-lesson-badge">'+nextLabel+'</span></div>';
     card.onclick=()=>openStudent(s);
