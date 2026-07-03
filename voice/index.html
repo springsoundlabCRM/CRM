@@ -35,6 +35,7 @@
     --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-glow:rgba(251,191,36,0.4);
     --red:#f87171;--red-bg:rgba(248,113,113,0.12);--red-glow:rgba(248,113,113,0.4);
     --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);
+    --orange:#fb923c;--orange-bg:rgba(251,146,60,0.14);
     --pink:#f472b6;--pink-bg:rgba(244,114,182,0.12);
     --wa:#34d399;
     --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
@@ -48,6 +49,7 @@
     --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-glow:rgba(217,119,6,0.35);
     --red:#dc2626;--red-bg:rgba(220,38,38,0.1);--red-glow:rgba(220,38,38,0.35);
     --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
+    --orange:#ea580c;--orange-bg:rgba(234,88,12,0.1);
     --pink:#db2777;--pink-bg:rgba(219,39,119,0.1);
   }
   html, body {
@@ -199,6 +201,7 @@
   .tag-red{background:var(--red-bg);color:var(--red)}
   .tag-purple{background:var(--accent-glow);color:var(--accent)}
   .tag-blue{background:var(--blue-bg);color:var(--blue)}
+  .tag-orange{background:var(--orange-bg);color:var(--orange)}
   .tag-pink{background:var(--pink-bg);color:var(--pink)}
   .tag-grey{background:var(--bg3);color:var(--text3)}
   .bday-tag{background:linear-gradient(135deg,rgba(244,114,182,.18),rgba(167,139,250,.18));color:var(--pink);border:1px solid rgba(244,114,182,.3)}
@@ -2536,7 +2539,7 @@ function renderStudents(){
     // назначен (нет ни одного урока) — только что созданная карточка
     // ученика должна показывать просто "0 уроков" и ничего больше.
     const statusTag = s.status==='paused' ? '<span class="tag tag-grey">На паузе</span>'
-      : (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-blue">Пробный</span>'
+      : (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-orange">Пробный</span>'
       : s.status==='inactive' ? '<span class="tag tag-grey">Неактивный</span>' : '';
     const bdays = daysUntilBirthday(s.birthday);
     const bdayTag = (bdays!==null && bdays<=7) ? '<span class="tag bday-tag">🎂 '+(bdays===0?'сегодня':bdays+' дн.')+'</span>' : '';
@@ -2544,7 +2547,7 @@ function renderStudents(){
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' в '+next.time) : 'не запланирован';
     const card=document.createElement('div'); card.className='student-card';
     card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div><div class="student-name">'+escapeHTML(s.name)+'</div><div class="student-meta">'+(s.age?s.age+' лет':'')+(s.age&&s.voiceType?' · ':'')+(s.voiceType||'')+'</div></div></div>'
-      +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'<span class="tag tag-blue">'+lessonsCount+' уроков</span></div>'
+      +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'<span class="tag tag-blue">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div>'
       +'<div class="student-next-lesson">Следующий: <span class="next-lesson-badge">'+nextLabel+'</span></div>';
     card.onclick=()=>openStudent(s);
     g.appendChild(card);
@@ -2871,7 +2874,7 @@ function renderDetailProfile(){
       +'<div style="font-size:24px;font-weight:600;margin-bottom:6px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
       +'<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px">'
-      +'<div style="font-size:13px;color:var(--text3)">Осталось '+left+' '+(left===1?'урок':'уроков')+'</div>'
+      +'<div style="font-size:13px;color:var(--text3)">Осталось '+left+' '+pluralLessons(left)+'</div>'
       +'<div><div style="font-size:13px;color:var(--text3)">Куплен</div><div style="font-size:16px;font-weight:500;margin-top:4px">'+formatRu(sub.purchaseDate)+'</div></div>'
       +'<div><div style="font-size:13px;color:var(--text3)">Общая стоимость абонемента</div><div style="font-size:19px;font-weight:700;margin-top:4px;color:var(--accent)">'+money(sub.totalPrice)+'</div></div>'
       +'</div>'
@@ -3892,7 +3895,7 @@ function saveSubscriptionForm(){
   if(total<=0){ toast('Укажите количество занятий','red'); return; }
   if(activeSubscriptionOf(studentId)){ toast('У ученика уже есть активный абонемент','red'); return; }
   const id = uid('sub');
-  const titleWord = total===1?'урок': (total>=2&&total<=4?'урока':'уроков');
+  const titleWord = pluralLessons(total);
   DB.subscriptions.push({ id, studentId, title:'Абонемент '+total+' '+titleWord, totalLessons: total, usedLessons:0, pricePerLesson: pricePerLesson, totalPrice: price, purchasePrice: price, purchaseDate: date, active:true });
   DB.subHistory.push({ id:uid('h'), studentId, subscriptionId:id, type:'purchase', lessonsDelta:total, amount:price, date, note:'Покупка абонемента' });
   DB.payments.push({ id:uid('p'), studentId, date, amount:price, type:'subscription_purchase', note:'Абонемент '+total+' '+titleWord });
@@ -3914,7 +3917,7 @@ function buildSubTopupModal(ctx){
     +'<div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:16px">'
       +'<div style="font-size:22px;font-weight:600;margin-bottom:4px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
-      +'<div style="font-size:12px;color:var(--text3);margin-top:8px">Осталось <b style="color:var(--text)">'+left+'</b> '+(left===1?'урок':'уроков')+' из '+sub.totalLessons+'</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:8px">Осталось <b style="color:var(--text)">'+left+'</b> '+pluralLessons(left)+' из '+sub.totalLessons+'</div>'
     +'</div>'
     +'<div class="input-row topup-row"><div class="input-group"><label class="input-label">Добавить уроков</label><input class="input" id="f-topup-lessons" type="number" min="1" value="4" oninput="recalcTopupTotal()"></div>'
     +'<div class="input-group"><label class="input-label">Стоимость одного занятия (₽)</label><input class="input" id="f-topup-price" type="number" min="0" value="'+defaultPrice+'" oninput="recalcTopupTotal()"></div></div>'
@@ -3939,7 +3942,7 @@ function saveTopupForm(subId, studentId){
   sub.totalPrice += addPrice;
   sub.pricePerLesson = Math.round(sub.totalPrice/sub.totalLessons);
   sub.active = true;
-  DB.subHistory.push({ id:uid('h'), studentId, subscriptionId:subId, type:'topup', lessonsDelta:addLessons, amount:addPrice, date: todayISO(), note:'Пополнение на '+addLessons+' уроков' });
+  DB.subHistory.push({ id:uid('h'), studentId, subscriptionId:subId, type:'topup', lessonsDelta:addLessons, amount:addPrice, date: todayISO(), note:'Пополнение на '+addLessons+' '+pluralLessons(addLessons) });
   DB.payments.push({ id:uid('p'), studentId, date: todayISO(), amount:addPrice, type:'subscription_topup', note:'Пополнение абонемента' });
   saveDB();
   closeModal();
@@ -4861,6 +4864,14 @@ function pluralDays(n){
   if(mod10===1 && mod100!==11) return 'день';
   if([2,3,4].includes(mod10) && ![12,13,14].includes(mod100)) return 'дня';
   return 'дней';
+}
+/* Грамотное склонение слова "урок" в зависимости от числа:
+   1 урок, 2/3/4 урока, 5..20 уроков, 21 урок, 22 урока, 25 уроков и т.д. */
+function pluralLessons(n){
+  const mod10=n%10, mod100=n%100;
+  if(mod10===1 && mod100!==11) return 'урок';
+  if([2,3,4].includes(mod10) && ![12,13,14].includes(mod100)) return 'урока';
+  return 'уроков';
 }
 
 // ВРЕМЕННАЯ заглушка вместо реального вызова ЮKassa.
