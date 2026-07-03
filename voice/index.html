@@ -697,7 +697,104 @@
   .swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
   .swatch.active{border-color:#fff}
   .color-row{display:flex;gap:8px;flex-wrap:wrap}
-  @media (max-width:1100px){
+  /* ===== НОВЫЕ СТИЛИ ДЛЯ ДАШБОРДА ===== */
+  .dashboard-grid-2col {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .dashboard-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 16px;
+  }
+  .chart-card {
+    min-height: 180px;
+  }
+  .dashboard-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .small-card {
+    flex: 1;
+    min-height: 130px;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .plan-target {
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .plan-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .plan-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--bg3);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .plan-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 5px;
+    transition: width 0.6s ease;
+  }
+  .plan-progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .status-ring-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+  }
+  .ring-wrapper {
+    width: 90px;
+    height: 90px;
+    flex-shrink: 0;
+  }
+  .ring-wrapper svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .ring-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+  }
+  .ring-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ring-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  @media (max-width: 1100px){
     .stat-grid{grid-template-columns:repeat(2,1fr)}
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
     .schedule-grid{grid-template-columns:repeat(7,minmax(120px,1fr));overflow-x:auto}
@@ -707,6 +804,32 @@
        Заметки, Заметки о голосе (вместо Голос, Заметки, Навыки, ...) */
     .card-skills{order:2}
     .card-notes{order:3}
+  }
+  @media (max-width: 880px) {
+    .dashboard-grid-2col {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-right-col {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .small-card {
+      flex: 1 1 45%;
+      min-width: 180px;
+    }
+  }
+  @media (max-width: 600px) {
+    .dashboard-right-col {
+      flex-direction: column;
+    }
+    .small-card {
+      flex: 1;
+      min-width: auto;
+    }
+    .ring-wrapper {
+      width: 70px;
+      height: 70px;
+    }
   }
 
   /* ================================================================
@@ -847,6 +970,17 @@
     .card-skills{order:2}
     .card-notes{order:3}
     .input-row{grid-template-columns:1fr 1fr}
+    .dashboard-grid-2col {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-right-col {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .small-card {
+      flex: 1 1 45%;
+      min-width: 180px;
+    }
   }
 
   /* ================= ТЕЛЕФОН (≤600px) ================= */
@@ -974,6 +1108,22 @@
     #quickMenuSettingsSection{display:block!important}
     .sidebar-footer{padding-bottom:14px}
     .toast{bottom:calc(72px + env(safe-area-inset-bottom));right:12px;left:12px;justify-content:center;text-align:center}
+
+    /* Дашборд: адаптация новых виджетов */
+    .dashboard-grid-2col {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-right-col {
+      flex-direction: column;
+    }
+    .small-card {
+      flex: 1;
+      min-width: auto;
+    }
+    .ring-wrapper {
+      width: 70px;
+      height: 70px;
+    }
   }
 
   /* ================= УЗКИЙ ТЕЛЕФОН (≤380px) ================= */
@@ -1307,7 +1457,7 @@
       </div>
       <div class="nav-section">
         <div class="nav-label">Аналитика</div>
-        <div class="nav-item" data-page="progress" onclick="showPage('progress')"><span class="icon">📈</span> Прогресс</div>
+        <div class="nav-item" data-page="progress" onclick="showPage('progress')"><span class="icon">📈</span> Аналитика</div>
       </div>
       <div class="nav-section">
         <div class="nav-label">Аккаунт</div>
@@ -1337,13 +1487,54 @@
         </div>
       </div>
       <div class="content">
+        <!-- 4 карточки статистики -->
         <div class="stat-grid">
           <div class="stat-card purple"><div class="stat-label">Учеников</div><div class="stat-value" id="dStudents">0</div><div class="stat-delta" id="dStudentsDelta" style="color:var(--text3)">активных</div></div>
           <div class="stat-card green"><div class="stat-label">Доход (месяц)</div><div class="stat-value" id="dIncome">0₽</div><div class="stat-delta" id="dIncomeDelta" style="color:var(--text3)">—</div></div>
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="dDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="dDebtCount">у 0 учеников</div></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px" id="dashTriColumn">
+
+        <!-- Новый блок: график + виджеты -->
+        <div class="dashboard-grid-2col">
+          <div class="dashboard-card chart-card">
+            <div class="section-head" style="margin-bottom:8px">
+              <div class="section-title">Доходы за 6 месяцев</div>
+              <span class="tag tag-green" id="incomeYoY">—</span>
+            </div>
+            <div class="mini-chart" id="income-chart"></div>
+            <div style="display:flex;gap:4px" id="income-labels"></div>
+          </div>
+          <div class="dashboard-right-col">
+            <div class="dashboard-card small-card">
+              <div class="card-header">
+                <span class="card-title">Статус учеников</span>
+              </div>
+              <div class="status-ring-container">
+                <div class="ring-wrapper" id="studentStatusRing"></div>
+                <div class="ring-legend" id="studentStatusLegend"></div>
+              </div>
+            </div>
+            <div class="dashboard-card small-card">
+              <div class="card-header">
+                <span class="card-title">Выполнение плана</span>
+                <span class="plan-target" id="planTarget">Цель: 50 000 ₽</span>
+              </div>
+              <div class="plan-progress">
+                <div class="plan-progress-bar">
+                  <div class="plan-progress-fill" id="planProgressFill" style="width:0%"></div>
+                </div>
+                <div class="plan-progress-text">
+                  <span id="planProgressPercent">0%</span>
+                  <span id="planProgressAmount">0 ₽</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Три колонки: Сегодня, Уведомления, Дни рождения -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:16px;" id="dashTriColumn">
           <div>
             <div class="section-head"><div class="section-title">Сегодня</div><div class="section-link" onclick="showPage('schedule')">Весь план →</div></div>
             <div id="todayLessons"></div>
@@ -1356,11 +1547,6 @@
             <div class="section-head"><div class="section-title">🎂 Дни рождения</div></div>
             <div id="bdayList"></div>
           </div>
-        </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px">
-          <div class="section-head" style="margin-bottom:8px"><div class="section-title">Доходы за 6 месяцев</div><span class="tag tag-green" id="incomeYoY">—</span></div>
-          <div class="mini-chart" id="income-chart"></div>
-          <div style="display:flex;gap:4px" id="income-labels"></div>
         </div>
       </div>
     </div>
@@ -1482,8 +1668,9 @@
 
     <!-- PROGRESS / ANALYTICS -->
     <div id="page-progress" class="hidden">
-      <div class="topbar"><div class="topbar-title">Аналитика прогресса</div></div>
+      <div class="topbar"><div class="topbar-title">Аналитика</div></div>
       <div class="content">
+        <!-- Удалены дублирующие карточки Оплачено/Ожидается/Долги -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
           <div class="detail-card full-width"><div class="detail-title"><span class="detail-title-label">📊 Средний уровень (все ученики)</span></div><div id="avgSkillsBox"></div></div>
           <div class="detail-card"><div class="detail-title"><span class="detail-title-label">🏆 Топ прогресса</span></div><div id="topProgressBox"></div></div>
@@ -2446,6 +2633,8 @@ function renderDashboard(){
   renderNotifications();
   renderBirthdays();
   renderIncomeChart();
+  renderStudentStatusRing();
+  renderPlanProgress();
 }
 
 function weekdayInRu(d){ const names=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']; return names[d.getDay()]; }
@@ -2502,6 +2691,97 @@ function renderIncomeChart(){
   const yoy=document.getElementById('incomeYoY');
   if(first>0){ const pct=Math.round((last-first)/first*100); yoy.textContent=(pct>=0?'+':'')+pct+'% за период'; yoy.className='tag '+(pct>=0?'tag-green':'tag-red'); }
   else { yoy.textContent='—'; yoy.className='tag tag-grey'; }
+}
+
+// НОВЫЕ ФУНКЦИИ ДЛЯ ДАШБОРДА
+function renderStudentStatusRing(){
+  const container = document.getElementById('studentStatusRing');
+  const legendContainer = document.getElementById('studentStatusLegend');
+  if (!container) return;
+
+  const allStudents = allStudentsOfTeacher();
+  const total = allStudents.length;
+
+  if (total === 0) {
+    container.innerHTML = `<div style="font-size:12px;color:var(--text3);text-align:center;">Нет учеников</div>`;
+    legendContainer.innerHTML = '';
+    return;
+  }
+
+  const statuses = {
+    active: { label: 'Активные', color: 'var(--green)' },
+    paused: { label: 'На паузе', color: 'var(--amber)' },
+    trial: { label: 'Пробные', color: 'var(--blue)' },
+    inactive: { label: 'Неактивные', color: 'var(--text3)' }
+  };
+
+  const counts = {};
+  let totalCounted = 0;
+  for (const [key, val] of Object.entries(statuses)) {
+    counts[key] = allStudents.filter(s => s.status === key).length;
+    totalCounted += counts[key];
+  }
+  if (totalCounted < total) {
+    counts.active += (total - totalCounted);
+  }
+
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const segments = [];
+  let cumulative = 0;
+  for (const [key, count] of Object.entries(counts)) {
+    if (count === 0) continue;
+    const percent = count / total;
+    segments.push({
+      key,
+      color: statuses[key].color,
+      percent,
+      count,
+      dashArray: percent * circumference,
+      cumulative
+    });
+    cumulative += percent;
+  }
+
+  // Строим SVG
+  let svg = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">`;
+  let cumul = 0;
+  for (const seg of segments) {
+    const dasharray = seg.percent * circumference;
+    const dashoffset = -cumul * circumference;
+    svg += `<circle cx="50" cy="50" r="${radius}" fill="none" stroke="${seg.color}" 
+            stroke-width="12" stroke-dasharray="${dasharray} ${circumference}" 
+            stroke-dashoffset="${dashoffset}" stroke-linecap="round" />`;
+    cumul += seg.percent;
+  }
+  svg += `<text x="50" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)">${total}</text>
+          <text x="50" y="62" text-anchor="middle" font-size="8" fill="var(--text3)">всего</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+
+  // Легенда
+  let legendHtml = '';
+  for (const [key, val] of Object.entries(statuses)) {
+    const count = counts[key] || 0;
+    if (count === 0) continue;
+    legendHtml += `<div class="ring-legend-item">
+      <span class="ring-legend-dot" style="background:${val.color}"></span>
+      ${val.label}: ${count}
+    </div>`;
+  }
+  legendContainer.innerHTML = legendHtml;
+}
+
+function renderPlanProgress(){
+  const now = new Date();
+  const currentMonthIncome = monthIncome(now.getFullYear(), now.getMonth()).paid;
+  const target = 50000; // можно вынести в настройки
+  const percent = Math.min(100, Math.round((currentMonthIncome / target) * 100));
+
+  document.getElementById('planProgressFill').style.width = percent + '%';
+  document.getElementById('planProgressPercent').textContent = percent + '%';
+  document.getElementById('planProgressAmount').textContent = money(currentMonthIncome) + ' из ' + money(target);
+  document.getElementById('planTarget').textContent = 'Цель: ' + money(target);
 }
 
 // При показе страницы расписания инициализируем календарь
@@ -2720,7 +3000,7 @@ const QUICK_MENU_SECTIONS = {
   students:   {icon:'🎓', label:'Ученики'},
   finances:   {icon:'💰', label:'Финансы'},
   homework:   {icon:'📝', label:'Задания'},
-  progress:   {icon:'📈', label:'Прогресс'},
+  progress:   {icon:'📈', label:'Аналитика'},
   settings:   {icon:'⚙️', label:'Настройки'},
 };
 const QUICK_MENU_DEFAULT = ['dashboard','schedule','students','finances','settings'];
@@ -4267,7 +4547,6 @@ function buildDeleteLessonConfirmModal(ctx){
 
 /* ---------- Подтверждение удаления домашнего задания ---------- */
 function buildDeleteHomeworkModal(ctx){
-
   ctx = ctx||{};
   const h = DB.homework.find(x=>x.id===ctx.hwId);
   if(!h) return '<div class="modal-title">Задание не найдено <button class="modal-close" onclick="closeModal()">×</button></div>';
