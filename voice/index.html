@@ -897,8 +897,8 @@
     /* Задания: 3 колонки → 1 колонка, с разделителями */
     #page-homework .content > div{grid-template-columns:1fr!important;gap:18px!important}
 
-    /* Прогресс/аналитика: 2 колонки → 1 */
-    #page-progress .content > div{grid-template-columns:1fr!important}
+    /* Аналитика: 2 колонки → 1 */
+    #page-analytics .content > div{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr;gap:10px}
     .detail-card{padding:12px}
     .card-skills{order:2}
@@ -1012,6 +1012,94 @@
   /* ===== ДОПОЛНИТЕЛЬНЫЕ ПРАВКИ ДЛЯ PWA ===== */
   @media all and (display-mode: standalone) {
     html, body, .app { height: 100%; height: 100dvh; height: var(--vh100, 100dvh); }
+  }
+
+  /* ============================================================
+     DASHBOARD 2.0 / АНАЛИТИКА — современные виджеты (кольца,
+     воронка, лидерборд, градиентные бары, донат-диаграммы)
+     ============================================================ */
+
+  /* --- KPI-кольца (мини-донаты с процентом внутри) --- */
+  .kpi-ring-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .kpi-ring-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;align-items:center;gap:14px;transition:border-color .15s}
+  .kpi-ring-card:hover{border-color:var(--border2)}
+  .kpi-ring{position:relative;width:76px;height:76px;flex-shrink:0;border-radius:50%;
+    background:conic-gradient(var(--ring-color,var(--accent)) calc(var(--ring-pct,0)*1%), var(--bg3) 0);
+    display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px var(--ring-glow,transparent))}
+  .kpi-ring::before{content:'';position:absolute;inset:7px;border-radius:50%;background:var(--card)}
+  .kpi-ring-val{position:relative;z-index:1;font-size:16px;font-weight:700;color:var(--text)}
+  .kpi-ring-info{min-width:0}
+  .kpi-ring-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+  .kpi-ring-sub{font-size:10.5px;color:var(--text3);line-height:1.4}
+
+  /* --- Общие "пилюли"-статы (быстрая сводка) --- */
+  .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 18px}
+  .pill-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;min-width:118px;flex:1}
+  .pill-stat b{display:block;font-size:17px;font-weight:700;color:var(--text);margin-top:3px;letter-spacing:0;text-transform:none}
+
+  /* --- Карточка аналитики (обёртка) --- */
+  .an-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px;display:flex;flex-direction:column}
+  .an-card-title{font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+  /* --- Воронка учеников --- */
+  .funnel-wrap{display:flex;flex-direction:column;gap:10px;flex:1;justify-content:center}
+  .funnel-row{display:flex;align-items:center;gap:10px}
+  .funnel-label{width:104px;flex-shrink:0;font-size:11.5px;color:var(--text2);line-height:1.25}
+  .funnel-bar-wrap{flex:1;height:30px;background:var(--bg3);border-radius:8px;overflow:hidden}
+  .funnel-bar{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;color:#fff;font-size:11.5px;font-weight:700;white-space:nowrap;transition:width .5s ease}
+  .funnel-count{width:34px;flex-shrink:0;text-align:right;font-size:11px;font-weight:600;color:var(--text3)}
+
+  /* --- Донат-диаграмма (удержание и т.п.) --- */
+  .donut-wrap{position:relative;width:150px;height:150px;margin:4px auto 6px;border-radius:50%;
+    background:conic-gradient(var(--d-c1,var(--accent)) 0 calc(var(--d-p1,0)*1%), var(--d-c2,var(--bg3)) 0 100%)}
+  .donut-wrap::before{content:'';position:absolute;inset:16px;border-radius:50%;background:var(--card)}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .donut-center b{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.5px}
+  .donut-center span{font-size:10px;color:var(--text3);margin-top:2px;text-align:center;max-width:90px}
+  .donut-legend{display:flex;justify-content:center;gap:16px;margin-top:auto;font-size:11px;color:var(--text2)}
+  .donut-legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+
+  /* --- Лидерборд учеников --- */
+  .leader-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;margin-bottom:6px;background:var(--bg3);cursor:pointer;transition:background .15s,transform .15s}
+  .leader-row:hover{background:var(--card2);transform:translateX(2px)}
+  .leader-rank{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:#fff}
+  .leader-rank.r1{background:linear-gradient(135deg,#fde047,#f59e0b)}
+  .leader-rank.r2{background:linear-gradient(135deg,#e2e8f0,#94a3b8)}
+  .leader-rank.r3{background:linear-gradient(135deg,#fb923c,#c2703f)}
+  .leader-rank.r4{background:var(--bg2);color:var(--text3);border:1px solid var(--border2)}
+  .leader-name{flex:1;min-width:0}
+  .leader-name-txt{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .leader-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+  .leader-bar-fill{height:100%;border-radius:3px}
+  .leader-pct{font-size:12px;font-weight:700;color:var(--text);flex-shrink:0}
+
+  /* --- Кольцевые шкалы навыков (вместо линейных полосок) --- */
+  .skill-ring-row{display:flex;justify-content:space-around;gap:10px;flex:1;align-items:center}
+  .skill-ring-item{display:flex;flex-direction:column;align-items:center;gap:9px}
+  .skill-ring{position:relative;width:64px;height:64px;border-radius:50%;
+    background:conic-gradient(var(--sk-color,var(--accent)) calc(var(--sk-pct,0)*1%), var(--bg3) 0);
+    display:flex;align-items:center;justify-content:center}
+  .skill-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--card)}
+  .skill-ring-val{position:relative;z-index:1;font-size:13px;font-weight:700;color:var(--text)}
+  .skill-ring-label{font-size:10.5px;color:var(--text3);text-align:center;max-width:76px}
+
+  /* --- Градиентные бары для графиков доходов (заменяют плоский цвет) --- */
+  .bar{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:5px 5px 2px 2px;box-shadow:0 0 10px var(--accent-glow)}
+  .year-chart .bar{background:linear-gradient(180deg,var(--accent2),var(--accent))}
+  .year-chart .bar.cur{background:linear-gradient(180deg,#10b981,var(--green));box-shadow:0 0 12px var(--green-glow)}
+
+  @media (max-width:880px){
+    .kpi-ring-grid{grid-template-columns:1fr 1fr;gap:10px}
+    .an-row-3{grid-template-columns:1fr 1fr!important}
+    .an-row-3 .an-card:first-child{grid-column:1/-1}
+  }
+  @media (max-width:600px){
+    .kpi-ring-grid{grid-template-columns:1fr;gap:10px}
+    .kpi-ring-card{padding:12px}
+    .an-row-3{grid-template-columns:1fr!important}
+    .an-row-3 .an-card:first-child{grid-column:auto}
+    .pill-stat{min-width:44%}
+    .donut-wrap{width:130px;height:130px}
   }
 </style>
 <script type="module">
@@ -1304,7 +1392,10 @@
         <div class="nav-label">Учёт</div>
         <div class="nav-item" data-page="finances" onclick="showPage('finances')"><span class="icon">💰</span> Финансы</div>
         <div class="nav-item" data-page="homework" onclick="showPage('homework')"><span class="icon">📝</span> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
-        <div class="nav-item" data-page="progress" onclick="showPage('progress')"><span class="icon">📈</span> Аналитика</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Аналитика</div>
+        <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><span class="icon">📊</span> Аналитика</div>
       </div>
       <div class="nav-section">
         <div class="nav-label">Аккаунт</div>
@@ -1340,6 +1431,20 @@
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="dDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="dDebtCount">у 0 учеников</div></div>
         </div>
+        <div class="kpi-ring-grid">
+          <div class="kpi-ring-card">
+            <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
+            <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
+          </div>
+          <div class="kpi-ring-card">
+            <div class="kpi-ring" id="ringPayments"><span class="kpi-ring-val" id="ringPaymentsVal">—</span></div>
+            <div class="kpi-ring-info"><div class="kpi-ring-title">Собираемость оплат</div><div class="kpi-ring-sub" id="ringPaymentsSub">от начисленного за месяц</div></div>
+          </div>
+          <div class="kpi-ring-card">
+            <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
+            <div class="kpi-ring-info"><div class="kpi-ring-title">Активные ученики</div><div class="kpi-ring-sub" id="ringActiveSub">от общего числа</div></div>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px" id="dashTriColumn">
           <div>
             <div class="section-head"><div class="section-title">Сегодня</div><div class="section-link" onclick="showPage('schedule')">Весь план →</div></div>
@@ -1353,6 +1458,11 @@
             <div class="section-head"><div class="section-title">🎂 Дни рождения</div></div>
             <div id="bdayList"></div>
           </div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px">
+          <div class="section-head" style="margin-bottom:8px"><div class="section-title">Доходы за 6 месяцев</div><span class="tag tag-green" id="incomeYoY">—</span></div>
+          <div class="mini-chart" id="income-chart"></div>
+          <div style="display:flex;gap:4px" id="income-labels"></div>
         </div>
       </div>
     </div>
@@ -1472,25 +1582,53 @@
       </div>
     </div>
 
-    <!-- PROGRESS / ANALYTICS -->
-    <div id="page-progress" class="hidden">
-      <div class="topbar"><div class="topbar-title">Аналитика <span class="topbar-subtitle" id="anFinMonthLabel">—</span></div></div>
+    <!-- АНАЛИТИКА (бывший раздел "Прогресс") -->
+    <div id="page-analytics" class="hidden">
+      <div class="topbar"><div class="topbar-title">Аналитика <span class="topbar-subtitle">полная картина по ученикам и доходам</span></div></div>
       <div class="content">
-        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-          <div class="stat-card green"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="anFinPaid">0₽</div><div class="stat-delta" id="anFinPaidDelta" style="color:var(--text3)">—</div></div>
-          <div class="stat-card amber"><div class="stat-label">Ожидается</div><div class="stat-value" id="anFinPending">0₽</div><div class="stat-delta" id="anFinPendingSub" style="color:var(--text3)">—</div></div>
-          <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="anFinDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="anFinDebtCount">—</div></div>
+
+        <div class="pill-row" id="analyticsPillRow">
+          <div class="pill-stat">Учеников<b id="anPillStudents">0</b></div>
+          <div class="pill-stat">Средний прогресс<b id="anPillProgress">0%</b></div>
+          <div class="pill-stat">Доход за год<b id="anPillIncome">0₽</b></div>
+          <div class="pill-stat">Долги всего<b id="anPillDebt" style="color:var(--red)">0₽</b></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-          <div class="detail-card"><div class="detail-title"><span class="detail-title-label">🏆 Топ прогресса</span></div><div id="topProgressBox"></div></div>
-          <div class="detail-card"><div class="detail-title"><span class="detail-title-label">⚠️ Требуют внимания</span></div><div id="attentionBox"></div></div>
+
+        <div class="an-row-3" style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="an-card">
+            <div class="an-card-title">🔻 Воронка учеников</div>
+            <div class="funnel-wrap" id="studentFunnelBox"></div>
+          </div>
+          <div class="an-card" style="align-items:center">
+            <div class="an-card-title" style="align-self:flex-start">🎯 Удержание учеников</div>
+            <div class="donut-wrap" id="retentionDonut"><div class="donut-center"><b id="retentionPct">0%</b><span>активных от всех</span></div></div>
+            <div class="donut-legend">
+              <span><span class="donut-legend-dot" style="background:var(--accent)"></span>Активные</span>
+              <span><span class="donut-legend-dot" style="background:var(--bg3);border:1px solid var(--border2)"></span>Пауза / ушли</span>
+            </div>
+          </div>
+          <div class="an-card">
+            <div class="an-card-title">🏆 Лидерборд прогресса</div>
+            <div id="topProgressBox"></div>
+          </div>
         </div>
-        <div class="detail-card full-width" style="margin-bottom:16px">
-          <div class="detail-title" style="margin-bottom:8px"><span class="detail-title-label">Доходы за 6 месяцев</span><span class="tag tag-green" id="incomeYoY">—</span></div>
-          <div class="mini-chart" id="income-chart"></div>
-          <div style="display:flex;gap:4px" id="income-labels"></div>
+
+        <div class="an-row-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="an-card">
+            <div class="an-card-title">📊 Средний уровень навыков</div>
+            <div class="skill-ring-row" id="avgSkillsBox"></div>
+          </div>
+          <div class="an-card">
+            <div class="an-card-title">⚠️ Требуют внимания</div>
+            <div id="attentionBox"></div>
+          </div>
+          <div class="an-card">
+            <div class="an-card-title">📌 Сводка месяца</div>
+            <div id="monthSummaryBox" style="display:flex;flex-direction:column;gap:10px;justify-content:center;flex:1"></div>
+          </div>
         </div>
-        <div class="detail-card full-width">
+
+        <div class="an-card">
           <div class="detail-title" style="margin-bottom:6px">
             <span class="detail-title-label">💵 Доход по месяцам — <span id="yearLabel">2026</span></span>
             <span style="display:flex;gap:6px">
@@ -2446,6 +2584,45 @@ function renderDashboard(){
 
   renderNotifications();
   renderBirthdays();
+  renderIncomeChart();
+  renderDashboardPulse(myStudents, active, now);
+}
+
+/* Устанавливает значения кольцевой мини-диаграммы (conic-gradient) через CSS-переменные */
+function setRing(el, pct, colorVar, glowVar){
+  pct = Math.max(0, Math.min(100, Math.round(pct)));
+  el.style.setProperty('--ring-pct', pct);
+  el.style.setProperty('--ring-color', colorVar);
+  if(glowVar) el.style.setProperty('--ring-glow', glowVar);
+  return pct;
+}
+
+/* Три «пульс»-кольца дашборда: посещаемость, собираемость оплат, доля активных учеников */
+function renderDashboardPulse(myStudents, active, now){
+  // Посещаемость за месяц: проведено / (проведено + неявка)
+  const monthLessons = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); });
+  const doneCnt = monthLessons.filter(l=>l.status==='done').length;
+  const noshowCnt = monthLessons.filter(l=>l.status==='noshow').length;
+  const attendancePct = (doneCnt+noshowCnt)>0 ? (doneCnt/(doneCnt+noshowCnt))*100 : 100;
+  const ringAtt = document.getElementById('ringAttendance');
+  const pctAtt = setRing(ringAtt, attendancePct, 'var(--accent)', 'var(--accent-glow)');
+  document.getElementById('ringAttendanceVal').textContent = pctAtt+'%';
+  document.getElementById('ringAttendanceSub').textContent = (doneCnt+noshowCnt)>0 ? doneCnt+' из '+(doneCnt+noshowCnt)+' уроков' : 'нет данных за месяц';
+
+  // Собираемость оплат: оплачено / (оплачено + долг) за месяц
+  const {paid:mPaid, debt:mDebt} = monthIncome(now.getFullYear(), now.getMonth());
+  const payPct = (mPaid+mDebt)>0 ? (mPaid/(mPaid+mDebt))*100 : 100;
+  const ringPay = document.getElementById('ringPayments');
+  const pctPay = setRing(ringPay, payPct, 'var(--green)', 'var(--green-glow)');
+  document.getElementById('ringPaymentsVal').textContent = pctPay+'%';
+  document.getElementById('ringPaymentsSub').textContent = (mPaid+mDebt)>0 ? money(mPaid)+' из '+money(mPaid+mDebt) : 'нет начислений';
+
+  // Доля активных учеников от всех (без учёта архивных)
+  const activePct = myStudents.length>0 ? (active.length/myStudents.length)*100 : 0;
+  const ringAct = document.getElementById('ringActive');
+  const pctAct = setRing(ringAct, activePct, 'var(--blue)', 'rgba(96,165,250,.35)');
+  document.getElementById('ringActiveVal').textContent = pctAct+'%';
+  document.getElementById('ringActiveSub').textContent = active.length+' из '+myStudents.length+' учеников';
 }
 
 function weekdayInRu(d){ const names=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']; return names[d.getDay()]; }
@@ -2677,7 +2854,7 @@ function showPage(name){
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
   document.getElementById('page-'+name).classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-  const navMap={dashboard:'dashboard',schedule:'schedule',students:'students','student-detail':'students',finances:'finances',homework:'homework',progress:'progress',settings:'settings'};
+  const navMap={dashboard:'dashboard',schedule:'schedule',students:'students','student-detail':'students',finances:'finances',homework:'homework',analytics:'analytics',settings:'settings'};
   const navName=navMap[name];
   document.querySelectorAll('.nav-item').forEach(i=>{ if(i.getAttribute('data-page')===navName) i.classList.add('active'); });
   if(name==='dashboard') renderDashboard();
@@ -2685,7 +2862,7 @@ function showPage(name){
   if(name==='students') renderStudents();
   if(name==='finances') renderFinances();
   if(name==='homework') renderHomework();
-  if(name==='progress') renderProgress();
+  if(name==='analytics') renderAnalytics();
   if(name==='settings') renderSettingsPage();
   closeMobileSidebar();
   closeQuickMenuPicker();
@@ -2720,7 +2897,7 @@ const QUICK_MENU_SECTIONS = {
   students:   {icon:'🎓', label:'Ученики'},
   finances:   {icon:'💰', label:'Финансы'},
   homework:   {icon:'📝', label:'Задания'},
-  progress:   {icon:'📈', label:'Прогресс'},
+  analytics:  {icon:'📊', label:'Аналитика'},
   settings:   {icon:'⚙️', label:'Настройки'},
 };
 const QUICK_MENU_DEFAULT = ['dashboard','schedule','students','finances','settings'];
@@ -2744,7 +2921,7 @@ function renderBottomNav(){
   if(!host) return;
   const slots = getQuickMenu();
   const activePage = (document.querySelector('[id^="page-"]:not(.hidden)')||{}).id;
-  const navMap={'page-dashboard':'dashboard','page-schedule':'schedule','page-students':'students','page-student-detail':'students','page-finances':'finances','page-homework':'homework','page-progress':'progress','page-settings':'settings'};
+  const navMap={'page-dashboard':'dashboard','page-schedule':'schedule','page-students':'students','page-student-detail':'students','page-finances':'finances','page-homework':'homework','page-analytics':'analytics','page-settings':'settings'};
   const activeKey = navMap[activePage];
 
   let html = '';
@@ -3406,69 +3583,106 @@ function renderHomework(){
 }
 
 /* ============================================================
-   ПРОГРЕСС / АНАЛИТИКА (страница)
+   АНАЛИТИКА (страница) — воронка, удержание, лидерборд,
+   кольцевые навыки, сводка месяца, доход по месяцам
    ============================================================ */
-/* Общее "настроение" ученика по навыкам (red/yellow/green), выведенное из
-   среднего балла всех его смайликов — используется в "Топ прогресса"
-   вместо процентов. */
-function studentMood(studentId){
-  const p = studentProgress(studentId);
-  return moodOf(p);
-}
-const moodMeta = {
-  green:{emoji:'🟢', label:'Хорошо'},
-  yellow:{emoji:'🟡', label:'Средне'},
-  red:{emoji:'🔴', label:'Плохо'}
-};
-function renderProgress(){
-  const myStudents = studentsOfTeacher();
+function renderAnalytics(){
+  const myStudents = studentsOfTeacher();       // активные + на паузе + пробные (без "неактивных")
+  const allStudents = allStudentsOfTeacher();   // вообще все, включая неактивных — для воронки/удержания
   const now = new Date();
 
-  // ---- Финансовый отчёт (перенесён из раздела "Финансы") ----
-  document.getElementById('anFinMonthLabel').textContent = MN[now.getMonth()]+' '+now.getFullYear();
-  const myStudentIds = new Set(myStudents.map(s=>s.id));
-  const {paid} = monthIncome(now.getFullYear(), now.getMonth());
-  document.getElementById('anFinPaid').textContent = money(paid);
-  document.getElementById('anFinPaidDelta').textContent = 'за '+MN[now.getMonth()].toLowerCase();
+  /* ---------- Сводная строка-«пилюли» ---------- */
+  const progressValues = myStudents.map(s=>studentProgress(s.id)).filter(v=>v>0);
+  const avgProgress = progressValues.length ? Math.round(progressValues.reduce((a,b)=>a+b,0)/progressValues.length) : 0;
+  const yearNow = yearIncomeSeries(now.getFullYear()).reduce((a,m)=>a+m.paid,0);
+  const totalDebtAll = allStudents.reduce((a,s)=>a+studentDebt(s.id),0);
+  document.getElementById('anPillStudents').textContent = myStudents.length;
+  document.getElementById('anPillProgress').textContent = avgProgress+'%';
+  document.getElementById('anPillIncome').textContent = money(yearNow);
+  document.getElementById('anPillDebt').textContent = money(totalDebtAll);
 
-  let pendingValue=0, pendingCount=0;
-  DB.subscriptions.forEach(su=>{
-    if(!myStudentIds.has(su.studentId) || !su.active) return;
-    const left = su.totalLessons-su.usedLessons;
-    if(left>0){ pendingValue += left*su.pricePerLesson; pendingCount++; }
-  });
-  document.getElementById('anFinPending').textContent = money(pendingValue);
-  document.getElementById('anFinPendingSub').textContent = pendingCount+' '+(pendingCount===1?'абонемент':'абонемента');
+  /* ---------- Воронка учеников ---------- */
+  const fTotal = allStudents.length;
+  const fPastTrial = allStudents.filter(s=>s.status!=='trial').length;
+  const fActive = allStudents.filter(s=>s.status==='active').length;
+  const fLoyal = allStudents.filter(s=>s.status==='active' && studentDebt(s.id)<=0).length;
+  const funnelStages = [
+    {label:'Всего учеников', val:fTotal, grad:'linear-gradient(90deg,#7c3aed,#a78bfa)'},
+    {label:'Прошли пробный урок', val:fPastTrial, grad:'linear-gradient(90deg,#a78bfa,#60a5fa)'},
+    {label:'Активно занимаются', val:fActive, grad:'linear-gradient(90deg,#60a5fa,#34d399)'},
+    {label:'Постоянные без долгов', val:fLoyal, grad:'linear-gradient(90deg,#34d399,#f472b6)'},
+  ];
+  const fMax = Math.max(fTotal,1);
+  document.getElementById('studentFunnelBox').innerHTML = funnelStages.map(st=>{
+    const w = Math.max(Math.round(st.val/fMax*100), st.val>0?12:4);
+    return '<div class="funnel-row"><div class="funnel-label">'+st.label+'</div>'
+      +'<div class="funnel-bar-wrap"><div class="funnel-bar" style="width:'+w+'%;background:'+st.grad+'">'+(w>=22?st.val:'')+'</div></div>'
+      +'<div class="funnel-count">'+(w<22?st.val:'')+'</div></div>';
+  }).join('') || '<div class="empty-state">Нет данных</div>';
 
-  let totalDebt=0; const debtStudents=new Set();
-  myStudentIds.forEach(id=>{ const d=studentDebt(id); if(d>0){ totalDebt+=d; debtStudents.add(id); } });
-  document.getElementById('anFinDebt').textContent = money(totalDebt);
-  document.getElementById('anFinDebtCount').textContent = debtStudents.size+' учеников';
+  /* ---------- Удержание учеников (донат) ---------- */
+  const activeAllCnt = allStudents.filter(s=>s.status==='active').length;
+  const retentionPct = allStudents.length ? Math.round(activeAllCnt/allStudents.length*100) : 0;
+  const donutEl = document.getElementById('retentionDonut');
+  donutEl.style.setProperty('--d-p1', retentionPct);
+  donutEl.style.setProperty('--d-c1', 'var(--accent)');
+  donutEl.style.setProperty('--d-c2', 'var(--bg3)');
+  document.getElementById('retentionPct').textContent = retentionPct+'%';
 
-  // ---- Топ прогресса: считаем по смайликам из раздела "Навыки" ----
+  /* ---------- Лидерборд прогресса ---------- */
+  const rankColors = ['r1','r2','r3','r4','r4'];
+  const ranked = myStudents.map(s=>({s, p:studentProgress(s.id)})).sort((a,b)=>b.p-a.p).slice(0,5);
+  document.getElementById('topProgressBox').innerHTML = ranked.length ? ranked.map((r,i)=>
+    '<div class="leader-row" onclick="openStudent(studentById(\''+r.s.id+'\'))">'
+    +'<div class="leader-rank '+rankColors[i]+'">'+(i+1)+'</div>'
+    +'<div class="student-avatar" style="width:30px;height:30px;font-size:11px;background:'+r.s.color+'">'+r.s.initials+'</div>'
+    +'<div class="leader-name"><div class="leader-name-txt">'+escapeHTML(r.s.name)+'</div>'
+    +'<div class="leader-bar-wrap"><div class="leader-bar-fill" style="width:'+r.p+'%;background:var(--accent)"></div></div></div>'
+    +'<div class="leader-pct">'+r.p+'%</div></div>'
+  ).join('') : '<div class="empty-state">Нет учеников</div>';
+
+  /* ---------- Средний уровень навыков — кольца ---------- */
   const skillLabels = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма'};
-  const ranked = myStudents.map(s=>({s, p:studentProgress(s.id), mood:studentMood(s.id)})).sort((a,b)=>b.p-a.p).slice(0,4);
-  document.getElementById('topProgressBox').innerHTML = ranked.length ? ranked.map(r=>{
-    const m = moodMeta[r.mood];
-    return '<div class="finance-row" style="background:var(--bg3);cursor:pointer" onclick="openStudent(studentById(\''+r.s.id+'\'))"><div class="student-avatar" style="background:'+r.s.color+';width:32px;height:32px;font-size:12px">'+r.s.initials+'</div><div class="finance-name"><div>'+escapeHTML(r.s.name)+'</div><div class="finance-sub">'+m.emoji+' '+m.label+' по навыкам</div></div><span style="font-size:20px">'+m.emoji+'</span></div>';
-  }).join('') : '<div class="empty-state">Нет учеников</div>';
+  const skillColors = {breath:'var(--green)',intonation:'var(--accent)',rhythm:'var(--pink)'};
+  const avg = {breath:0,intonation:0,rhythm:0};
+  let n=0;
+  myStudents.forEach(s=>{ if(!s.skills) return; n++; Object.keys(avg).forEach(k=> avg[k]+= moodScore(moodOf(s.skills[k])) ); });
+  if(n>0) Object.keys(avg).forEach(k=> avg[k]=Math.round(avg[k]/n));
+  document.getElementById('avgSkillsBox').innerHTML = Object.keys(skillLabels).map(k=>
+    '<div class="skill-ring-item"><div class="skill-ring" style="--sk-pct:'+avg[k]+';--sk-color:'+skillColors[k]+'"><span class="skill-ring-val">'+avg[k]+'%</span></div><div class="skill-ring-label">'+skillLabels[k]+'</div></div>'
+  ).join('') || '<div class="empty-state">Нет данных</div>';
 
-  // ---- Требуют внимания: реальные сигналы, а не долги (они и так видны в "Финансах") ----
+  /* ---------- Требуют внимания (без изменений в логике) ---------- */
   const attention = [];
   myStudents.forEach(s=>{
     const todo = homeworkOfStudent(s.id).filter(h=>h.status==='todo').length;
     const noshows = lessonsOfStudent(s.id).filter(l=>l.status==='noshow').length;
-    const skills = s.skills || {};
-    const redSkills = Object.keys(skills).filter(k=>moodOf(skills[k])==='red');
+    const debt = studentDebt(s.id);
     if(todo>=2) attention.push({s, text:'Не сдаёт ДЗ ('+todo+' заданий)', cls:'red'});
-    else if(redSkills.length) attention.push({s, text:'Слабый навык: '+redSkills.map(k=>skillLabels[k]||k).join(', ')+' 🔴', cls:'red'});
-    else if(noshows>=2) attention.push({s, text:'Пропустил '+noshows+' урока подряд без предупреждения', cls:'amber'});
+    else if(noshows>=2) attention.push({s, text:'Пропустил '+noshows+' урока подряд', cls:'amber'});
+    else if(debt>0) attention.push({s, text:'Долг '+money(debt), cls:'amber'});
   });
   document.getElementById('attentionBox').innerHTML = attention.length ? attention.slice(0,5).map(a=>
     '<div style="padding:10px;background:var(--'+a.cls+'-bg);border-radius:8px;margin-bottom:8px;border-left:3px solid var(--'+a.cls+');cursor:pointer" onclick="openStudent(studentById(\''+a.s.id+'\'))"><div style="font-size:12px;font-weight:500">'+escapeHTML(a.s.name)+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">'+a.text+'</div></div>'
   ).join('') : '<div class="empty-state">Все ученики в порядке 🎉</div>';
 
-  renderIncomeChart();
+  /* ---------- Сводка месяца ---------- */
+  const monthLessonsAll = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && l.status!=='cancelled'; });
+  const monthDone = monthLessonsAll.filter(l=>l.status==='done').length;
+  const newStudentsMonth = allStudents.filter(s=>{ const d=parseISO(s.createdAt); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }).length;
+  const hwTodoAll = myStudents.reduce((a,s)=>a+homeworkOfStudent(s.id).filter(h=>h.status==='todo').length,0);
+  const summaryRows = [
+    {icon:'📅', label:'Уроков в этом месяце', val:monthLessonsAll.length},
+    {icon:'✅', label:'Проведено уроков', val:monthDone},
+    {icon:'🆕', label:'Новых учеников', val:newStudentsMonth},
+    {icon:'📝', label:'Не сдано домашних заданий', val:hwTodoAll},
+  ];
+  document.getElementById('monthSummaryBox').innerHTML = summaryRows.map(r=>
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
+    +'<span style="font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:8px"><span>'+r.icon+'</span>'+r.label+'</span>'
+    +'<b style="font-size:14px;color:var(--text)">'+r.val+'</b></div>'
+  ).join('');
+
   renderYearChart();
 }
 
@@ -3482,20 +3696,15 @@ function renderYearChart(){
   const chart = document.getElementById('yearChart');
   chart.innerHTML='';
   let yearTotal=0, yearDebt=0, doneCount=0;
-  // Высота столбца задаётся в пикселях (как в рабочем графике "Доходы за
-  // 6 месяцев"), а не в процентах — контейнер .year-chart не растягивает
-  // .bar-col по высоте (align-items:flex-end), поэтому height:% давал
-  // невидимые нулевые столбцы.
-  const maxBarPx = 92;
   series.forEach((m,i)=>{
     yearTotal += m.paid; yearDebt += m.debt;
-    const h = Math.max(Math.round(m.paid/mx*maxBarPx), m.paid>0?3:1);
+    const h = Math.max(Math.round(m.paid/mx*100), m.paid>0?3:1);
     const isCur = (analyticsYear===now.getFullYear() && i===now.getMonth());
     const col = document.createElement('div');
     col.className='bar-col';
     col.title = MN[i]+': '+money(m.paid);
     col.onclick = ()=>openMonthInfo(i, m.paid, m.debt);
-    col.innerHTML = '<div class="bar-val" style="opacity:'+(m.paid>0?1:0)+'">'+Math.round(m.paid/1000)+'k</div><div class="bar'+(isCur?' cur':'')+'" style="height:'+h+'px"></div>';
+    col.innerHTML = '<div class="bar-val" style="opacity:'+(m.paid>0?1:0)+'">'+Math.round(m.paid/1000)+'k</div><div class="bar'+(isCur?' cur':'')+'" style="height:'+h+'%"></div>';
     chart.appendChild(col);
   });
   document.getElementById('yearLabels').innerHTML = MNSh.map(m=>'<div style="font-size:9px;color:var(--text3);flex:1;text-align:center">'+m+'</div>').join('');
@@ -4479,7 +4688,7 @@ function sendWhatsAppForStudent(studentId){
    ============================================================ */
 function refreshAllVisible(){
   renderSidebar();
-  const pages=['dashboard','schedule','students','student-detail','finances','homework','progress'];
+  const pages=['dashboard','schedule','students','student-detail','finances','homework','analytics'];
   for(const p of pages){
     const el = document.getElementById('page-'+p);
     if(el && !el.classList.contains('hidden')){
@@ -4489,7 +4698,7 @@ function refreshAllVisible(){
       else if(p==='student-detail') renderStudentDetailAll();
       else if(p==='finances') renderFinances();
       else if(p==='homework') renderHomework();
-      else if(p==='progress') renderProgress();
+      else if(p==='analytics') renderAnalytics();
       break;
     }
   }
