@@ -3903,10 +3903,7 @@ function buildSubscriptionModal(ctx){
       +'<input class="input" id="f-sub-total" type="number" min="1" value="8" oninput="recalcSubTotal()">'
     +'</div>'
     +'<div class="input-group"><label class="input-label">Стоимость одного занятия (₽)</label>'
-      +'<div style="display:flex;gap:6px">'
-        +'<input class="input" id="f-sub-price" type="number" min="0" value="'+savedPrice+'" oninput="recalcSubTotal()" style="flex:1">'
-        +'<button type="button" class="btn btn-ghost" style="white-space:nowrap" onclick="saveDefaultLessonPrice()" title="Запомнить эту сумму как цену по умолчанию для новых абонементов">Сохранить</button>'
-      +'</div>'
+      +'<input class="input" id="f-sub-price" type="number" min="0" value="'+savedPrice+'" oninput="recalcSubTotal()" onchange="saveDefaultLessonPrice()">'
     +'</div>'
     +'<div class="input-group"><label class="input-label">Дата покупки</label><input class="input" id="f-sub-date" type="date" value="'+todayISO()+'"></div>'
     +'<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:8px;padding:10px 12px;margin:4px 0 8px">'
@@ -3929,11 +3926,10 @@ function recalcSubTotal(){
 // и не придётся вводить её каждый раз заново.
 function saveDefaultLessonPrice(){
   const price = Number(document.getElementById('f-sub-price').value)||0;
-  if(price<=0){ toast('Укажите сумму больше нуля','red'); return; }
+  if(price<=0) return;
   DB.settings = DB.settings || {};
   DB.settings.defaultLessonPrice = price;
   saveDB();
-  toast('Сумма сохранена как значение по умолчанию ✓');
 }
 function saveSubscriptionForm(){
   const studentId = document.getElementById('f-sub-student').value;
