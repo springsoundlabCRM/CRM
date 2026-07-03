@@ -1021,72 +1021,116 @@
 
   /* --- KPI-кольца (мини-донаты с процентом внутри) --- */
   .kpi-ring-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
-  .kpi-ring-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;align-items:center;gap:14px;transition:border-color .15s}
-  .kpi-ring-card:hover{border-color:var(--border2)}
-  .kpi-ring{position:relative;width:76px;height:76px;flex-shrink:0;border-radius:50%;
-    background:conic-gradient(var(--ring-color,var(--accent)) calc(var(--ring-pct,0)*1%), var(--bg3) 0);
-    display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px var(--ring-glow,transparent))}
-  .kpi-ring::before{content:'';position:absolute;inset:7px;border-radius:50%;background:var(--card)}
-  .kpi-ring-val{position:relative;z-index:1;font-size:16px;font-weight:700;color:var(--text)}
-  .kpi-ring-info{min-width:0}
-  .kpi-ring-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+  .kpi-ring-card{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--card),var(--card2));
+    border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;align-items:center;gap:14px;
+    transition:transform .18s,box-shadow .18s,border-color .18s}
+  .kpi-ring-card::after{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;
+    background:var(--ring-color,var(--accent));opacity:.13;filter:blur(6px)}
+  .kpi-ring-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 10px 26px -14px rgba(0,0,0,.55)}
+  .kpi-ring{position:relative;width:78px;height:78px;flex-shrink:0;border-radius:50%;
+    background:conic-gradient(from -90deg,var(--ring-color,var(--accent)) calc(var(--ring-pct,0)*1%), var(--bg3) 0);
+    display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 12px var(--ring-glow,transparent))}
+  .kpi-ring::before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--card2);box-shadow:inset 0 0 0 1px var(--border)}
+  .kpi-ring-val{position:relative;z-index:1;font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+  .kpi-ring-info{min-width:0;position:relative}
+  .kpi-ring-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
   .kpi-ring-sub{font-size:10.5px;color:var(--text3);line-height:1.4}
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 18px}
-  .pill-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;min-width:118px;flex:1}
-  .pill-stat b{display:block;font-size:17px;font-weight:700;color:var(--text);margin-top:3px;letter-spacing:0;text-transform:none}
+  .pill-stat{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;
+    background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:14px;
+    padding:11px 16px;min-width:150px;flex:1}
+  .pill-stat-chip{width:34px;height:34px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:15px;background:var(--chip-grad,linear-gradient(135deg,var(--accent2),var(--accent)));
+    box-shadow:0 5px 14px -4px var(--chip-glow,var(--accent-glow))}
+  .pill-stat-txt{min-width:0}
+  .pill-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+  .pill-stat b{display:block;font-size:17px;font-weight:800;color:var(--text);margin-top:2px;letter-spacing:-.2px}
 
   /* --- Карточка аналитики (обёртка) --- */
-  .an-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px;display:flex;flex-direction:column}
-  .an-card-title{font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .an-card{position:relative;overflow:hidden;background:linear-gradient(165deg,var(--card),var(--card2));
+    border:1px solid var(--border);border-radius:var(--r2);padding:18px 18px 16px;display:flex;flex-direction:column;
+    box-shadow:0 10px 28px -18px rgba(0,0,0,.6);transition:border-color .18s,transform .18s}
+  .an-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:var(--card-accent,linear-gradient(90deg,var(--accent),var(--pink)));opacity:.9}
+  .an-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+  .an-card-title{font-size:11.5px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;
+    margin-bottom:16px;display:flex;align-items:center;gap:9px}
+  .an-icon-chip{width:24px;height:24px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:12px;background:var(--chip-grad,linear-gradient(135deg,var(--accent2),var(--accent)));
+    box-shadow:0 4px 10px -3px var(--chip-glow,var(--accent-glow))}
 
-  /* --- Воронка учеников --- */
-  .funnel-wrap{display:flex;flex-direction:column;gap:10px;flex:1;justify-content:center}
+  /* --- Воронка учеников (настоящая трапеция, как в конверсионных воронках) --- */
+  .funnel-wrap{display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center}
   .funnel-row{display:flex;align-items:center;gap:10px}
   .funnel-label{width:104px;flex-shrink:0;font-size:11.5px;color:var(--text2);line-height:1.25}
-  .funnel-bar-wrap{flex:1;height:30px;background:var(--bg3);border-radius:8px;overflow:hidden}
-  .funnel-bar{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;color:#fff;font-size:11.5px;font-weight:700;white-space:nowrap;transition:width .5s ease}
-  .funnel-count{width:34px;flex-shrink:0;text-align:right;font-size:11px;font-weight:600;color:var(--text3)}
+  .funnel-shape-wrap{flex:1;display:flex;justify-content:center}
+  .funnel-shape{height:34px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;
+    transition:width .5s ease,clip-path .5s ease;box-shadow:0 6px 16px -6px rgba(0,0,0,.5);letter-spacing:.2px}
+  .funnel-count{width:74px;flex-shrink:0;text-align:right;font-size:11px;font-weight:700;color:var(--text2)}
+  .funnel-count small{display:block;font-size:9.5px;font-weight:500;color:var(--text3)}
 
-  /* --- Донат-диаграмма (удержание и т.п.) --- */
-  .donut-wrap{position:relative;width:150px;height:150px;margin:4px auto 6px;border-radius:50%;
-    background:conic-gradient(var(--d-c1,var(--accent)) 0 calc(var(--d-p1,0)*1%), var(--d-c2,var(--bg3)) 0 100%)}
-  .donut-wrap::before{content:'';position:absolute;inset:16px;border-radius:50%;background:var(--card)}
+  /* --- Донат-диаграмма (удержание и т.п.) с неоновым свечением --- */
+  .donut-wrap{position:relative;width:148px;height:148px;border-radius:50%;flex-shrink:0;
+    background:conic-gradient(from -90deg,var(--d-c1,var(--accent)) 0 calc(var(--d-p1,0)*1%), var(--d-c2,var(--bg3)) 0 100%);
+    filter:drop-shadow(0 0 16px var(--d-glow,var(--accent-glow)))}
+  .donut-wrap::before{content:'';position:absolute;inset:15px;border-radius:50%;background:var(--card2);box-shadow:inset 0 0 0 1px var(--border)}
   .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .donut-center b{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.5px}
-  .donut-center span{font-size:10px;color:var(--text3);margin-top:2px;text-align:center;max-width:90px}
-  .donut-legend{display:flex;justify-content:center;gap:16px;margin-top:auto;font-size:11px;color:var(--text2)}
+  .donut-center b{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-1px;
+    background:linear-gradient(135deg,var(--text),var(--d-c1,var(--accent)));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .donut-center span{font-size:9.5px;color:var(--text3);margin-top:3px;text-align:center;max-width:90px}
+  .donut-legend{display:flex;justify-content:center;gap:16px;margin-top:14px;font-size:11px;color:var(--text2)}
   .donut-legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+  .mini-ring{position:relative;width:56px;height:56px;border-radius:50%;
+    background:conic-gradient(from -90deg,var(--mr-color,var(--amber)) calc(var(--mr-pct,0)*1%), var(--bg3) 0);
+    display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 8px var(--mr-glow,transparent))}
+  .mini-ring::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--card2);box-shadow:inset 0 0 0 1px var(--border)}
+  .mini-ring-val{position:relative;z-index:1;font-size:12px;font-weight:800;color:var(--text)}
 
   /* --- Лидерборд учеников --- */
-  .leader-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;margin-bottom:6px;background:var(--bg3);cursor:pointer;transition:background .15s,transform .15s}
-  .leader-row:hover{background:var(--card2);transform:translateX(2px)}
-  .leader-rank{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:#fff}
+  .leader-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;margin-bottom:7px;
+    background:var(--bg3);cursor:pointer;transition:background .15s,transform .15s;border:1px solid transparent}
+  .leader-row:hover{background:var(--card2);transform:translateX(3px);border-color:var(--border2)}
+  .leader-rank{width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:800;flex-shrink:0;color:#fff;box-shadow:0 3px 8px -2px rgba(0,0,0,.5)}
   .leader-rank.r1{background:linear-gradient(135deg,#fde047,#f59e0b)}
   .leader-rank.r2{background:linear-gradient(135deg,#e2e8f0,#94a3b8)}
   .leader-rank.r3{background:linear-gradient(135deg,#fb923c,#c2703f)}
   .leader-rank.r4{background:var(--bg2);color:var(--text3);border:1px solid var(--border2)}
+  .leader-avatar-wrap{position:relative;flex-shrink:0}
+  .leader-avatar-wrap .student-avatar{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--lb-ring,var(--accent))}
   .leader-name{flex:1;min-width:0}
-  .leader-name-txt{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .leader-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
-  .leader-bar-fill{height:100%;border-radius:3px}
-  .leader-pct{font-size:12px;font-weight:700;color:var(--text);flex-shrink:0}
+  .leader-name-txt{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .leader-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:5px}
+  .leader-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+  .leader-pct{font-size:12px;font-weight:800;color:var(--text);flex-shrink:0}
 
   /* --- Кольцевые шкалы навыков (вместо линейных полосок) --- */
   .skill-ring-row{display:flex;justify-content:space-around;gap:10px;flex:1;align-items:center}
   .skill-ring-item{display:flex;flex-direction:column;align-items:center;gap:9px}
-  .skill-ring{position:relative;width:64px;height:64px;border-radius:50%;
-    background:conic-gradient(var(--sk-color,var(--accent)) calc(var(--sk-pct,0)*1%), var(--bg3) 0);
-    display:flex;align-items:center;justify-content:center}
-  .skill-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--card)}
-  .skill-ring-val{position:relative;z-index:1;font-size:13px;font-weight:700;color:var(--text)}
+  .skill-ring{position:relative;width:66px;height:66px;border-radius:50%;
+    background:conic-gradient(from -90deg,var(--sk-color,var(--accent)) calc(var(--sk-pct,0)*1%), var(--bg3) 0);
+    display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 8px var(--sk-glow,transparent))}
+  .skill-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--card2);box-shadow:inset 0 0 0 1px var(--border)}
+  .skill-ring-val{position:relative;z-index:1;font-size:13px;font-weight:800;color:var(--text)}
   .skill-ring-label{font-size:10.5px;color:var(--text3);text-align:center;max-width:76px}
 
-  /* --- Градиентные бары для графиков доходов (заменяют плоский цвет) --- */
-  .bar{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:5px 5px 2px 2px;box-shadow:0 0 10px var(--accent-glow)}
+  /* --- Градиентные бары для графиков доходов + пунктирный тренд поверх --- */
+  .bar{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:6px 6px 2px 2px;box-shadow:0 0 12px var(--accent-glow)}
   .year-chart .bar{background:linear-gradient(180deg,var(--accent2),var(--accent))}
-  .year-chart .bar.cur{background:linear-gradient(180deg,#10b981,var(--green));box-shadow:0 0 12px var(--green-glow)}
+  .year-chart .bar.cur{background:linear-gradient(180deg,#10b981,var(--green));box-shadow:0 0 14px var(--green-glow)}
+  .mini-chart,.year-chart{position:relative}
+  .trend-overlay{position:absolute;inset:0;pointer-events:none}
+
+  /* --- Цветные акценты по типу карточки в аналитике --- */
+  #funnelCard::before{background:linear-gradient(90deg,#7c3aed,#60a5fa)}
+  #retentionCard::before{background:linear-gradient(90deg,#34d399,#7c3aed)}
+  #leaderCard::before{background:linear-gradient(90deg,#f59e0b,#f472b6)}
+  #skillsCard::before{background:linear-gradient(90deg,#34d399,#60a5fa)}
+  #attentionCard::before{background:linear-gradient(90deg,#f87171,#fbbf24)}
+  #summaryCard::before{background:linear-gradient(90deg,#60a5fa,#22d3ee)}
+  #incomeYearCard::before{background:linear-gradient(90deg,#a78bfa,#34d399)}
 
   @media (max-width:880px){
     .kpi-ring-grid{grid-template-columns:1fr 1fr;gap:10px}
@@ -1100,6 +1144,7 @@
     .an-row-3 .an-card:first-child{grid-column:auto}
     .pill-stat{min-width:44%}
     .donut-wrap{width:130px;height:130px}
+    .funnel-label{width:82px;font-size:10.5px}
   }
 </style>
 <script type="module">
@@ -1588,47 +1633,53 @@
       <div class="content">
 
         <div class="pill-row" id="analyticsPillRow">
-          <div class="pill-stat">Учеников<b id="anPillStudents">0</b></div>
-          <div class="pill-stat">Средний прогресс<b id="anPillProgress">0%</b></div>
-          <div class="pill-stat">Доход за год<b id="anPillIncome">0₽</b></div>
-          <div class="pill-stat">Долги всего<b id="anPillDebt" style="color:var(--red)">0₽</b></div>
+          <div class="pill-stat"><div class="pill-stat-chip" style="--chip-grad:linear-gradient(135deg,#a78bfa,#7c3aed);--chip-glow:var(--accent-glow)">🎓</div><div class="pill-stat-txt"><div class="pill-stat-label">Учеников</div><b id="anPillStudents">0</b></div></div>
+          <div class="pill-stat"><div class="pill-stat-chip" style="--chip-grad:linear-gradient(135deg,#60a5fa,#2563eb);--chip-glow:rgba(96,165,250,.4)">📈</div><div class="pill-stat-txt"><div class="pill-stat-label">Средний прогресс</div><b id="anPillProgress">0%</b></div></div>
+          <div class="pill-stat"><div class="pill-stat-chip" style="--chip-grad:linear-gradient(135deg,#34d399,#059669);--chip-glow:var(--green-glow)">💵</div><div class="pill-stat-txt"><div class="pill-stat-label">Доход за год</div><b id="anPillIncome">0₽</b></div></div>
+          <div class="pill-stat"><div class="pill-stat-chip" style="--chip-grad:linear-gradient(135deg,#f87171,#dc2626);--chip-glow:var(--red-glow)">⚠️</div><div class="pill-stat-txt"><div class="pill-stat-label">Долги всего</div><b id="anPillDebt" style="color:var(--red)">0₽</b></div></div>
         </div>
 
         <div class="an-row-3" style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:16px;margin-bottom:16px">
-          <div class="an-card">
-            <div class="an-card-title">🔻 Воронка учеников</div>
+          <div class="an-card" id="funnelCard">
+            <div class="an-card-title"><span class="an-icon-chip" style="--chip-grad:linear-gradient(135deg,#a78bfa,#60a5fa)">🔻</span> Воронка учеников</div>
             <div class="funnel-wrap" id="studentFunnelBox"></div>
           </div>
-          <div class="an-card" style="align-items:center">
-            <div class="an-card-title" style="align-self:flex-start">🎯 Удержание учеников</div>
-            <div class="donut-wrap" id="retentionDonut"><div class="donut-center"><b id="retentionPct">0%</b><span>активных от всех</span></div></div>
+          <div class="an-card" id="retentionCard" style="align-items:center">
+            <div class="an-card-title" style="align-self:flex-start"><span class="an-icon-chip" style="--chip-grad:linear-gradient(135deg,#34d399,#7c3aed)">🎯</span> Удержание учеников</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex:1">
+              <div class="donut-wrap" id="retentionDonut"><div class="donut-center"><b id="retentionPct">0%</b><span>активных от всех</span></div></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div class="mini-ring" id="debtRiskRing"><span class="mini-ring-val" id="debtRiskVal">0%</span></div>
+                <div style="font-size:9.5px;color:var(--text3);text-align:center;max-width:64px">активных с долгом</div>
+              </div>
+            </div>
             <div class="donut-legend">
               <span><span class="donut-legend-dot" style="background:var(--accent)"></span>Активные</span>
               <span><span class="donut-legend-dot" style="background:var(--bg3);border:1px solid var(--border2)"></span>Пауза / ушли</span>
             </div>
           </div>
-          <div class="an-card">
-            <div class="an-card-title">🏆 Лидерборд прогресса</div>
+          <div class="an-card" id="leaderCard">
+            <div class="an-card-title"><span class="an-icon-chip" style="--chip-grad:linear-gradient(135deg,#fbbf24,#f472b6)">🏆</span> Лидерборд прогресса</div>
             <div id="topProgressBox"></div>
           </div>
         </div>
 
         <div class="an-row-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
-          <div class="an-card">
-            <div class="an-card-title">📊 Средний уровень навыков</div>
+          <div class="an-card" id="skillsCard">
+            <div class="an-card-title"><span class="an-icon-chip" style="--chip-grad:linear-gradient(135deg,#34d399,#60a5fa)">📊</span> Средний уровень навыков</div>
             <div class="skill-ring-row" id="avgSkillsBox"></div>
           </div>
-          <div class="an-card">
-            <div class="an-card-title">⚠️ Требуют внимания</div>
+          <div class="an-card" id="attentionCard">
+            <div class="an-card-title"><span class="an-icon-chip" style="--chip-grad:linear-gradient(135deg,#f87171,#fbbf24)">⚠️</span> Требуют внимания</div>
             <div id="attentionBox"></div>
           </div>
-          <div class="an-card">
-            <div class="an-card-title">📌 Сводка месяца</div>
-            <div id="monthSummaryBox" style="display:flex;flex-direction:column;gap:10px;justify-content:center;flex:1"></div>
+          <div class="an-card" id="summaryCard">
+            <div class="an-card-title"><span class="an-icon-chip" style="--chip-grad:linear-gradient(135deg,#60a5fa,#22d3ee)">📌</span> Сводка месяца</div>
+            <div id="monthSummaryBox" style="display:flex;flex-direction:column;gap:2px;justify-content:center;flex:1"></div>
           </div>
         </div>
 
-        <div class="an-card">
+        <div class="an-card" id="incomeYearCard">
           <div class="detail-title" style="margin-bottom:6px">
             <span class="detail-title-label">💵 Доход по месяцам — <span id="yearLabel">2026</span></span>
             <span style="display:flex;gap:6px">
@@ -2594,6 +2645,8 @@ function setRing(el, pct, colorVar, glowVar){
   el.style.setProperty('--ring-pct', pct);
   el.style.setProperty('--ring-color', colorVar);
   if(glowVar) el.style.setProperty('--ring-glow', glowVar);
+  const card = el.closest('.kpi-ring-card');
+  if(card){ card.style.setProperty('--ring-color', colorVar); }
   return pct;
 }
 
@@ -2661,6 +2714,44 @@ function renderBirthdays(){
   }).join('');
 }
 
+/* Рисует поверх столбиков графика тонкую пунктирную линию тренда с точками —
+   такой приём часто используют современные CRM/BI-дашборды поверх bar chart'ов */
+function drawTrendOverlay(container, values){
+  if(!container) return;
+  const old = container.querySelector('svg.trend-overlay'); if(old) old.remove();
+  const w = container.clientWidth, h = container.clientHeight;
+  if(!w || !h || !values.length) return;
+  const mx = Math.max(...values, 1);
+  const n = values.length;
+  const pad = h*0.14;
+  const pts = values.map((v,i)=>{
+    const x = (i+0.5)/n*w;
+    const y = h-pad - (v/mx)*(h-pad*1.6);
+    return [Math.round(x*10)/10, Math.round(y*10)/10];
+  });
+  const svgNS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(svgNS,'svg');
+  svg.setAttribute('class','trend-overlay');
+  svg.setAttribute('width', w); svg.setAttribute('height', h);
+  svg.style.cssText='position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:1';
+  const poly=document.createElementNS(svgNS,'polyline');
+  poly.setAttribute('points', pts.map(p=>p.join(',')).join(' '));
+  poly.setAttribute('fill','none');
+  poly.setAttribute('stroke','rgba(255,255,255,.65)');
+  poly.setAttribute('stroke-width','1.5');
+  poly.setAttribute('stroke-dasharray','1,4');
+  poly.setAttribute('stroke-linecap','round');
+  svg.appendChild(poly);
+  pts.forEach(p=>{
+    const c=document.createElementNS(svgNS,'circle');
+    c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r','2.6');
+    c.setAttribute('fill','#fff');
+    c.setAttribute('stroke','var(--accent)'); c.setAttribute('stroke-width','1.2');
+    svg.appendChild(c);
+  });
+  container.appendChild(svg);
+}
+
 function renderIncomeChart(){
   const data = last6MonthsIncome();
   const c=document.getElementById('income-chart'); const l=document.getElementById('income-labels');
@@ -2679,6 +2770,7 @@ function renderIncomeChart(){
   const yoy=document.getElementById('incomeYoY');
   if(first>0){ const pct=Math.round((last-first)/first*100); yoy.textContent=(pct>=0?'+':'')+pct+'% за период'; yoy.className='tag '+(pct>=0?'tag-green':'tag-red'); }
   else { yoy.textContent='—'; yoy.className='tag tag-grey'; }
+  requestAnimationFrame(()=> drawTrendOverlay(c, data.map(d=>d.value)));
 }
 
 // При показе страницы расписания инициализируем календарь
@@ -3601,7 +3693,7 @@ function renderAnalytics(){
   document.getElementById('anPillIncome').textContent = money(yearNow);
   document.getElementById('anPillDebt').textContent = money(totalDebtAll);
 
-  /* ---------- Воронка учеников ---------- */
+  /* ---------- Воронка учеников (трапеции) ---------- */
   const fTotal = allStudents.length;
   const fPastTrial = allStudents.filter(s=>s.status!=='trial').length;
   const fActive = allStudents.filter(s=>s.status==='active').length;
@@ -3613,43 +3705,56 @@ function renderAnalytics(){
     {label:'Постоянные без долгов', val:fLoyal, grad:'linear-gradient(90deg,#34d399,#f472b6)'},
   ];
   const fMax = Math.max(fTotal,1);
-  document.getElementById('studentFunnelBox').innerHTML = funnelStages.map(st=>{
-    const w = Math.max(Math.round(st.val/fMax*100), st.val>0?12:4);
+  document.getElementById('studentFunnelBox').innerHTML = funnelStages.map((st,i)=>{
+    const w = Math.max(Math.round(st.val/fMax*100), st.val>0?22:8);
+    const pct = fTotal>0 ? Math.round(st.val/fTotal*100) : 0;
     return '<div class="funnel-row"><div class="funnel-label">'+st.label+'</div>'
-      +'<div class="funnel-bar-wrap"><div class="funnel-bar" style="width:'+w+'%;background:'+st.grad+'">'+(w>=22?st.val:'')+'</div></div>'
-      +'<div class="funnel-count">'+(w<22?st.val:'')+'</div></div>';
+      +'<div class="funnel-shape-wrap"><div class="funnel-shape" style="width:'+w+'%;background:'+st.grad+';clip-path:polygon(6% 0%,94% 0%,100% 100%,0% 100%)">'+st.val+'</div></div>'
+      +'<div class="funnel-count">'+pct+'%<small>от старта</small></div></div>';
   }).join('') || '<div class="empty-state">Нет данных</div>';
 
-  /* ---------- Удержание учеников (донат) ---------- */
+  /* ---------- Удержание учеников (донат + мини-кольцо риска) ---------- */
   const activeAllCnt = allStudents.filter(s=>s.status==='active').length;
   const retentionPct = allStudents.length ? Math.round(activeAllCnt/allStudents.length*100) : 0;
   const donutEl = document.getElementById('retentionDonut');
   donutEl.style.setProperty('--d-p1', retentionPct);
   donutEl.style.setProperty('--d-c1', 'var(--accent)');
   donutEl.style.setProperty('--d-c2', 'var(--bg3)');
+  donutEl.style.setProperty('--d-glow', 'var(--accent-glow)');
   document.getElementById('retentionPct').textContent = retentionPct+'%';
+
+  const activeStudentsNow = allStudents.filter(s=>s.status==='active');
+  const debtRiskCnt = activeStudentsNow.filter(s=>studentDebt(s.id)>0).length;
+  const debtRiskPct = activeStudentsNow.length ? Math.round(debtRiskCnt/activeStudentsNow.length*100) : 0;
+  const debtRingEl = document.getElementById('debtRiskRing');
+  debtRingEl.style.setProperty('--mr-pct', debtRiskPct);
+  debtRingEl.style.setProperty('--mr-color', debtRiskPct>0 ? 'var(--amber)' : 'var(--green)');
+  debtRingEl.style.setProperty('--mr-glow', debtRiskPct>0 ? 'var(--amber-glow)' : 'var(--green-glow)');
+  document.getElementById('debtRiskVal').textContent = debtRiskPct+'%';
 
   /* ---------- Лидерборд прогресса ---------- */
   const rankColors = ['r1','r2','r3','r4','r4'];
+  const rankRingColors = ['#f59e0b','#94a3b8','#c2703f','var(--accent)','var(--accent)'];
   const ranked = myStudents.map(s=>({s, p:studentProgress(s.id)})).sort((a,b)=>b.p-a.p).slice(0,5);
   document.getElementById('topProgressBox').innerHTML = ranked.length ? ranked.map((r,i)=>
     '<div class="leader-row" onclick="openStudent(studentById(\''+r.s.id+'\'))">'
     +'<div class="leader-rank '+rankColors[i]+'">'+(i+1)+'</div>'
-    +'<div class="student-avatar" style="width:30px;height:30px;font-size:11px;background:'+r.s.color+'">'+r.s.initials+'</div>'
+    +'<div class="leader-avatar-wrap" style="--lb-ring:'+rankRingColors[i]+'"><div class="student-avatar" style="width:30px;height:30px;font-size:11px;background:'+r.s.color+'">'+r.s.initials+'</div></div>'
     +'<div class="leader-name"><div class="leader-name-txt">'+escapeHTML(r.s.name)+'</div>'
-    +'<div class="leader-bar-wrap"><div class="leader-bar-fill" style="width:'+r.p+'%;background:var(--accent)"></div></div></div>'
+    +'<div class="leader-bar-wrap"><div class="leader-bar-fill" style="width:'+r.p+'%"></div></div></div>'
     +'<div class="leader-pct">'+r.p+'%</div></div>'
   ).join('') : '<div class="empty-state">Нет учеников</div>';
 
   /* ---------- Средний уровень навыков — кольца ---------- */
   const skillLabels = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма'};
   const skillColors = {breath:'var(--green)',intonation:'var(--accent)',rhythm:'var(--pink)'};
+  const skillGlows = {breath:'var(--green-glow)',intonation:'var(--accent-glow)',rhythm:'rgba(244,114,182,.4)'};
   const avg = {breath:0,intonation:0,rhythm:0};
   let n=0;
   myStudents.forEach(s=>{ if(!s.skills) return; n++; Object.keys(avg).forEach(k=> avg[k]+= moodScore(moodOf(s.skills[k])) ); });
   if(n>0) Object.keys(avg).forEach(k=> avg[k]=Math.round(avg[k]/n));
   document.getElementById('avgSkillsBox').innerHTML = Object.keys(skillLabels).map(k=>
-    '<div class="skill-ring-item"><div class="skill-ring" style="--sk-pct:'+avg[k]+';--sk-color:'+skillColors[k]+'"><span class="skill-ring-val">'+avg[k]+'%</span></div><div class="skill-ring-label">'+skillLabels[k]+'</div></div>'
+    '<div class="skill-ring-item"><div class="skill-ring" style="--sk-pct:'+avg[k]+';--sk-color:'+skillColors[k]+';--sk-glow:'+skillGlows[k]+'"><span class="skill-ring-val">'+avg[k]+'%</span></div><div class="skill-ring-label">'+skillLabels[k]+'</div></div>'
   ).join('') || '<div class="empty-state">Нет данных</div>';
 
   /* ---------- Требуют внимания (без изменений в логике) ---------- */
@@ -3672,15 +3777,16 @@ function renderAnalytics(){
   const newStudentsMonth = allStudents.filter(s=>{ const d=parseISO(s.createdAt); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }).length;
   const hwTodoAll = myStudents.reduce((a,s)=>a+homeworkOfStudent(s.id).filter(h=>h.status==='todo').length,0);
   const summaryRows = [
-    {icon:'📅', label:'Уроков в этом месяце', val:monthLessonsAll.length},
-    {icon:'✅', label:'Проведено уроков', val:monthDone},
-    {icon:'🆕', label:'Новых учеников', val:newStudentsMonth},
-    {icon:'📝', label:'Не сдано домашних заданий', val:hwTodoAll},
+    {icon:'📅', label:'Уроков в этом месяце', val:monthLessonsAll.length, grad:'linear-gradient(135deg,#a78bfa,#7c3aed)'},
+    {icon:'✅', label:'Проведено уроков', val:monthDone, grad:'linear-gradient(135deg,#34d399,#059669)'},
+    {icon:'🆕', label:'Новых учеников', val:newStudentsMonth, grad:'linear-gradient(135deg,#60a5fa,#2563eb)'},
+    {icon:'📝', label:'Не сдано домашних заданий', val:hwTodoAll, grad:'linear-gradient(135deg,#f87171,#dc2626)'},
   ];
   document.getElementById('monthSummaryBox').innerHTML = summaryRows.map(r=>
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
-    +'<span style="font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:8px"><span>'+r.icon+'</span>'+r.label+'</span>'
-    +'<b style="font-size:14px;color:var(--text)">'+r.val+'</b></div>'
+    '<div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--border)">'
+    +'<div style="width:28px;height:28px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;background:'+r.grad+'">'+r.icon+'</div>'
+    +'<span style="font-size:11.5px;color:var(--text2);flex:1">'+r.label+'</span>'
+    +'<b style="font-size:15px;color:var(--text)">'+r.val+'</b></div>'
   ).join('');
 
   renderYearChart();
@@ -3712,6 +3818,7 @@ function renderYearChart(){
   document.getElementById('yearDebt').textContent = money(yearDebt);
   lessonsOfTeacher().forEach(l=>{ const d=parseISO(l.date); if(d && d.getFullYear()===analyticsYear && l.status==='done') doneCount++; });
   document.getElementById('yearAvg').textContent = doneCount>0 ? money(Math.round(yearTotal/doneCount)) : '0₽';
+  requestAnimationFrame(()=> drawTrendOverlay(chart, series.map(m=>m.paid)));
 }
 
 function openMonthInfo(idx, paid, debt){
@@ -5446,4 +5553,4 @@ async function initApp(prefetchedDbSnap){
 
 </script>
 </body>
-</html> 
+</html>
