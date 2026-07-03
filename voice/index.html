@@ -4247,8 +4247,27 @@ function buildDeleteLessonModal(ctx){
     +'<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:2px" onclick="closeModal()">Отмена</button>';
 }
 
+/* ---------- Подтверждение удаления обычного урока (без абонемента) ---------- */
+function buildDeleteLessonConfirmModal(ctx){
+  ctx = ctx||{};
+  const l = DB.lessons.find(x=>x.id===ctx.lessonId);
+  if(!l) return '<div class="modal-title">Урок не найден <button class="modal-close" onclick="closeModal()">×</button></div>';
+  const s = studentById(l.studentId);
+  return '<div class="modal-title">🗑 Удалить урок? <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
+      +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
+    +'</div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Урок будет удалён из расписания. Это действие нельзя отменить.</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteLessonPlain(\''+l.id+'\')">🗑 Удалить</button>'
+    +'</div>';
+}
+
 /* ---------- Подтверждение удаления домашнего задания ---------- */
 function buildDeleteHomeworkModal(ctx){
+
   ctx = ctx||{};
   const h = DB.homework.find(x=>x.id===ctx.hwId);
   if(!h) return '<div class="modal-title">Задание не найдено <button class="modal-close" onclick="closeModal()">×</button></div>';
@@ -4281,6 +4300,7 @@ const modalBuilders = {
   monthInfo: buildMonthInfoModal,
   calPicker: buildCalPickerModal,
   deleteLesson: buildDeleteLessonModal,
+  deleteLessonConfirm: buildDeleteLessonConfirmModal,
   deleteHomework: buildDeleteHomeworkModal,
   deleteSubscription: buildDeleteSubscriptionModal
 };
@@ -4344,7 +4364,15 @@ function deleteLesson(lessonId){
     openModal('deleteLesson', {lessonId});
     return;
   }
-  if(!confirm('Удалить этот урок из расписания?')) return;
+  // Обычный урок без абонемента — тоже открываем стилизованную модалку
+  // подтверждения вместо стандартного браузерного confirm().
+  openModal('deleteLessonConfirm', {lessonId});
+}
+
+/* Финальное удаление обычного урока (без абонемента), после подтверждения
+   в стилизованной модалке. */
+function finalizeDeleteLessonPlain(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
   DB.payments = DB.payments.filter(p=>p.lessonId!==lessonId);
   DB.lessons = DB.lessons.filter(x=>x.id!==lessonId);
   saveDB();
