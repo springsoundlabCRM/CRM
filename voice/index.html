@@ -1200,7 +1200,7 @@
         Вы уже вошли в аккаунт, но не получилось загрузить данные — похоже, проблема со связью.
       </div>
       <div id="authReconnectError" style="color:var(--red);font-size:12px;min-height:16px;margin:0 0 10px;text-align:center"></div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" id="authRetryBtn" onclick="retryAuthConnection()">Повторить попытку</button>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:15px;font-size:14px;font-weight:600" id="authRetryBtn" onclick="retryAuthConnection()">Повторить попытку</button>
       <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3)">
         <a href="javascript:void(0)" onclick="logoutFromAuthScreen()" style="color:var(--accent);font-weight:500">Выйти из аккаунта</a>
       </div>
@@ -1231,7 +1231,7 @@
         <input class="input" id="authPass" type="password" placeholder="Минимум 6 символов" autocomplete="current-password">
       </div>
       <div id="authError" style="color:var(--red);font-size:12px;min-height:16px;margin:6px 0 4px"></div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" id="authSubmitBtn" onclick="handleAuthSubmit()">Войти</button>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;padding:15px;font-size:14px;font-weight:600" id="authSubmitBtn" onclick="handleAuthSubmit()">Войти</button>
       <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text3)">
         <span id="authToggleText">Нет аккаунта?</span>
         <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--accent);font-weight:500" id="authToggleLink">Зарегистрироваться</a>
@@ -3500,7 +3500,7 @@ function buildStudentModal(ctx){
     +'<div class="input-group"><label class="input-label">Telegram</label><input class="input" id="f-tg" placeholder="@username"></div></div>'
     +'<div class="input-group"><label class="input-label">Дата рождения</label><input class="input" id="f-bday" type="date"></div>'
     +'<div class="input-group"><label class="input-label">Цель</label><textarea class="input" id="f-goal" rows="2" placeholder="Пою для себя / хочу выступать..."></textarea></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveStudentForm()">Добавить ученика</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveStudentForm()">Добавить ученика</button>';
 }
 async function saveStudentForm(){
   const name = document.getElementById('f-name').value.trim();
@@ -3825,7 +3825,7 @@ function buildPaymentModal(ctx){
     +'<div id="f-pay-sub-action"></div>'
     +'<div class="input-row"><div class="input-group"><label class="input-label">Сумма (₽)</label><input class="input" id="f-pay-amount" type="number" value="0"></div>'
     +'<div class="input-group"><label class="input-label">Комментарий</label><input class="input" id="f-pay-note" placeholder="Необязательно"></div></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="savePaymentForm()">Зафиксировать платёж</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="savePaymentForm()">Зафиксировать платёж</button>';
 }
 function onPayStudentChangeInit(studentId, preselectLessonId){
   renderPayLessonSelect(studentId, preselectLessonId);
@@ -3913,7 +3913,7 @@ function buildSubscriptionModal(ctx){
       +'<span style="font-size:13px;color:var(--text3)">Итого</span>'
       +'<span style="font-size:16px;font-weight:700" id="f-sub-totalDisplay">'+money(8*savedPrice)+'</span>'
     +'</div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:4px;justify-content:center" onclick="saveSubscriptionForm()">Создать абонемент</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:4px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveSubscriptionForm()">Создать абонемент</button>';
 }
 function setSubLessons(n){
   document.getElementById('f-sub-total').value = n;
@@ -3974,7 +3974,7 @@ function buildSubTopupModal(ctx){
       +'<span style="font-size:13px;color:var(--text3)">Итого за пополнение</span>'
       +'<span style="font-size:16px;font-weight:700" id="f-topup-totalDisplay">'+money(4*defaultPrice)+'</span>'
     +'</div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:4px;justify-content:center" onclick="saveTopupForm(\''+sub.id+'\',\''+ctx.studentId+'\')">Пополнить</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:4px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveTopupForm(\''+sub.id+'\',\''+ctx.studentId+'\')">Пополнить</button>';
 }
 function recalcTopupTotal(){
   const lessons = Number(document.getElementById('f-topup-lessons').value)||0;
@@ -4036,7 +4036,7 @@ function buildNoteModal(ctx){
     +'<div class="input-group"><label class="input-label">Домашнее задание</label><textarea class="input" id="f-note-hw" rows="2" placeholder="Записать куплет до четверга..."></textarea></div>'
     +'<div class="input-row"><div class="input-group"><label class="input-label">Оценка урока</label><select class="input" id="f-note-rating"><option value="fire">🔥 Пробой!</option><option value="good" selected>✓ Хороший урок</option><option value="hard">⚠️ Тяжёлый урок</option></select></div>'
     +'<div class="input-group"><label class="input-label">Настрой ученика</label><select class="input" id="f-note-mood"><option value="motivated">😊 Мотивирован</option><option value="neutral" selected>😐 Нейтрально</option><option value="tired">😔 Устал</option></select></div></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveNoteForm(\''+studentId+'\')">Сохранить</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveNoteForm(\''+studentId+'\')">Сохранить</button>';
 }
 function saveNoteForm(studentId){
   const lessonId = document.getElementById('f-note-lesson').value;
@@ -4063,7 +4063,7 @@ function buildHomeworkModal(ctx){
     +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-hw-student">'+studentOptionsHTML(studentId)+'</select></div>'
     +'<div class="input-group"><label class="input-label">Задание</label><input class="input" id="f-hw-title" placeholder="Распевки 15 мин/день"></div>'
     +'<div class="input-group"><label class="input-label">Комментарий</label><textarea class="input" id="f-hw-sub" rows="2" placeholder="Дополнительные детали..."></textarea></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveHomeworkForm()">Задать ДЗ</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveHomeworkForm()">Задать ДЗ</button>';
 }
 function saveHomeworkForm(){
   const studentId = document.getElementById('f-hw-student').value;
@@ -4085,7 +4085,7 @@ function buildRepertoireModal(ctx){
     +'<div class="input-group"><label class="input-label">Название</label><input class="input" id="f-rep-title" placeholder="Голос"></div>'
     +'<div class="input-group"><label class="input-label">Исполнитель</label><input class="input" id="f-rep-artist" placeholder="Полина Гагарина"></div>'
     +'<div class="input-group"><label class="input-label">Статус</label><select class="input" id="f-rep-status"><option value="разучиваем">разучиваем</option><option value="активная">активная</option><option value="готово">готово</option></select></div>'
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="saveRepertoireForm(\''+studentId+'\')">Добавить</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveRepertoireForm(\''+studentId+'\')">Добавить</button>';
 }
 function saveRepertoireForm(studentId){
   const title = document.getElementById('f-rep-title').value.trim();
