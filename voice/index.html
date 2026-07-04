@@ -190,7 +190,7 @@
   .student-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
   .student-header-text{flex:1;min-width:0}
   .student-name{font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .student-meta{font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .student-meta{font-size:10px;color:var(--text3);margin-top:1px}
   .student-lesson-badge{flex-shrink:0;background:var(--accent-glow);border:1px solid var(--accent);color:#ffffff;font-weight:600;border-radius:7px;white-space:nowrap;margin-left:4px;width:58px;height:20px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0 4px;overflow:hidden;font-size:10px}
   .student-lesson-badge .lesson-badge-text{display:inline-block;max-width:100%;overflow:hidden;white-space:nowrap}
   /* Имя ученика над вкладками "Профиль/Прогресс/..." дублировало то же имя,
@@ -198,11 +198,8 @@
      (но оставили элемент с flex:1 в разметке невидимым, чтобы кнопки
      "Назад"/"Поставить на урок"/"Заметка" не съехали влево). */
   #detail-topbar #detail-name{visibility:hidden}
-  .student-next-lesson{font-size:10px;color:#ffffff;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;min-width:0}
+  .student-next-lesson{font-size:10px;color:#ffffff;margin-top:auto;padding-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;min-width:0}
   .next-lesson-badge{display:inline-block;background:transparent;border:none;padding:0;color:#ffffff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
-  /* Блок тегов (Оплачено/Долг/Пробный/ДР) — единственный элемент с margin-top:auto,
-     поэтому он всегда прижат к низу карточки, а "Следующий" идёт сразу под ним. */
-  .student-tags{margin-top:auto;padding-top:8px;display:flex;flex-wrap:wrap;align-items:center}
   .progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin:8px 0 4px}
   .progress-fill{height:100%;border-radius:2px;transition:width .3s}
   .progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
@@ -727,7 +724,7 @@
     .student-name{font-size:15px}
     .student-meta{font-size:13px;margin-top:1px}
     .student-lesson-badge{width:68px;height:24px;font-size:12px;padding:0 6px;border-radius:7px}
-    .student-next-lesson{font-size:13px;padding-top:2px}
+    .student-next-lesson{font-size:13px;margin-top:auto!important;padding-top:11px}
     .student-card .tag{font-size:12px;padding:3px 9px;border-radius:8px;margin-top:8px;margin-right:5px;gap:4px}
   }
 
@@ -2801,22 +2798,15 @@ function renderStudents(){
   if(!list.length){ g.innerHTML='<div class="empty-state full-width">Учеников не найдено</div>'; return; }
   list.forEach(s=>{
     const lessonsCount = studentLessonsCount(s.id);
-    const sub = activeSubscriptionOf(s.id);
-    // Строка под именем — ровно как на референсе: абонемент и остаток уроков,
-    // либо "Разовое занятие", если активного абонемента нет.
-    const subLine = sub
-      ? 'Абонемент: '+sub.totalLessons+' '+pluralLessons(sub.totalLessons)+' (Ост: '+Math.max(0,sub.totalLessons-sub.usedLessons)+')'
-      : 'Разовое занятие';
     // ВАЖНО: у ученика, которому ещё не назначили ни одного урока,
     // не может быть тега "✓ Оплачено" — раньше studentPaymentTag()
     // по умолчанию считал студента "оплаченным", если у него просто
     // нет долга (а долга и не может быть, если уроков вообще не было).
     // Теперь тег "Оплачено" показываем только когда есть хотя бы один урок.
-    // Отдельного тега "Абонемент" здесь больше нет — на референсе эта
-    // информация показана строкой под именем (subLine), а не тегом внизу.
     const tag = studentPaymentTag(s.id);
     const payTag = tag==='debt' ? '<span class="tag tag-red">✗ Долг '+money(studentDebt(s.id))+'</span>'
-      : (lessonsCount>0) ? '<span class="tag tag-green">✓ Оплачено</span>' : '';
+      : tag==='sub' ? '<span class="tag tag-amber">Абонемент</span>'
+      : (tag==='paid' && lessonsCount>0) ? '<span class="tag tag-green">✓ Оплачено</span>' : '';
     // Аналогично: тег "Пробный" не показываем, пока пробный урок не
     // назначен (нет ни одного урока) — только что созданная карточка
     // ученика должна показывать просто "0 уроков" и ничего больше.
@@ -2828,8 +2818,8 @@ function renderStudents(){
     const next = studentNextLesson(s.id);
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' в '+next.time) : 'не запланирован';
     const card=document.createElement('div'); card.className='student-card';
-    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div><div class="student-meta">'+subLine+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'"><span class="lesson-badge-text">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div></div>'
-      +'<div class="student-tags">'+payTag+statusTag+bdayTag+'</div>'
+    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'"><span class="lesson-badge-text">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div></div>'
+      +'<div style="margin-top:8px">'+payTag+statusTag+bdayTag+'</div>'
       +'<div class="student-next-lesson">Следующий: <span class="next-lesson-badge">'+nextLabel+'</span></div>';
     card.onclick=()=>openStudent(s);
     g.appendChild(card);
