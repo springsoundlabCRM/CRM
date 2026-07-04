@@ -1026,7 +1026,7 @@
     display:flex;align-items:center;gap:14px;transition:border-color .15s}
   .kpi-ring-card:hover{border-color:var(--border2)}
   .kpi-ring{position:relative;width:74px;height:74px;flex-shrink:0;border-radius:50%;
-    background:conic-gradient(from -90deg,var(--ring-color,var(--accent)) calc(var(--ring-pct,0)*1%), var(--bg3) 0);
+    background:conic-gradient(from 0deg,var(--ring-color,var(--accent)) calc(var(--ring-pct,0)*1%), var(--bg3) 0);
     display:flex;align-items:center;justify-content:center}
   .kpi-ring::before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--card2)}
   .kpi-ring-val{position:relative;z-index:1;font-size:15px;font-weight:700;color:var(--text)}
@@ -1056,18 +1056,17 @@
 
   /* --- Донат-диаграмма (удержание и т.п.) --- */
   .donut-wrap{position:relative;width:148px;height:148px;border-radius:50%;flex-shrink:0;margin:0 auto;
-    background:conic-gradient(from -90deg,var(--d-c1,var(--accent)) 0 calc(var(--d-p1,0)*1%), var(--d-c2,var(--bg3)) 0 100%)}
+    background:conic-gradient(from 0deg,var(--d-c1,var(--accent)) 0 calc(var(--d-p1,0)*1%), var(--d-c2,var(--bg3)) 0 100%)}
+  .donut-wrap-lg{width:196px;height:196px}
   .donut-wrap::before{content:'';position:absolute;inset:15px;border-radius:50%;background:var(--card)}
+  .donut-wrap-lg::before{inset:20px}
   .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .donut-center b{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.5px}
+  .donut-wrap-lg .donut-center b{font-size:38px}
   .donut-center span{font-size:9.5px;color:var(--text3);margin-top:3px;text-align:center;max-width:90px}
+  .donut-wrap-lg .donut-center span{font-size:11px;max-width:110px}
   .donut-legend{display:flex;justify-content:center;gap:16px;margin-top:14px;font-size:11px;color:var(--text2)}
   .donut-legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
-  .mini-ring{position:relative;width:54px;height:54px;border-radius:50%;
-    background:conic-gradient(from -90deg,var(--mr-color,var(--amber)) calc(var(--mr-pct,0)*1%), var(--bg3) 0);
-    display:flex;align-items:center;justify-content:center}
-  .mini-ring::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--card)}
-  .mini-ring-val{position:relative;z-index:1;font-size:12px;font-weight:700;color:var(--text)}
 
   /* --- Лидерборд учеников --- */
   .leader-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;margin-bottom:6px;
@@ -1089,7 +1088,7 @@
   .skill-ring-row{display:flex;justify-content:space-around;gap:10px;flex:1;align-items:center}
   .skill-ring-item{display:flex;flex-direction:column;align-items:center;gap:9px}
   .skill-ring{position:relative;width:64px;height:64px;border-radius:50%;
-    background:conic-gradient(from -90deg,var(--sk-color,var(--accent)) calc(var(--sk-pct,0)*1%), var(--bg3) 0);
+    background:conic-gradient(from 0deg,var(--sk-color,var(--accent)) calc(var(--sk-pct,0)*1%), var(--bg3) 0);
     display:flex;align-items:center;justify-content:center}
   .skill-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--card)}
   .skill-ring-val{position:relative;z-index:1;font-size:13px;font-weight:700;color:var(--text)}
@@ -1114,6 +1113,8 @@
     .an-row-3 .an-card:first-child{grid-column:auto}
     .pill-stat{min-width:44%}
     .donut-wrap{width:130px;height:130px}
+    .donut-wrap-lg{width:150px;height:150px}
+    .donut-wrap-lg .donut-center b{font-size:30px}
     .funnel-label{width:86px;font-size:10.5px}
   }
 </style>
@@ -1616,12 +1617,8 @@
           </div>
           <div class="an-card" id="retentionCard" style="align-items:center">
             <div class="an-card-title" style="align-self:flex-start">🎯 Удержание учеников</div>
-            <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex:1">
-              <div class="donut-wrap" id="retentionDonut"><div class="donut-center"><b id="retentionPct">0%</b><span>активных от всех</span></div></div>
-              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-                <div class="mini-ring" id="debtRiskRing"><span class="mini-ring-val" id="debtRiskVal">0%</span></div>
-                <div style="font-size:9.5px;color:var(--text3);text-align:center;max-width:64px">активных с долгом</div>
-              </div>
+            <div style="display:flex;align-items:center;justify-content:center;flex:1">
+              <div class="donut-wrap donut-wrap-lg" id="retentionDonut"><div class="donut-center"><b id="retentionPct">0%</b><span>активных от всех</span></div></div>
             </div>
             <div class="donut-legend">
               <span><span class="donut-legend-dot" style="background:var(--accent)"></span>Активные</span>
@@ -3682,24 +3679,14 @@ function renderAnalytics(){
       +'<div class="funnel-count">'+(w<20?st.val:'')+'</div></div>';
   }).join('') || '<div class="empty-state">Нет данных</div>';
 
-  /* ---------- Удержание учеников (донат + мини-кольцо риска) ---------- */
+  /* ---------- Удержание учеников (донат) ---------- */
   const activeAllCnt = allStudents.filter(s=>s.status==='active').length;
   const retentionPct = allStudents.length ? Math.round(activeAllCnt/allStudents.length*100) : 0;
   const donutEl = document.getElementById('retentionDonut');
   donutEl.style.setProperty('--d-p1', retentionPct);
   donutEl.style.setProperty('--d-c1', 'var(--accent)');
   donutEl.style.setProperty('--d-c2', 'var(--bg3)');
-  donutEl.style.setProperty('--d-glow', 'var(--accent-glow)');
   document.getElementById('retentionPct').textContent = retentionPct+'%';
-
-  const activeStudentsNow = allStudents.filter(s=>s.status==='active');
-  const debtRiskCnt = activeStudentsNow.filter(s=>studentDebt(s.id)>0).length;
-  const debtRiskPct = activeStudentsNow.length ? Math.round(debtRiskCnt/activeStudentsNow.length*100) : 0;
-  const debtRingEl = document.getElementById('debtRiskRing');
-  debtRingEl.style.setProperty('--mr-pct', debtRiskPct);
-  debtRingEl.style.setProperty('--mr-color', debtRiskPct>0 ? 'var(--amber)' : 'var(--green)');
-  debtRingEl.style.setProperty('--mr-glow', debtRiskPct>0 ? 'var(--amber-glow)' : 'var(--green-glow)');
-  document.getElementById('debtRiskVal').textContent = debtRiskPct+'%';
 
   /* ---------- Лидерборд прогресса ---------- */
   const rankColors = ['r1','r2','r3','r4','r4'];
