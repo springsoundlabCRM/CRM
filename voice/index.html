@@ -1073,7 +1073,8 @@
   .kpi-ring-extra{display:flex;flex-direction:column;align-items:center;gap:9px;justify-self:stretch;padding-left:22px;border-left:1px solid var(--border)}
   .kpi-ring-extra-row{display:flex;align-items:baseline;justify-content:space-between;gap:24px;min-width:190px;font-size:11px;color:var(--text3)}
   .kpi-ring-extra-row .v{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-  .kpi-ring-card.goal-card{cursor:pointer;display:grid;grid-template-columns:1fr 1fr;align-items:center;column-gap:0}
+  .kpi-ring-card.goal-card,.kpi-ring-card.split-card{display:grid;grid-template-columns:1fr 1fr;align-items:center;column-gap:0}
+  .kpi-ring-card.goal-card{cursor:pointer}
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
 
@@ -1151,10 +1152,11 @@
 
   @media (max-width:880px){
     .kpi-ring-grid{grid-template-columns:1fr 1fr;gap:10px}
-    /* Карточка "Цель по доходу" остаётся разделённой пополам, как на
-       компьютере (кольцо+название слева, три показателя справа) — просто
-       компактнее по отступам/шрифтам, чтобы уместиться в узкую карточку. */
-    .kpi-ring-card.goal-card{column-gap:10px}
+    /* Карточки "Цель по доходу" и "Посещаемость" остаются разделёнными
+       пополам, как на компьютере (кольцо+название слева, показатели
+       справа) — просто компактнее по отступам/шрифтам, чтобы уместиться
+       в узкую карточку. */
+    .kpi-ring-card.goal-card,.kpi-ring-card.split-card{column-gap:10px}
     .goal-card-left{gap:9px;padding-right:10px}
     .goal-card-left .kpi-ring{width:56px;height:56px}
     .goal-card-left .kpi-ring-val{font-size:12.5px}
@@ -1509,9 +1511,12 @@
           <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="dDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="dDebtCount">у 0 учеников</div></div>
         </div>
         <div class="kpi-ring-grid">
-          <div class="kpi-ring-card">
-            <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
-            <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
+          <div class="kpi-ring-card split-card" id="ringAttendanceCard">
+            <div class="goal-card-left">
+              <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
+              <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
+            </div>
+            <div class="kpi-ring-extra" id="ringAttendanceExtra"></div>
           </div>
           <div class="kpi-ring-card goal-card" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
             <div class="goal-card-left">
@@ -2717,6 +2722,17 @@ function renderDashboardPulse(myStudents, active, now){
   const pctAtt = setRing(ringAtt, attendancePct, 'var(--accent)', 'var(--accent-glow)');
   document.getElementById('ringAttendanceVal').textContent = pctAtt+'%';
   document.getElementById('ringAttendanceSub').textContent = (doneCnt+noshowCnt)>0 ? doneCnt+' из '+(doneCnt+noshowCnt)+' уроков' : 'нет данных за месяц';
+
+  // Справа от кольца посещаемости — сводка за месяц: сколько пришло,
+  // сколько не пришло (неявка) и сколько уроков отменилось. Строится
+  // точно по тому же принципу, что и правая часть карточки "Цель по
+  // доходу" (см. ringGoalExtra ниже).
+  const cancelledCnt = monthLessons.filter(l=>l.status==='cancelled').length;
+  const attExtraHost = document.getElementById('ringAttendanceExtra');
+  attExtraHost.innerHTML =
+    '<div class="kpi-ring-extra-row"><span>Пришли</span><span class="v" style="color:var(--green)">'+doneCnt+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>Не пришли</span><span class="v" style="color:var(--red)">'+noshowCnt+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>Отменились</span><span class="v" style="color:var(--text3)">'+cancelledCnt+'</span></div>';
 
   // Цель по доходу за месяц: пользователь сам задаёт желаемую сумму
   // (клик по карточке), кольцо заполняется по мере поступления оплат.
