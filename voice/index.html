@@ -1088,7 +1088,7 @@
   .leader-name{flex:1;min-width:0}
   .leader-name-txt{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .leader-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
-  .leader-bar-fill{height:100%;border-radius:3px;background:var(--accent)}
+  .leader-bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .6s cubic-bezier(.22,1,.36,1)}
   .leader-pct{font-size:12px;font-weight:700;color:var(--text);flex-shrink:0}
 
   /* --- Кольцевые шкалы навыков (вместо линейных полосок) --- */
@@ -2613,14 +2613,24 @@ function renderDashboard(){
   renderDashboardPulse(myStudents, active, now);
 }
 
+/* Универсальный помощник: плавно "докручивает" CSS-переменную с числом (0 -> target),
+   сбрасывая её в 0 и выставляя итоговое значение через кадр — так анимация
+   гарантированно проигрывается при каждом обновлении виджета, а не только один раз */
+function animateNumProp(el, varName, target){
+  el.style.setProperty(varName, 0);
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
+    el.style.setProperty(varName, target);
+  }));
+}
+
 /* Устанавливает значения кольцевой мини-диаграммы (conic-gradient) через CSS-переменные */
 function setRing(el, pct, colorVar, glowVar){
   pct = Math.max(0, Math.min(100, Math.round(pct)));
-  el.style.setProperty('--ring-pct', pct);
   el.style.setProperty('--ring-color', colorVar);
   if(glowVar) el.style.setProperty('--ring-glow', glowVar);
   const card = el.closest('.kpi-ring-card');
   if(card){ card.style.setProperty('--ring-color', colorVar); }
+  animateNumProp(el, '--ring-pct', pct);
   return pct;
 }
 
@@ -3679,33 +3689,41 @@ function renderAnalytics(){
     {label:'Постоянные без долгов', val:fLoyal},
   ];
   const fMax = Math.max(fTotal,1);
-  document.getElementById('studentFunnelBox').innerHTML = funnelStages.map(st=>{
+  const funnelBox = document.getElementById('studentFunnelBox');
+  funnelBox.innerHTML = funnelStages.map(st=>{
     const w = Math.max(Math.round(st.val/fMax*100), st.val>0?10:4);
     return '<div class="funnel-row"><div class="funnel-label">'+st.label+'</div>'
-      +'<div class="funnel-bar-wrap"><div class="funnel-bar" style="width:'+w+'%">'+(w>=20?st.val:'')+'</div></div>'
+      +'<div class="funnel-bar-wrap"><div class="funnel-bar" data-target="'+w+'" style="width:0%">'+(w>=20?st.val:'')+'</div></div>'
       +'<div class="funnel-count">'+(w<20?st.val:'')+'</div></div>';
   }).join('') || '<div class="empty-state">Нет данных</div>';
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
+    funnelBox.querySelectorAll('.funnel-bar').forEach(el=> el.style.width = el.dataset.target+'%');
+  }));
 
   /* ---------- Удержание учеников (донат) ---------- */
   const activeAllCnt = allStudents.filter(s=>s.status==='active').length;
   const retentionPct = allStudents.length ? Math.round(activeAllCnt/allStudents.length*100) : 0;
   const donutEl = document.getElementById('retentionDonut');
-  donutEl.style.setProperty('--d-p1', retentionPct);
   donutEl.style.setProperty('--d-c1', 'var(--accent)');
   donutEl.style.setProperty('--d-c2', 'var(--bg3)');
+  animateNumProp(donutEl, '--d-p1', retentionPct);
   document.getElementById('retentionPct').textContent = retentionPct+'%';
 
   /* ---------- Лидерборд прогресса ---------- */
   const rankColors = ['r1','r2','r3','r4','r4'];
   const ranked = myStudents.map(s=>({s, p:studentProgress(s.id)})).sort((a,b)=>b.p-a.p).slice(0,5);
-  document.getElementById('topProgressBox').innerHTML = ranked.length ? ranked.map((r,i)=>
+  const leaderBox = document.getElementById('topProgressBox');
+  leaderBox.innerHTML = ranked.length ? ranked.map((r,i)=>
     '<div class="leader-row" onclick="openStudent(studentById(\''+r.s.id+'\'))">'
     +'<div class="leader-rank '+rankColors[i]+'">'+(i+1)+'</div>'
     +'<div class="student-avatar" style="width:30px;height:30px;font-size:11px;background:'+r.s.color+'">'+r.s.initials+'</div>'
     +'<div class="leader-name"><div class="leader-name-txt">'+escapeHTML(r.s.name)+'</div>'
-    +'<div class="leader-bar-wrap"><div class="leader-bar-fill" style="width:'+r.p+'%"></div></div></div>'
+    +'<div class="leader-bar-wrap"><div class="leader-bar-fill" data-target="'+r.p+'" style="width:0%"></div></div></div>'
     +'<div class="leader-pct">'+r.p+'%</div></div>'
   ).join('') : '<div class="empty-state">Нет учеников</div>';
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
+    leaderBox.querySelectorAll('.leader-bar-fill').forEach(el=> el.style.width = el.dataset.target+'%');
+  }));
 
   /* ---------- Средний уровень навыков — кольца ---------- */
   const skillLabels = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма'};
