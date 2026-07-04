@@ -1086,7 +1086,7 @@
   .pill-stat b{display:block;font-size:18px;font-weight:700;color:var(--text);margin-top:4px;letter-spacing:-.2px}
 
   /* --- Карточка аналитики (обёртка) --- */
-  .an-card{background:linear-gradient(180deg,var(--card2) 0%,var(--card) 55%);border:1px solid var(--border);border-radius:var(--r2);padding:18px;display:flex;flex-direction:column;box-shadow:0 6px 16px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.03)}
+  .an-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px;display:flex;flex-direction:column}
   /* Единая сетка для обеих строк карточек аналитики (воронка/удержание/лидерборд и навыки/внимание/сводка).
      Правило одно на оба ряда, поэтому колонки всегда одинаковой ширины друг под другом —
      при следующих правках достаточно менять здесь, а не в каждом ряду по отдельности. */
@@ -1098,17 +1098,17 @@
   .funnel-wrap{display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center}
   .funnel-row{display:flex;align-items:center;gap:10px}
   .funnel-label{width:112px;flex-shrink:0;font-size:11.5px;color:var(--text2);line-height:1.25}
-  .funnel-bar-wrap{flex:1;height:28px;background:var(--bg3);border-radius:8px;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.28)}
-  .funnel-bar{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--accent2),var(--accent));
-    display:flex;align-items:center;padding-left:10px;color:#fff;font-size:11.5px;font-weight:600;transition:width .4s ease;box-shadow:0 2px 5px rgba(0,0,0,.3)}
+  .funnel-bar-wrap{flex:1;height:28px;background:var(--bg3);border-radius:8px;overflow:hidden}
+  .funnel-bar{height:100%;border-radius:8px;background:var(--accent);
+    display:flex;align-items:center;padding-left:10px;color:#fff;font-size:11.5px;font-weight:600;transition:width .4s ease}
   .funnel-count{width:38px;flex-shrink:0;text-align:right;font-size:11px;font-weight:600;color:var(--text3)}
 
   /* --- Донат-диаграмма (удержание и т.п.) --- */
   .donut-wrap{position:relative;width:148px;height:148px;border-radius:50%;flex-shrink:0;margin:0 auto;
     background:conic-gradient(from 0deg,var(--d-c1,var(--accent)) 0 calc(var(--d-p1,0)*1%), var(--d-c2,var(--bg3)) 0 100%);
-    transition:--d-p1 1.3s cubic-bezier(.22,1,.36,1);box-shadow:0 5px 16px rgba(0,0,0,.3)}
+    transition:--d-p1 1.3s cubic-bezier(.22,1,.36,1)}
   .donut-wrap-lg{width:196px;height:196px}
-  .donut-wrap::before{content:'';position:absolute;inset:15px;border-radius:50%;background:var(--card);box-shadow:inset 0 2px 6px rgba(0,0,0,.22)}
+  .donut-wrap::before{content:'';position:absolute;inset:15px;border-radius:50%;background:var(--card)}
   .donut-wrap-lg::before{inset:20px}
   .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .donut-center b{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.5px}
@@ -1120,8 +1120,8 @@
 
   /* --- Лидерборд учеников --- */
   .leader-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;margin-bottom:6px;
-    background:linear-gradient(180deg,var(--card2),var(--bg3));cursor:pointer;transition:background .15s,box-shadow .15s;box-shadow:0 3px 8px rgba(0,0,0,.2)}
-  .leader-row:hover{background:var(--card2);box-shadow:0 3px 9px rgba(0,0,0,.26)}
+    background:var(--card2);cursor:pointer;transition:background .15s}
+  .leader-row:hover{background:var(--bg3)}
   .leader-rank{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-size:10px;font-weight:700;flex-shrink:0;color:#fff}
   .leader-rank.r1{background:#f59e0b}
@@ -1139,15 +1139,15 @@
   .skill-ring-item{display:flex;flex-direction:column;align-items:center;gap:9px}
   .skill-ring{position:relative;width:64px;height:64px;border-radius:50%;
     background:conic-gradient(from 0deg,var(--sk-color,var(--accent)) calc(var(--sk-pct,0)*1%), var(--bg3) 0);
-    display:flex;align-items:center;justify-content:center;transition:--sk-pct 1.1s cubic-bezier(.22,1,.36,1);box-shadow:0 3px 9px rgba(0,0,0,.26)}
-  .skill-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--card);box-shadow:inset 0 2px 5px rgba(0,0,0,.2)}
+    display:flex;align-items:center;justify-content:center;transition:--sk-pct 1.1s cubic-bezier(.22,1,.36,1)}
+  .skill-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--card)}
   .skill-ring-val{position:relative;z-index:1;font-size:13px;font-weight:700;color:var(--text)}
   .skill-ring-label{font-size:10.5px;color:var(--text3);text-align:center;max-width:76px}
 
   /* --- Градиентные бары для графиков доходов + пунктирный тренд поверх --- */
-  .bar{background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:5px 5px 2px 2px;box-shadow:0 3px 7px rgba(0,0,0,.28)}
-  .year-chart .bar{background:linear-gradient(180deg,var(--accent2),var(--accent))}
-  .year-chart .bar.cur{background:linear-gradient(180deg,#10b981,var(--green))}
+  .bar{background:var(--accent);border-radius:5px 5px 2px 2px}
+  .year-chart .bar{background:var(--accent)}
+  .year-chart .bar.cur{background:var(--green)}
   .mini-chart,.year-chart{position:relative}
   .trend-overlay{position:absolute;inset:0;pointer-events:none}
 
@@ -3897,7 +3897,7 @@ function renderAnalytics(){
     else if(s.status==='active' && daysSinceLast!==null && daysSinceLast>=21) attention.push({s, text:'Не занимался уже '+daysSinceLast+' дн.', cls:'red'});
   });
   document.getElementById('attentionBox').innerHTML = attention.length ? attention.slice(0,5).map(a=>
-    '<div style="padding:10px;background:var(--'+a.cls+'-bg);border-radius:8px;margin-bottom:8px;border-left:3px solid var(--'+a.cls+');cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.22)" onclick="openStudent(studentById(\''+a.s.id+'\'))"><div style="font-size:12px;font-weight:500">'+escapeHTML(a.s.name)+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">'+a.text+'</div></div>'
+    '<div style="padding:10px;background:var(--'+a.cls+'-bg);border-radius:8px;margin-bottom:8px;border-left:3px solid var(--'+a.cls+');cursor:pointer" onclick="openStudent(studentById(\''+a.s.id+'\'))"><div style="font-size:12px;font-weight:500">'+escapeHTML(a.s.name)+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">'+a.text+'</div></div>'
   ).join('') : '<div class="empty-state">Все ученики в порядке 🎉</div>';
 
   /* ---------- Сводка месяца (+ сравнение с прошлым месяцем) ---------- */
@@ -3946,7 +3946,7 @@ function renderAnalytics(){
     {icon:'📝', label:'Не сдано домашних заданий', val:hwTodoAll, prev:null, goodWhenUp:false},
   ];
   document.getElementById('monthSummaryBox').innerHTML = summaryRows.map(r=>
-    '<div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:10px;padding:8px 10px;margin-bottom:6px;border-radius:8px;background:linear-gradient(180deg,var(--card2),var(--bg3));box-shadow:0 3px 8px rgba(0,0,0,.22)">'
+    '<div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:10px;padding:8px 10px;margin-bottom:6px;border-radius:8px;background:var(--card2)">'
     +'<span style="font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:8px;min-width:0"><span>'+r.icon+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.label+'</span></span>'
     +'<b style="font-size:14px;color:var(--text);text-align:right">'+r.val+'</b>'
     +'<span style="min-width:52px;text-align:right">'+trendBadge(r.val, r.prev, r.goodWhenUp)+'</span></div>'
