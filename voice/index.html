@@ -1048,6 +1048,10 @@
 
   /* --- Карточка аналитики (обёртка) --- */
   .an-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px;display:flex;flex-direction:column}
+  /* Единая сетка для обеих строк карточек аналитики (воронка/удержание/лидерборд и навыки/внимание/сводка).
+     Правило одно на оба ряда, поэтому колонки всегда одинаковой ширины друг под другом —
+     при следующих правках достаточно менять здесь, а не в каждом ряду по отдельности. */
+  .an-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
   .an-card-title{font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;
     margin-bottom:16px;display:flex;align-items:center;gap:8px}
 
@@ -1617,7 +1621,7 @@
           <div class="pill-stat"><div class="pill-stat-label">Долги всего</div><b id="anPillDebt" style="color:var(--red)">0₽</b></div>
         </div>
 
-        <div class="an-row-3" style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="an-row-3" style="align-items:stretch">
           <div class="an-card" id="funnelCard">
             <div class="an-card-title">🔻 Воронка учеников</div>
             <div class="funnel-wrap" id="studentFunnelBox"></div>
@@ -1638,7 +1642,7 @@
           </div>
         </div>
 
-        <div class="an-row-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="an-row-3" style="align-items:stretch">
           <div class="an-card" id="skillsCard">
             <div class="an-card-title">📊 Средний уровень навыков</div>
             <div class="skill-ring-row" id="avgSkillsBox"></div>
