@@ -2647,7 +2647,7 @@ function renderDashboardPulse(myStudents, active, now){
   const monthLessons = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); });
   const doneCnt = monthLessons.filter(l=>l.status==='done').length;
   const noshowCnt = monthLessons.filter(l=>l.status==='noshow').length;
-  const attendancePct = (doneCnt+noshowCnt)>0 ? (doneCnt/(doneCnt+noshowCnt))*100 : 100;
+  const attendancePct = (doneCnt+noshowCnt)>0 ? (doneCnt/(doneCnt+noshowCnt))*100 : 0;
   const ringAtt = document.getElementById('ringAttendance');
   const pctAtt = setRing(ringAtt, attendancePct, 'var(--accent)', 'var(--accent-glow)');
   document.getElementById('ringAttendanceVal').textContent = pctAtt+'%';
@@ -2655,7 +2655,7 @@ function renderDashboardPulse(myStudents, active, now){
 
   // Собираемость оплат: оплачено / (оплачено + долг) за месяц
   const {paid:mPaid, debt:mDebt} = monthIncome(now.getFullYear(), now.getMonth());
-  const payPct = (mPaid+mDebt)>0 ? (mPaid/(mPaid+mDebt))*100 : 100;
+  const payPct = (mPaid+mDebt)>0 ? (mPaid/(mPaid+mDebt))*100 : 0;
   const ringPay = document.getElementById('ringPayments');
   const pctPay = setRing(ringPay, payPct, 'var(--green)', 'var(--green-glow)');
   document.getElementById('ringPaymentsVal').textContent = pctPay+'%';
@@ -3772,24 +3772,33 @@ function renderAnalytics(){
   /* ---------- Сводка месяца (+ сравнение с прошлым месяцем) ---------- */
   const monthLessonsAll = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && l.status!=='cancelled'; });
   const monthDone = monthLessonsAll.filter(l=>l.status==='done').length;
-  const newStudentsMonth = allStudents.filter(s=>{ const d=parseISO(s.createdAt); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }).length;
+  // "Новых учеников" считаем по реальной дате начала занятий (studySince), а не по дате
+  // создания записи в CRM (createdAt) — иначе давно занимающийся ученик, которого просто
+  // только сейчас заносят в базу, ошибочно засчитывался бы как "новый в этом месяце".
+  // Если студент не заполнил "Начало занятий" — используем createdAt как разумный запасной вариант.
+  const newStudentsMonth = allStudents.filter(s=>{ const d=parseISO(s.studySince||s.createdAt); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }).length;
   const hwTodoAll = myStudents.reduce((a,s)=>a+homeworkOfStudent(s.id).filter(h=>h.status==='todo').length,0);
 
   // Те же метрики за предыдущий календарный месяц — нужны только для стрелок роста/падения
   const prevD = new Date(now.getFullYear(), now.getMonth()-1, 1);
   const monthLessonsAllPrev = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===prevD.getFullYear() && d.getMonth()===prevD.getMonth() && l.status!=='cancelled'; });
   const monthDonePrev = monthLessonsAllPrev.filter(l=>l.status==='done').length;
-  const newStudentsMonthPrev = allStudents.filter(s=>{ const d=parseISO(s.createdAt); return d && d.getFullYear()===prevD.getFullYear() && d.getMonth()===prevD.getMonth(); }).length;
+  const newStudentsMonthPrev = allStudents.filter(s=>{ const d=parseISO(s.studySince||s.createdAt); return d && d.getFullYear()===prevD.getFullYear() && d.getMonth()===prevD.getMonth(); }).length;
 
-  // Строит бейдж вида "↑ 12%" / "↓ 8%" / "↑ 100%" (если в прошлом месяце было 0) по текущему и прошломесячному значению.
+  // Строит бейдж вида "↑ 12%" / "↓ 8%" по текущему и прошломесячному значению.
+  // Если в прошлом месяце было 0 (процент математически не определён — деление на ноль),
+  // показываем не выдуманный процент, а РЕАЛЬНУЮ разницу в штуках ("↑ +7") — это честно и
+  // отражает фактические данные, а не условность, которая не менялась бы при любом росте.
   // goodWhenUp=true — рост красится зелёным (уроки, ученики); false — рост красится красным (долги, невыполненные ДЗ)
   function trendBadge(cur, prev, goodWhenUp){
     if(prev==null) return ''; // метрика без истории (например, текущий остаток невыполненных ДЗ) — сравнение не показываем
     if(prev===0){
       if(cur===0) return '<span class="stat-delta" style="margin:0;color:var(--text3)">—</span>';
-      // Прошлый месяц был "с нуля" — формально рост в процентах не определён (деление на 0),
-      // поэтому берём условную полную (100%) отметку роста — так же, как это делают большинство CRM/аналитик
-      return '<span class="stat-delta '+(goodWhenUp?'delta-up':'delta-down')+'" style="margin:0">↑ 100%</span>';
+      // Прошлый месяц был "с нуля" — процент математически не определён (деление на 0).
+      // Показываем реальную разницу в штуках вместо выдуманного процента — так число
+      // всегда честно отражает фактические данные и меняется вместе с ними.
+      const good = goodWhenUp;
+      return '<span class="stat-delta '+(good?'delta-up':'delta-down')+'" style="margin:0">↑ +'+cur+'</span>';
     }
     const diff = cur - prev;
     const pct = Math.round(Math.abs(diff)/prev*100);
