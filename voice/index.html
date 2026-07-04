@@ -2801,15 +2801,22 @@ function renderStudents(){
   if(!list.length){ g.innerHTML='<div class="empty-state full-width">Учеников не найдено</div>'; return; }
   list.forEach(s=>{
     const lessonsCount = studentLessonsCount(s.id);
+    const sub = activeSubscriptionOf(s.id);
+    // Строка под именем — ровно как на референсе: абонемент и остаток уроков,
+    // либо "Разовое занятие", если активного абонемента нет.
+    const subLine = sub
+      ? 'Абонемент: '+sub.totalLessons+' '+pluralLessons(sub.totalLessons)+' (Ост: '+Math.max(0,sub.totalLessons-sub.usedLessons)+')'
+      : 'Разовое занятие';
     // ВАЖНО: у ученика, которому ещё не назначили ни одного урока,
     // не может быть тега "✓ Оплачено" — раньше studentPaymentTag()
     // по умолчанию считал студента "оплаченным", если у него просто
     // нет долга (а долга и не может быть, если уроков вообще не было).
     // Теперь тег "Оплачено" показываем только когда есть хотя бы один урок.
+    // Отдельного тега "Абонемент" здесь больше нет — на референсе эта
+    // информация показана строкой под именем (subLine), а не тегом внизу.
     const tag = studentPaymentTag(s.id);
     const payTag = tag==='debt' ? '<span class="tag tag-red">✗ Долг '+money(studentDebt(s.id))+'</span>'
-      : tag==='sub' ? '<span class="tag tag-amber">Абонемент</span>'
-      : (tag==='paid' && lessonsCount>0) ? '<span class="tag tag-green">✓ Оплачено</span>' : '';
+      : (lessonsCount>0) ? '<span class="tag tag-green">✓ Оплачено</span>' : '';
     // Аналогично: тег "Пробный" не показываем, пока пробный урок не
     // назначен (нет ни одного урока) — только что созданная карточка
     // ученика должна показывать просто "0 уроков" и ничего больше.
@@ -2821,7 +2828,7 @@ function renderStudents(){
     const next = studentNextLesson(s.id);
     const nextLabel = next ? (weekdayName(next.date)+' '+formatRuShort(next.date)+' в '+next.time) : 'не запланирован';
     const card=document.createElement('div'); card.className='student-card';
-    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'"><span class="lesson-badge-text">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div></div>'
+    card.innerHTML = '<div class="student-header"><div class="student-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="student-header-text"><div class="student-name">'+escapeHTML(s.name)+'</div><div class="student-meta">'+subLine+'</div></div><div class="student-lesson-badge" title="'+lessonsCount+' '+pluralLessons(lessonsCount)+'"><span class="lesson-badge-text">'+lessonsCount+' '+pluralLessons(lessonsCount)+'</span></div></div>'
       +'<div class="student-tags">'+payTag+statusTag+bdayTag+'</div>'
       +'<div class="student-next-lesson">Следующий: <span class="next-lesson-badge">'+nextLabel+'</span></div>';
     card.onclick=()=>openStudent(s);
