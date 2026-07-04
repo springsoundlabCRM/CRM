@@ -154,6 +154,15 @@
     #page-dashboard .dash-actions{margin-left:auto}
     .sub-new-btn{font-size:13px;font-weight:600}
     .sub-action-btn{padding:12px 9px;font-size:13px;font-weight:500}
+    /* ===== Дашборд на компьютере: "Доходы за 6 месяцев" всегда закреплены
+       внизу экрана, а верхняя часть (статы/кольца/Сегодня/Уведомления/Дни
+       рождения) скроллится отдельно над ней. Список уроков "Сегодня"
+       показывает примерно 4 карточки на экране, остальные — скролл
+       колесом мыши внутри самого блока. ===== */
+    #page-dashboard .content{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+    #dashScrollArea{flex:1 1 auto;overflow-y:auto;min-height:0;padding-right:4px}
+    #dashIncomeBox{flex-shrink:0;margin-top:16px}
+    #todayLessons{max-height:460px;overflow-y:auto;padding-right:4px}
   }
   .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff}
@@ -183,6 +192,7 @@
   .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
   .section-title{font-size:14px;font-weight:600}
   .section-link{font-size:11px;color:var(--accent);cursor:pointer}
+  .section-count-badge{background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:10px;line-height:1.5;flex-shrink:0}
   .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:1fr;gap:12px;margin-bottom:24px;align-items:stretch}
   .student-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px;cursor:pointer;transition:all .2s;position:relative;display:flex;flex-direction:column;height:100%;box-sizing:border-box;min-width:0;overflow:hidden}
   .student-card:hover{border-color:var(--border2);background:var(--card2)}
@@ -1468,6 +1478,7 @@
         </div>
       </div>
       <div class="content">
+        <div id="dashScrollArea">
         <div class="stat-grid">
           <div class="stat-card purple"><div class="stat-label">Учеников</div><div class="stat-value" id="dStudents">0</div><div class="stat-delta" id="dStudentsDelta" style="color:var(--text3)">активных</div></div>
           <div class="stat-card green"><div class="stat-label">Доход (месяц)</div><div class="stat-value" id="dIncome">0₽</div><div class="stat-delta" id="dIncomeDelta" style="color:var(--text3)">—</div></div>
@@ -1490,7 +1501,7 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px" id="dashTriColumn">
           <div>
-            <div class="section-head"><div class="section-title">Сегодня</div><div class="section-link" onclick="showPage('schedule')">Весь план →</div></div>
+            <div class="section-head"><div class="section-title">Сегодня</div><span class="section-count-badge" id="todayCountBadge">0</span></div>
             <div id="todayLessons"></div>
           </div>
           <div>
@@ -1502,13 +1513,15 @@
             <div id="bdayList"></div>
           </div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px">
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px" id="dashIncomeBox">
           <div class="section-head" style="margin-bottom:8px"><div class="section-title">Доходы за 6 месяцев</div><span class="tag tag-green" id="incomeYoY">—</span></div>
           <div class="mini-chart" id="income-chart"></div>
           <div style="display:flex;gap:4px" id="income-labels"></div>
         </div>
       </div>
     </div>
+
 
     <!-- SCHEDULE (КАЛЕНДАРЬ) -->
     <div id="page-schedule" class="hidden">
@@ -2624,6 +2637,8 @@ function renderDashboard(){
 
   const todayLessons = lessonsOfTeacher().filter(l=>l.date===todayISO()).sort((a,b)=>a.time<b.time?-1:1);
   document.getElementById('dLessonsToday').textContent = todayLessons.length;
+  const todayCountBadge = document.getElementById('todayCountBadge');
+  if(todayCountBadge) todayCountBadge.textContent = todayLessons.length;
   const nextL = todayLessons.find(l=>l.status==='planned');
   document.getElementById('dNextLesson').textContent = nextL ? 'Ближайший в '+nextL.time : (todayLessons.length? 'Все уроки обработаны' : 'Нет уроков');
 
