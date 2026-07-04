@@ -1070,13 +1070,13 @@
   .kpi-ring-info{min-width:0}
   .kpi-ring-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
   .kpi-ring-sub{font-size:10.5px;color:var(--text3);line-height:1.4}
-  .kpi-ring-extra{display:flex;flex-direction:column;align-items:stretch;gap:9px;justify-self:stretch;padding-left:22px;border-left:1px solid var(--border)}
-  .kpi-ring-extra-row{display:flex;align-items:baseline;justify-content:space-between;gap:24px;min-width:190px;font-size:11px;color:var(--text3)}
+  .kpi-ring-extra{display:grid;grid-template-columns:max-content max-content;column-gap:16px;row-gap:9px;justify-content:center;align-content:center;justify-self:stretch;padding-left:22px;border-left:1px solid var(--border)}
+  .kpi-ring-extra-row{display:contents;font-size:11px;color:var(--text3)}
   .kpi-ring-extra-row .v{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
   .kpi-ring-card.goal-card,.kpi-ring-card.split-card{display:grid;grid-template-columns:1fr 1fr;align-items:center;column-gap:0}
   .kpi-ring-card.goal-card{cursor:pointer}
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
-  .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
+  .goal-card-left{display:flex;align-items:center;justify-content:center;gap:14px;padding-right:22px;min-width:0}
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 18px}
@@ -2764,7 +2764,7 @@ function renderDashboardPulse(myStudents, active, now){
       +'<div class="kpi-ring-extra-row"><span>Осталось заработать</span><span class="v">'+money(remaining)+'</span></div>'
       +'<div class="kpi-ring-extra-row"><span>До конца месяца</span><span class="v">'+daysLeft+' дн.</span></div>';
   } else {
-    extraHost.innerHTML = '<div class="kpi-ring-extra-row" style="white-space:normal">Кликните и задайте желаемый доход — появится прогресс</div>';
+    extraHost.innerHTML = '<div style="display:block;grid-column:1/-1;white-space:normal;text-align:center;max-width:170px;font-size:11px;color:var(--text3)">Кликните и задайте желаемый доход — появится прогресс</div>';
   }
 
   // Доля активных учеников от всех (без учёта архивных)
