@@ -1070,10 +1070,11 @@
   .kpi-ring-info{min-width:0}
   .kpi-ring-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
   .kpi-ring-sub{font-size:10.5px;color:var(--text3);line-height:1.4}
-  .kpi-ring-extra{margin-top:7px;display:flex;flex-direction:column;gap:4px}
-  .kpi-ring-extra-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10.5px;color:var(--text3);white-space:nowrap}
+  .kpi-ring-extra{display:flex;flex-direction:column;gap:5px;justify-self:end;text-align:left}
+  .kpi-ring-extra-row{display:flex;align-items:center;gap:10px;font-size:10.5px;color:var(--text3);white-space:nowrap}
+  .kpi-ring-extra-row span:first-child{min-width:98px}
   .kpi-ring-extra-row .v{color:var(--text);font-weight:600}
-  .kpi-ring-card.goal-card{cursor:pointer}
+  .kpi-ring-card.goal-card{cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:18px}
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
@@ -1150,6 +1151,8 @@
 
   @media (max-width:880px){
     .kpi-ring-grid{grid-template-columns:1fr 1fr;gap:10px}
+    .kpi-ring-card.goal-card{grid-template-columns:auto 1fr;row-gap:8px}
+    .kpi-ring-card.goal-card .kpi-ring-extra{grid-column:1/-1;justify-self:start}
     .an-row-3{grid-template-columns:1fr 1fr!important}
     .an-row-3 .an-card:first-child{grid-column:1/-1}
   }
@@ -1505,8 +1508,8 @@
             <div class="kpi-ring-info">
               <div class="kpi-ring-title">Цель по доходу</div>
               <div class="kpi-ring-sub" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
-              <div class="kpi-ring-extra" id="ringGoalExtra"></div>
             </div>
+            <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
           <div class="kpi-ring-card">
             <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
