@@ -2556,7 +2556,7 @@ function initCalendar() {
    ОБЩИЕ КОМПОНЕНТЫ КАРТОЧЕК (без изменений)
    ============================================================ */
 function paymentTagHTML(l){
-  if(l.viaSubscription) return '<span class="tag tag-purple">🎫 Абонемент</span>';
+  if(l.viaSubscription) return '<span class="tag tag-amber">🎫 Абонемент</span>';
   const debt = lessonDebt(l);
   if(debt<=0) return '<span class="tag tag-green">✓ Оплачено</span>';
   if(l.paid>0) return '<span class="tag tag-amber">Частично · долг '+money(debt)+'</span>';
