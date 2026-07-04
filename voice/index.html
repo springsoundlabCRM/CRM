@@ -1087,8 +1087,7 @@
 
   /* --- Карточка аналитики (обёртка) --- */
   .an-card{background:linear-gradient(180deg,var(--card2) 0%,var(--card) 55%);
-    border-top:1px solid rgba(255,255,255,.1);border-left:1px solid rgba(255,255,255,.05);
-    border-right:1px solid rgba(0,0,0,.25);border-bottom:1px solid rgba(0,0,0,.4);
+    border:1px solid var(--border);
     border-radius:var(--r2);padding:18px;display:flex;flex-direction:column;
     box-shadow:
       0 1px 0 rgba(255,255,255,.08) inset,
@@ -1096,16 +1095,7 @@
       0 2px 3px rgba(0,0,0,.35),
       0 8px 12px rgba(0,0,0,.28),
       0 22px 34px rgba(0,0,0,.3),
-      0 40px 60px rgba(0,0,0,.22);
-    transition:transform .2s ease,box-shadow .2s ease}
-  .an-card:hover{transform:translateY(-3px);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,.1) inset,
-      0 -14px 22px -14px rgba(0,0,0,.35) inset,
-      0 2px 3px rgba(0,0,0,.4),
-      0 10px 16px rgba(0,0,0,.32),
-      0 28px 42px rgba(0,0,0,.34),
-      0 50px 70px rgba(0,0,0,.26)}
+      0 40px 60px rgba(0,0,0,.22)}
   /* Единая сетка для обеих строк карточек аналитики (воронка/удержание/лидерборд и навыки/внимание/сводка).
      Правило одно на оба ряда, поэтому колонки всегда одинаковой ширины друг под другом —
      при следующих правках достаточно менять здесь, а не в каждом ряду по отдельности. */
@@ -1139,8 +1129,8 @@
 
   /* --- Лидерборд учеников --- */
   .leader-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;margin-bottom:6px;
-    background:linear-gradient(180deg,var(--card2),var(--bg3));cursor:pointer;transition:background .15s,box-shadow .15s;box-shadow:0 3px 8px rgba(0,0,0,.2)}
-  .leader-row:hover{background:var(--card2);box-shadow:0 6px 14px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.3)}
+    background:linear-gradient(180deg,var(--card2),var(--bg3));cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+  .leader-row:hover{background:var(--card2)}
   .leader-rank{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-size:10px;font-weight:700;flex-shrink:0;color:#fff}
   .leader-rank.r1{background:#f59e0b}
