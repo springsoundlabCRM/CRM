@@ -2819,6 +2819,7 @@ function renderStudents(){
   if(!list.length){ g.innerHTML='<div class="empty-state full-width">Учеников не найдено</div>'; return; }
   list.forEach(s=>{
     const lessonsCount = studentLessonsCount(s.id);
+    const sub = activeSubscriptionOf(s.id);
     // ВАЖНО: у ученика, которому ещё не назначили ни одного урока,
     // не может быть тега "✓ Оплачено" — раньше studentPaymentTag()
     // по умолчанию считал студента "оплаченным", если у него просто
@@ -2830,17 +2831,20 @@ function renderStudents(){
     const payTag = tag==='debt' ? '<span class="tag tag-red">✗ Долг '+money(studentDebt(s.id))+'</span>'
       : tag==='sub' ? '<span class="tag tag-amber">Абонемент</span>'
       : (tag==='paid' && lessonsCount>0) ? '<span class="tag tag-green">✓ Оплачено</span>' : '';
-    // Тег "Пробный" не показываем, пока пробный урок не назначен (нет ни
-    // одного урока) — только что созданная карточка ученика должна
-    // показывать просто "0 уроков" и ничего больше.
-    const statusTag = (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-blue">Пробный</span>' : '';
+    // "Пробным" может быть только самый первый урок ученика — как только у
+    // него появляется второй урок (или тем более куплен абонемент), это
+    // уже не пробный статус, даже если поле status в карточке ещё не
+    // переключили вручную на "Активный". Поэтому тег показываем только
+    // когда: 1) статус ученика — "Пробный", 2) у него есть ровно один
+    // (первый) урок, 3) нет активного абонемента (купил абонемент — значит
+    // уже не пробует, а занимается).
+    const statusTag = (s.status==='trial' && lessonsCount===1 && !sub) ? '<span class="tag tag-blue">Пробный</span>' : '';
     const hwTag = studentHomeworkTagHTML(s.id);
 
     // Подпись под именем: если у ученика есть активный абонемент — показываем
     // "Абонемент: N уроков (Ост: X)", иначе, если уроки уже были — "Разовые
     // занятия", а если ученика только что завели и уроков ещё не было — так
     // и пишем, что абонемент не оформлен.
-    const sub = activeSubscriptionOf(s.id);
     const subLabel = sub
       ? 'Абонемент: '+sub.totalLessons+' '+pluralLessons(sub.totalLessons)+' (Ост: '+Math.max(0,sub.totalLessons-sub.usedLessons)+')'
       : (lessonsCount>0 ? 'Разовые занятия' : 'Абонемент не оформлен');
