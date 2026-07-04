@@ -1648,8 +1648,10 @@
             <div id="attentionBox"></div>
           </div>
           <div class="an-card" id="summaryCard">
-            <div class="an-card-title">📌 Сводка месяца</div>
-            <div style="font-size:10.5px;color:var(--text3);margin-top:-6px;margin-bottom:4px">Показатели за текущий месяц · стрелка — динамика к прошлому месяцу</div>
+            <div class="an-card-title" style="justify-content:space-between">
+              <span>📌 Сводка месяца</span>
+              <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:normal;color:var(--text3)">Динамика к прошлому месяцу</span>
+            </div>
             <div id="monthSummaryBox" style="display:flex;flex-direction:column;gap:2px;justify-content:center;flex:1"></div>
           </div>
         </div>
@@ -3775,13 +3777,15 @@ function renderAnalytics(){
   const monthDonePrev = monthLessonsAllPrev.filter(l=>l.status==='done').length;
   const newStudentsMonthPrev = allStudents.filter(s=>{ const d=parseISO(s.createdAt); return d && d.getFullYear()===prevD.getFullYear() && d.getMonth()===prevD.getMonth(); }).length;
 
-  // Строит бейдж вида "↑ 12%" / "↓ 8%" / "↑ нов." по текущему и прошломесячному значению.
+  // Строит бейдж вида "↑ 12%" / "↓ 8%" / "↑ 100%" (если в прошлом месяце было 0) по текущему и прошломесячному значению.
   // goodWhenUp=true — рост красится зелёным (уроки, ученики); false — рост красится красным (долги, невыполненные ДЗ)
   function trendBadge(cur, prev, goodWhenUp){
     if(prev==null) return ''; // метрика без истории (например, текущий остаток невыполненных ДЗ) — сравнение не показываем
     if(prev===0){
       if(cur===0) return '<span class="stat-delta" style="margin:0;color:var(--text3)">—</span>';
-      return '<span class="stat-delta '+(goodWhenUp?'delta-up':'delta-down')+'" style="margin:0">↑ нов.</span>';
+      // Прошлый месяц был "с нуля" — формально рост в процентах не определён (деление на 0),
+      // поэтому берём условную полную (100%) отметку роста — так же, как это делают большинство CRM/аналитик
+      return '<span class="stat-delta '+(goodWhenUp?'delta-up':'delta-down')+'" style="margin:0">↑ 100%</span>';
     }
     const diff = cur - prev;
     const pct = Math.round(Math.abs(diff)/prev*100);
