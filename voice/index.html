@@ -1528,9 +1528,12 @@
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
-          <div class="kpi-ring-card">
-            <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
-            <div class="kpi-ring-info"><div class="kpi-ring-title">Активные ученики</div><div class="kpi-ring-sub" id="ringActiveSub">от общего числа</div></div>
+          <div class="kpi-ring-card split-card" id="ringActiveCard">
+            <div class="goal-card-left">
+              <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
+              <div class="kpi-ring-info"><div class="kpi-ring-title">Активные ученики</div><div class="kpi-ring-sub" id="ringActiveSub">от общего числа</div></div>
+            </div>
+            <div class="kpi-ring-extra" id="ringActiveExtra"></div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
@@ -2770,6 +2773,16 @@ function renderDashboardPulse(myStudents, active, now){
   const pctAct = setRing(ringAct, activePct, 'var(--blue)', 'rgba(96,165,250,.35)');
   document.getElementById('ringActiveVal').textContent = pctAct+'%';
   document.getElementById('ringActiveSub').textContent = active.length+' из '+myStudents.length+' учеников';
+
+  // Справа от кольца активных учеников — сводка: сколько активных, сколько
+  // на пробном уроке и сколько всего учеников сейчас (без архивных),
+  // по тому же принципу, что и в двух других split-карточках выше.
+  const trialCnt = myStudents.filter(s=>s.status==='trial').length;
+  const activeExtraHost = document.getElementById('ringActiveExtra');
+  activeExtraHost.innerHTML =
+    '<div class="kpi-ring-extra-row"><span>Активные ученики</span><span class="v">'+active.length+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>Пробный урок</span><span class="v">'+trialCnt+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>Всего учеников</span><span class="v">'+myStudents.length+'</span></div>';
 }
 
 function weekdayInRu(d){ const names=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']; return names[d.getDay()]; }
