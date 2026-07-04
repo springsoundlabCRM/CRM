@@ -1649,6 +1649,7 @@
           </div>
           <div class="an-card" id="summaryCard">
             <div class="an-card-title">📌 Сводка месяца</div>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:-6px;margin-bottom:4px">Показатели за текущий месяц · стрелка — динамика к прошлому месяцу</div>
             <div id="monthSummaryBox" style="display:flex;flex-direction:column;gap:2px;justify-content:center;flex:1"></div>
           </div>
         </div>
@@ -3797,9 +3798,10 @@ function renderAnalytics(){
     {icon:'📝', label:'Не сдано домашних заданий', val:hwTodoAll, prev:null, goodWhenUp:false},
   ];
   document.getElementById('monthSummaryBox').innerHTML = summaryRows.map(r=>
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
-    +'<span style="font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:8px"><span>'+r.icon+'</span>'+r.label+'</span>'
-    +'<span style="display:flex;align-items:center;gap:8px"><b style="font-size:14px;color:var(--text)">'+r.val+'</b>'+trendBadge(r.val, r.prev, r.goodWhenUp)+'</span></div>'
+    '<div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">'
+    +'<span style="font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:8px;min-width:0"><span>'+r.icon+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.label+'</span></span>'
+    +'<b style="font-size:14px;color:var(--text);text-align:right">'+r.val+'</b>'
+    +'<span style="min-width:52px;text-align:right">'+trendBadge(r.val, r.prev, r.goodWhenUp)+'</span></div>'
   ).join('');
 
   renderYearChart();
