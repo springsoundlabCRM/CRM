@@ -2149,7 +2149,12 @@ function moodScore(mood){
 }
 function studentProgress(studentId){
   const s = studentById(studentId); if(!s||!s.skills) return 0;
-  const keys = Object.keys(s.skills); if(!keys.length) return 0;
+  // Общий прогресс считаем только по трём реальным показателям вокала —
+  // дыхание, интонация и чувство ритма (именно им ученику ставят смайлики
+  // в карточке "Прогресс"). Другие ключи в s.skills, если вдруг остались
+  // от старых тестовых данных, в расчёт не идут.
+  const keys = ['breath','intonation','rhythm'].filter(k=> s.skills[k]!==undefined);
+  if(!keys.length) return 0;
   const total = keys.reduce((a,k)=>a+moodScore(moodOf(s.skills[k])),0);
   return Math.round(total/keys.length);
 }
@@ -2819,18 +2824,16 @@ function renderStudents(){
     // по умолчанию считал студента "оплаченным", если у него просто
     // нет долга (а долга и не может быть, если уроков вообще не было).
     // Теперь тег "Оплачено" показываем только когда есть хотя бы один урок.
+    // Если у ученика активный абонемент — показываем именно "Абонемент"
+    // (списание уроков идёт по нему), а не "Оплачено".
     const tag = studentPaymentTag(s.id);
     const payTag = tag==='debt' ? '<span class="tag tag-red">✗ Долг '+money(studentDebt(s.id))+'</span>'
+      : tag==='sub' ? '<span class="tag tag-amber">Абонемент</span>'
       : (tag==='paid' && lessonsCount>0) ? '<span class="tag tag-green">✓ Оплачено</span>' : '';
-    // Аналогично: тег "Пробный" не показываем, пока пробный урок не
-    // назначен (нет ни одного урока) — только что созданная карточка
-    // ученика должна показывать просто "0 уроков" и ничего больше.
-    const statusTag = s.status==='paused' ? '<span class="tag tag-grey">На паузе</span>'
-      : (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-blue">Пробный</span>'
-      : s.status==='inactive' ? '<span class="tag tag-grey">Неактивный</span>' : '';
-    const bdays = daysUntilBirthday(s.birthday);
-    const bdayTag = (bdays!==null && bdays<=7) ? '<span class="tag bday-tag">🎂 '+(bdays===0?'сегодня':bdays+' дн.')+'</span>' : '';
-    const focusTag = studentFocusTagHTML(s);
+    // Тег "Пробный" не показываем, пока пробный урок не назначен (нет ни
+    // одного урока) — только что созданная карточка ученика должна
+    // показывать просто "0 уроков" и ничего больше.
+    const statusTag = (s.status==='trial' && lessonsCount>0) ? '<span class="tag tag-blue">Пробный</span>' : '';
     const hwTag = studentHomeworkTagHTML(s.id);
 
     // Подпись под именем: если у ученика есть активный абонемент — показываем
@@ -2847,8 +2850,9 @@ function renderStudents(){
     const next = studentNextLesson(s.id);
     const timeLabel = next ? next.time : '—';
 
-    // Прогресс вокала — общий процент по навыкам ученика (см. studentProgress()).
-    // Цвет полосы меняется в зависимости от уровня: высокий прогресс —
+    // Прогресс вокала — процент по трём показателям из вкладки "Прогресс"
+    // (дыхание, интонация, чувство ритма), см. studentProgress(). Цвет
+    // полосы меняется в зависимости от уровня: высокий прогресс —
     // сине-розовый градиент, средний — янтарный, низкий — красноватый.
     const progress = studentProgress(s.id);
     const progressGradient = progress>=70 ? 'linear-gradient(90deg,#60a5fa,#f472b6)'
@@ -2871,28 +2875,10 @@ function renderStudents(){
           +'<div class="student-progress-label">Прогресс вокала:</div>'
           +'<div class="student-progress-bar"><div class="student-progress-fill" style="width:'+progress+'%;background:'+progressGradient+'"></div></div>'
         +'</div>'
-        +'<div class="student-tags-row">'+payTag+focusTag+hwTag+statusTag+bdayTag+'</div>';
+        +'<div class="student-tags-row">'+payTag+hwTag+statusTag+'</div>';
     card.onclick=()=>openStudent(s);
     g.appendChild(card);
   });
-}
-
-/* Подписи навыков для тега "фокуса" на карточке ученика — какой навык
-   у ученика сейчас самый слабый и над чем стоит поработать в первую
-   очередь. Понимает как новые смайлики-оценки (red/yellow/green),
-   так и старые числовые (0-100) — через moodScore()/moodOf(). */
-const SKILL_FOCUS_LABELS = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма',mix:'Микст',range:'Диапазон',stage:'Сцена'};
-function studentFocusTagHTML(s){
-  if(!s.skills) return '';
-  const keys = Object.keys(s.skills);
-  if(!keys.length) return '';
-  let worstKey = keys[0], worstScore = moodScore(moodOf(s.skills[worstKey]));
-  keys.forEach(k=>{
-    const sc = moodScore(moodOf(s.skills[k]));
-    if(sc < worstScore){ worstScore = sc; worstKey = k; }
-  });
-  const label = SKILL_FOCUS_LABELS[worstKey] || (worstKey.charAt(0).toUpperCase()+worstKey.slice(1));
-  return '<span class="tag tag-purple">✎ '+label+'</span>';
 }
 
 /* Тег домашнего задания на карточке ученика — приоритет: задание "в
