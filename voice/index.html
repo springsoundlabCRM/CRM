@@ -1070,6 +1070,11 @@
   .kpi-ring-info{min-width:0}
   .kpi-ring-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
   .kpi-ring-sub{font-size:10.5px;color:var(--text3);line-height:1.4}
+  .kpi-ring-extra{margin-top:7px;display:flex;flex-direction:column;gap:4px}
+  .kpi-ring-extra-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10.5px;color:var(--text3);white-space:nowrap}
+  .kpi-ring-extra-row .v{color:var(--text);font-weight:600}
+  .kpi-ring-card.goal-card{cursor:pointer}
+  .kpi-ring-card.goal-card:hover{border-color:var(--green)}
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 18px}
@@ -1495,9 +1500,13 @@
             <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
             <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
           </div>
-          <div class="kpi-ring-card">
+          <div class="kpi-ring-card goal-card" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
             <div class="kpi-ring" id="ringPayments"><span class="kpi-ring-val" id="ringPaymentsVal">—</span></div>
-            <div class="kpi-ring-info"><div class="kpi-ring-title">Собираемость оплат</div><div class="kpi-ring-sub" id="ringPaymentsSub">от начисленного за месяц</div></div>
+            <div class="kpi-ring-info">
+              <div class="kpi-ring-title">Цель по доходу</div>
+              <div class="kpi-ring-sub" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
+              <div class="kpi-ring-extra" id="ringGoalExtra"></div>
+            </div>
           </div>
           <div class="kpi-ring-card">
             <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
@@ -2694,13 +2703,35 @@ function renderDashboardPulse(myStudents, active, now){
   document.getElementById('ringAttendanceVal').textContent = pctAtt+'%';
   document.getElementById('ringAttendanceSub').textContent = (doneCnt+noshowCnt)>0 ? doneCnt+' из '+(doneCnt+noshowCnt)+' уроков' : 'нет данных за месяц';
 
-  // Собираемость оплат: оплачено / (оплачено + долг) за месяц
-  const {paid:mPaid, debt:mDebt} = monthIncome(now.getFullYear(), now.getMonth());
-  const payPct = (mPaid+mDebt)>0 ? (mPaid/(mPaid+mDebt))*100 : 0;
-  const ringPay = document.getElementById('ringPayments');
-  const pctPay = setRing(ringPay, payPct, 'var(--green)', 'var(--green-glow)');
-  document.getElementById('ringPaymentsVal').textContent = pctPay+'%';
-  document.getElementById('ringPaymentsSub').textContent = (mPaid+mDebt)>0 ? money(mPaid)+' из '+money(mPaid+mDebt) : 'нет начислений';
+  // Цель по доходу за месяц: пользователь сам задаёт желаемую сумму
+  // (клик по карточке), кольцо заполняется по мере поступления оплат.
+  // Цель хранится помесячно в профиле учителя — с новым месяцем начинается
+  // новый прогресс с нуля.
+  const {paid:mPaid} = monthIncome(now.getFullYear(), now.getMonth());
+  const teacher = getCurrentTeacher();
+  const goalKey = now.getFullYear()+'-'+now.getMonth();
+  const incomeGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || 0;
+  const ringGoal = document.getElementById('ringPayments');
+  const goalPct = incomeGoal>0 ? (mPaid/incomeGoal*100) : 0;
+  const pctGoal = setRing(ringGoal, goalPct, 'var(--green)', 'var(--green-glow)');
+  document.getElementById('ringPaymentsVal').textContent = incomeGoal>0 ? pctGoal+'%' : '—';
+  document.getElementById('ringPaymentsSub').textContent = incomeGoal>0 ? money(mPaid)+' из '+money(incomeGoal) : 'Нажмите, чтобы задать цель';
+  const extraHost = document.getElementById('ringGoalExtra');
+  if(incomeGoal>0){
+    const remaining = Math.max(0, incomeGoal-mPaid);
+    const paidDoneLessons = monthLessons.filter(l=>l.status==='done' && !l.viaSubscription && Number(l.paid||0)>0);
+    const avgPrice = paidDoneLessons.length
+      ? paidDoneLessons.reduce((sum,l)=>sum+Number(l.paid||0),0)/paidDoneLessons.length
+      : ((DB.settings && DB.settings.defaultLessonPrice) || 0);
+    const lessonsLeft = remaining<=0 ? 0 : (avgPrice>0 ? Math.ceil(remaining/avgPrice) : null);
+    const daysLeft = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()-now.getDate();
+    extraHost.innerHTML =
+      '<div class="kpi-ring-extra-row"><span>Осталось уроков</span><span class="v">'+(remaining<=0?'Цель выполнена 🎉':(lessonsLeft===null?'—':lessonsLeft))+'</span></div>'
+      +'<div class="kpi-ring-extra-row"><span>Осталось заработать</span><span class="v">'+money(remaining)+'</span></div>'
+      +'<div class="kpi-ring-extra-row"><span>До конца месяца</span><span class="v">'+daysLeft+' дн.</span></div>';
+  } else {
+    extraHost.innerHTML = '<div class="kpi-ring-extra-row" style="white-space:normal">Кликните и задайте желаемый доход — появится прогресс</div>';
+  }
 
   // Доля активных учеников от всех (без учёта архивных)
   const activePct = myStudents.length>0 ? (active.length/myStudents.length)*100 : 0;
@@ -4389,6 +4420,32 @@ function saveSubscriptionForm(){
   refreshAllVisible();
 }
 
+/* ---------- Цель по доходу за месяц (дашборд) ---------- */
+function buildIncomeGoalModal(){
+  const now = new Date();
+  const teacher = getCurrentTeacher();
+  const goalKey = now.getFullYear()+'-'+now.getMonth();
+  const currentGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || '';
+  return '<div class="modal-title">Цель по доходу — '+MN[now.getMonth()]+' '+now.getFullYear()+' <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div class="input-group"><label class="input-label">Сколько хотите заработать в этом месяце (₽)</label>'
+      +'<input class="input" id="f-goal-amount" type="number" min="0" step="500" placeholder="Например, 50000" value="'+currentGoal+'" autofocus>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin:2px 0 12px">Цель считается только за текущий месяц. В новом месяце прогресс начнётся заново — можно будет поставить новую сумму.</div>'
+    +'<button class="btn btn-primary" style="width:100%;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveIncomeGoalForm()">Сохранить цель</button>';
+}
+function saveIncomeGoalForm(){
+  const amount = Number(document.getElementById('f-goal-amount').value)||0;
+  if(amount<=0){ toast('Укажите сумму цели','red'); return; }
+  const now = new Date();
+  const teacher = getCurrentTeacher();
+  teacher.incomeGoals = teacher.incomeGoals || {};
+  teacher.incomeGoals[now.getFullYear()+'-'+now.getMonth()] = amount;
+  saveDB();
+  closeModal();
+  toast('Цель сохранена ✓');
+  refreshAllVisible();
+}
+
 /* ---------- Пополнить абонемент ---------- */
 function buildSubTopupModal(ctx){
   ctx = ctx||{};
@@ -4741,8 +4798,8 @@ const modalBuilders = {
   deleteLesson: buildDeleteLessonModal,
   deleteLessonConfirm: buildDeleteLessonConfirmModal,
   deleteHomework: buildDeleteHomeworkModal,
-  deleteSubscription: buildDeleteSubscriptionModal
-};
+  deleteSubscription: buildDeleteSubscriptionModal,
+  incomeGoal: buildIncomeGoalModal};
 function openModal(type, ctx){
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
