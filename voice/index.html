@@ -1171,6 +1171,15 @@
   @media (max-width:600px){
     .kpi-ring-grid{grid-template-columns:1fr;gap:10px}
     .kpi-ring-card{padding:12px}
+    /* На узком телефонном экране слева-направо (кольцо | показатели) уже
+       не помещается ровно — переключаем карточки "Цель по доходу" и
+       "Посещаемость" на вертикальный стек: сверху кольцо с названием,
+       разделительная линия становится горизонтальной, снизу показатели
+       друг под другом на всю ширину, ровно как одна колонка. */
+    .kpi-ring-card.goal-card,.kpi-ring-card.split-card{grid-template-columns:1fr;row-gap:14px}
+    .goal-card-left{padding-right:0}
+    .kpi-ring-extra{padding-left:0;padding-top:14px;border-left:none;border-top:1px solid var(--border)}
+    .kpi-ring-extra-row{min-width:0}
     .an-row-3{grid-template-columns:1fr!important}
     .an-row-3 .an-card:first-child{grid-column:auto}
     .pill-stat{min-width:44%}
@@ -2730,9 +2739,9 @@ function renderDashboardPulse(myStudents, active, now){
   const cancelledCnt = monthLessons.filter(l=>l.status==='cancelled').length;
   const attExtraHost = document.getElementById('ringAttendanceExtra');
   attExtraHost.innerHTML =
-    '<div class="kpi-ring-extra-row"><span>Пришли</span><span class="v" style="color:var(--green)">'+doneCnt+'</span></div>'
-    +'<div class="kpi-ring-extra-row"><span>Не пришли</span><span class="v" style="color:var(--red)">'+noshowCnt+'</span></div>'
-    +'<div class="kpi-ring-extra-row"><span>Отменились</span><span class="v" style="color:var(--text3)">'+cancelledCnt+'</span></div>';
+    '<div class="kpi-ring-extra-row"><span>Пришли</span><span class="v">'+doneCnt+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>Не пришли</span><span class="v">'+noshowCnt+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>Отменились</span><span class="v">'+cancelledCnt+'</span></div>';
 
   // Цель по доходу за месяц: пользователь сам задаёт желаемую сумму
   // (клик по карточке), кольцо заполняется по мере поступления оплат.
