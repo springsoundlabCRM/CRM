@@ -3623,7 +3623,7 @@ function renderDetailHistory(){
       +(l.homeworkText ? '<div class="note-text" style="margin-top:4px;color:var(--text3)">ДЗ: '+escapeHTML(l.homeworkText)+'</div>' : '')
       +'</div>';
   }).join('') : '<div class="empty-state">Уроков пока не было</div>';
-  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title"><span class="detail-title-label">📓 История уроков</span><span style="font-size:11px;color:var(--text3);font-weight:400;text-transform:none">Общее количество уроков: '+list.length+'</span></div>'+rows+'</div>';
+  host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title"><span class="detail-title-label">📓 История уроков: '+list.length+' (всего)</span></div>'+rows+'</div>';
 }
 
 /* ---------- Финансы ученика ---------- */
