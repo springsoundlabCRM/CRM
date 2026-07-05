@@ -3099,6 +3099,7 @@ function renderStudentDetailAll(){
   renderDetailFinance();
   renderDetailDanger();
   document.querySelectorAll('#page-student-detail .tab-row .tab').forEach((t,i)=>t.classList.toggle('active', DETAIL_TABS[i]===currentDetailTab));
+  document.querySelectorAll('#page-student-detail .tab-row').forEach(updateTabSlider);
   DETAIL_TABS.forEach(t=>{
     document.getElementById('dtab-'+t).classList.toggle('hidden', t!==currentDetailTab);
   });
