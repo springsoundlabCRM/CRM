@@ -190,18 +190,6 @@
   .btn-blue{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(96,165,250,.35)}
   .btn-blue:hover{background:var(--blue);color:#fff}
   .btn:disabled{opacity:.4;cursor:not-allowed}
-  /* Анимация кнопок в опасной зоне (попап удаления карточки) — только на устройствах
-     с мышью и наведением (десктоп); на тач-экранах анимация отключена ниже. */
-  .btn-danger-anim{transition:transform .15s ease, box-shadow .15s ease, background .15s ease}
-  @media (hover:hover) and (pointer:fine){
-    .btn-danger-anim{animation:dangerPulse 2.4s ease-in-out infinite}
-    .btn-danger-anim:hover{animation-play-state:paused;transform:translateY(-1px) scale(1.05);box-shadow:0 6px 16px var(--red-glow)}
-    .btn-danger-anim:active{transform:translateY(0) scale(.96)}
-  }
-  @keyframes dangerPulse{
-    0%,100%{box-shadow:0 0 0 0 var(--red-glow)}
-    50%{box-shadow:0 0 0 7px transparent}
-  }
   .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
   .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;position:relative;overflow:hidden}
   .stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 var(--r2) 0 60px;opacity:.07}
@@ -579,8 +567,6 @@
   .tab{position:relative;z-index:1;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:#ffffff;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.22)}
   .tab.active{color:#ffffff;border-color:transparent}
   .tab:hover:not(.active){background:transparent;border-color:#ffffff}
-  .tab.tab-danger{color:var(--red);border-color:rgba(248,113,113,.35)}
-  .tab.tab-danger:hover{background:var(--red-bg);border-color:var(--red);color:var(--red)}
   .lesson-sub-banner{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
@@ -1809,7 +1795,7 @@
           <div class="tab" onclick="switchDetailTab(this,'homework-tab')">Задания</div>
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
           <div class="tab" onclick="switchDetailTab(this,'finance-tab')">Финансы</div>
-          <div class="tab tab-danger" onclick="openModal('studentDanger',{studentId:currentStudentId})">Удалить карточку</div>
+          <button class="btn-delete-icon" style="margin-left:auto" title="Удалить карточку ученика" onclick="openModal('studentDanger',{studentId:currentStudentId})"><i class="fa-solid fa-trash"></i></button>
         </div>
         <div id="dtab-profile"></div>
         <div id="dtab-progress-tab" class="hidden"></div>
@@ -4270,13 +4256,13 @@ function buildStudentDangerModal(ctx){
     + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px;margin-bottom:10px">'
       + '<div><div style="font-size:13px;font-weight:600">Очистить историю платежей</div>'
       + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Удалит все финансовые записи ученика (сейчас: '+payCount+'). Абонементы и уроки останутся.</div></div>'
-      + '<button class="btn btn-ghost btn-danger-anim" style="border-color:var(--red);color:var(--red);white-space:nowrap" onclick="wipeStudentFinance(\''+s.id+'\')">Очистить</button>'
+      + '<button class="btn btn-ghost" style="border-color:var(--red);color:var(--red);white-space:nowrap" onclick="wipeStudentFinance(\''+s.id+'\')">Очистить</button>'
     + '</div>'
 
     + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px">'
       + '<div><div style="font-size:13px;font-weight:600">Удалить карточку ученика</div>'
       + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Полностью удалит ученика «'+escapeHTML(s.name)+'», а также все его уроки, платежи, абонементы, задания и репертуар.</div></div>'
-      + '<button class="btn btn-danger-anim" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')">🗑 Удалить</button>'
+      + '<button class="btn" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')">🗑 Удалить</button>'
     + '</div>';
 }
 
