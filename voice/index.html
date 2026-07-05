@@ -1169,7 +1169,6 @@
      поля выбора диапазона (выпадающие "нотные" панели) и
      карточка-кольцо прогресса диапазона
      ============================================================ */
-  .voice-title-tools{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
   @media (max-width:640px){
     .card-voice .detail-title{flex-wrap:wrap;row-gap:8px}
   }
@@ -1265,11 +1264,22 @@
   .voice-tools-wrap{grid-column:3;min-width:0;display:flex;flex-direction:column}
   .voice-tools-label{font-size:11px;color:var(--text3);margin-bottom:6px}
   .voice-tools-box{flex:1;min-width:0;background:var(--card2);border:1px solid var(--border);
-    border-radius:var(--r2);padding:7px 12px;display:flex;flex-direction:column;justify-content:center;gap:6px}
-  .voice-tools-box .voice-title-tools{flex-wrap:wrap;row-gap:6px}
-  .voice-tools-box-actions{display:flex;gap:8px}
-  .voice-tools-box-actions .btn{flex:0 0 auto;padding:6px 12px;font-size:11px;white-space:nowrap}
-  .voice-reset-btn{background:var(--card);border:1px solid var(--border2);color:var(--text2)}
+    border-radius:var(--r2);padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:7px}
+  /* --- Внутри окошка "Настройки" каждая пара кнопок (Текущий/Желаемый,
+     РУС/ENG, Сохранить/Сброс) растягивается на всю ширину окошка и
+     делится поровну между кнопками — так все кнопки вместе гармонично
+     заполняют всё пространство окошка, а не жмутся вразнобой слева.
+     Паддинги и размер шрифта у всех трёх рядов одинаковые, чтобы
+     кнопки были ровно одного размера; у "Сброс" вертикальный паддинг
+     на 1px меньше остальных — компенсация его 1px рамки (border-ghost),
+     которой нет у остальных кнопок, иначе она была бы на 2px выше. --- */
+  .voice-tools-box .range-mode-toggle,.voice-tools-box .lang-toggle{display:flex;width:100%}
+  .voice-tools-box .range-mode-btn,.voice-tools-box .lang-toggle-btn,
+  .voice-tools-box-actions .btn{flex:1;text-align:center;justify-content:center;
+    padding:7px 11px;font-size:11px;line-height:1.3}
+  .voice-tools-box-actions{display:flex;gap:7px}
+  .voice-tools-box-actions .btn{white-space:nowrap}
+  .voice-reset-btn{background:var(--card);border:1px solid var(--border2);color:var(--text2);padding-top:6px;padding-bottom:6px}
   .voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   @media (max-width:640px){
     .voice-basic-row{grid-template-columns:1fr}
@@ -3665,7 +3675,10 @@ function renderDetailProgress(){
   const editToNote   = mode==='desired' ? s.desiredToNote   : s.rangeToNote;
   const fromLabel = formatNote(editFromNote, lang);
   const toLabel = formatNote(editToNote, lang);
-  const saveBtnLabel = mode==='desired' ? 'Сохранить цель' : 'Сохранить';
+  // Кнопка сохранения всегда подписана просто "Сохранить" — независимо
+  // от режима (Текущий/Желаемый), чтобы не путать пользователя разными
+  // подписями одной и той же кнопки.
+  const saveBtnLabel = 'Сохранить';
 
   const rangeModeToggle = '<div class="range-mode-toggle">'
       +'<button type="button" class="range-mode-btn mode-current'+(mode==='current'?' active':'')+'" onclick="setVoiceRangeMode(\''+s.id+'\',\'current\')">Текущий</button>'
@@ -3681,16 +3694,17 @@ function renderDetailProgress(){
   // в шапке карточки "Голос", теперь вынесен в собственное окошко рядом
   // с полями "Тип голоса"/"Статус". Подпись "Настройки" стоит СНАРУЖИ
   // окошка, тем же шрифтом/стилем, что и подписи "Тип голоса"/"Статус"
-  // слева (а не капслоком внутри окошка, как было раньше).
+  // слева (а не капслоком внутри окошка, как было раньше). Каждая пара
+  // кнопок — отдельная строка на всю ширину окошка (Текущий/Желаемый,
+  // затем РУС/ENG, затем Сохранить/Сброс), чтобы все кнопки вместе
+  // гармонично заполняли всё пространство окошка, а не жались вразнобой.
   const voiceToolsBox = '<div class="voice-tools-wrap">'
     +'<div class="voice-tools-label">Настройки</div>'
     +'<div class="voice-tools-box">'
-      +'<div class="voice-title-tools">'
-        + rangeModeToggle
-        +'<div class="lang-toggle">'
-          +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
-          +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
-        +'</div>'
+      + rangeModeToggle
+      +'<div class="lang-toggle">'
+        +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
+        +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
       +'</div>'
       +'<div class="voice-tools-box-actions">'
         +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">'+saveBtnLabel+'</button>'
@@ -3737,14 +3751,24 @@ function renderDetailProgress(){
 
       +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
 
-      + renderRangeProgressCard(s)
+      // "Заметки" переехали сюда, в левый нижний угол (раньше стояли
+      // сверху в правой колонке) — класс "fill" растягивает карточку
+      // на оставшуюся высоту левой колонки, вровень с правой, где
+      // теперь наверху "Прогресс диапазона".
+      +'<div class="detail-card card-notes fill" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">🎯 Заметки</span></div>'
+      +'<textarea class="input" style="flex:1;resize:none;min-height:80px" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
+      +'</div>'
     +'</div>'
 
     +'<div class="progress-col">'
-      +'<div class="detail-card card-notes" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">🎯 Заметки</span></div>'
-      +'<textarea class="input" style="flex:1;resize:none;min-height:80px" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
-      +'</div>'
+      // "Прогресс диапазона" переехал сюда, в правый верхний угол
+      // (раньше стоял в самом низу левой колонки).
+      + renderRangeProgressCard(s)
 
+      // "Заметки о голосе" остаются под ним, но теперь делят правую
+      // колонку с более крупной карточкой "Прогресс диапазона" —
+      // поэтому за счёт того же класса "fill" карточка автоматически
+      // стала компактнее, чем была раньше.
       +'<div class="detail-card card-voicenotes fill" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">📝 Заметки о голосе</span></div>'
       +'<textarea class="input" style="flex:1;resize:none;min-height:80px" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
       +'</div>'
@@ -3872,7 +3896,7 @@ function toggleRangeInfoPopover(evt, studentId){
 
   body += '<div style="margin:12px 0 9px"><b>Желаемый</b> — ';
   if(!hasDesired){
-    body += 'выберите диапазон-цель в режиме «🎯 Желаемый» карточки «Голос» и нажмите «Сохранить цель».</div>';
+    body += 'выберите диапазон-цель в режиме «🎯 Желаемый» карточки «Голос» и нажмите «Сохранить».</div>';
   } else if(!hasCurrent){
     body += 'сначала нужно сохранить текущий диапазон, чтобы было с чем сравнивать цель.</div>';
   } else {
