@@ -1247,7 +1247,7 @@
   .range-mode-btn.active.mode-desired{background:var(--blue);color:#fff}
 
   /* --- Левая колонка ("Тип голоса" + "Статус", друг под другом) и
-     окошко "Управление диапазоном" справа стоят в одной строке сетки
+     окошко "Настройки" справа стоят в одной строке сетки
      и растягиваются на одинаковую высоту (align-items:stretch) — то
      есть верх окошка совпадает с верхом "Тип голоса", а низ окошка
      совпадает с низом "Статус" (перпендикулярно/вровень со всеми
@@ -1258,9 +1258,14 @@
   .voice-basic-col{grid-column:1/3;min-width:0;display:flex;flex-direction:column}
   .voice-basic-col select.input{margin-bottom:10px}
   .voice-basic-col select.input:last-child{margin-bottom:0}
-  .voice-tools-box{grid-column:3;min-width:0;background:var(--card2);border:1px solid var(--border);
+  /* --- Обёртка колонки "Настройки": подпись снаружи окошка, в том же
+     стиле, что и подписи "Тип голоса"/"Статус" слева, а само окошко
+     (переключатели + кнопки) — под ней, растянуто на всю оставшуюся
+     высоту. --- */
+  .voice-tools-wrap{grid-column:3;min-width:0;display:flex;flex-direction:column}
+  .voice-tools-label{font-size:11px;color:var(--text3);margin-bottom:6px}
+  .voice-tools-box{flex:1;min-width:0;background:var(--card2);border:1px solid var(--border);
     border-radius:var(--r2);padding:7px 12px;display:flex;flex-direction:column;justify-content:center;gap:6px}
-  .voice-tools-box-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
   .voice-tools-box .voice-title-tools{flex-wrap:wrap;row-gap:6px}
   .voice-tools-box-actions{display:flex;gap:8px}
   .voice-tools-box-actions .btn{flex:0 0 auto;padding:6px 12px;font-size:11px;white-space:nowrap}
@@ -1269,7 +1274,7 @@
   @media (max-width:640px){
     .voice-basic-row{grid-template-columns:1fr}
     .voice-basic-col{grid-column:1}
-    .voice-tools-box{grid-column:1}
+    .voice-tools-wrap{grid-column:1}
   }
 
   /* --- Значок-пометка (i) с описанием графика по клику/тапу --- */
@@ -3674,19 +3679,23 @@ function renderDetailProgress(){
   // Отдельный блок с инструментами диапазона (переключатель Текущий/
   // Желаемый, язык нотации, кнопки "Сохранить" и "Сброс") — раньше стоял
   // в шапке карточки "Голос", теперь вынесен в собственное окошко рядом
-  // с полями "Тип голоса"/"Статус".
-  const voiceToolsBox = '<div class="voice-tools-box">'
-    +'<div class="voice-tools-box-title">Управление диапазоном</div>'
-    +'<div class="voice-title-tools">'
-      + rangeModeToggle
-      +'<div class="lang-toggle">'
-        +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
-        +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
+  // с полями "Тип голоса"/"Статус". Подпись "Настройки" стоит СНАРУЖИ
+  // окошка, тем же шрифтом/стилем, что и подписи "Тип голоса"/"Статус"
+  // слева (а не капслоком внутри окошка, как было раньше).
+  const voiceToolsBox = '<div class="voice-tools-wrap">'
+    +'<div class="voice-tools-label">Настройки</div>'
+    +'<div class="voice-tools-box">'
+      +'<div class="voice-title-tools">'
+        + rangeModeToggle
+        +'<div class="lang-toggle">'
+          +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
+          +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
+        +'</div>'
       +'</div>'
-    +'</div>'
-    +'<div class="voice-tools-box-actions">'
-      +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">'+saveBtnLabel+'</button>'
-      +'<button type="button" class="btn btn-ghost voice-reset-btn" onclick="resetVoiceRangeProgress(\''+s.id+'\')" title="Сбросить прогресс диапазона (оба кольца)">Сброс</button>'
+      +'<div class="voice-tools-box-actions">'
+        +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">'+saveBtnLabel+'</button>'
+        +'<button type="button" class="btn btn-ghost voice-reset-btn" onclick="resetVoiceRangeProgress(\''+s.id+'\')" title="Сбросить прогресс диапазона (оба кольца)">Сброс</button>'
+      +'</div>'
     +'</div>'
   +'</div>';
 
