@@ -564,6 +564,8 @@
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
   .notif{display:flex;gap:16px;padding:12px 12px 12px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px}
+  .notif-clickable{cursor:pointer;transition:background .15s,border-color .15s}
+  .notif-clickable:hover{background:var(--card2);border-color:var(--border2)}
   .notif-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
   /* Красный кружок (долг/просрочка) — сам кружок остаётся обычным красным, не темнеет и не светлеет.
      Пульсирует только свечение вокруг него: растёт и гаснет в красных тонах, затем мгновенно
@@ -2811,14 +2813,17 @@ function renderNotifications(){
     const sub = activeSubscriptionOf(s.id);
     if(sub && (sub.totalLessons-sub.usedLessons)<=1) items.push({color:'amber', text:'У '+escapeHTML(s.name)+' заканчивается абонемент — остал'+((sub.totalLessons-sub.usedLessons)===1?'ся 1 урок':'ось 0 уроков')});
     const debt = studentDebt(s.id);
-    if(debt>0) items.push({color:'red', text:'Долг '+money(debt)+' — '+escapeHTML(s.name)});
+    if(debt>0) items.push({color:'red', text:'Долг '+money(debt)+' — '+escapeHTML(s.name), type:'debt', studentId:s.id});
     const dleft = daysUntilBirthday(s.birthday);
     if(dleft!==null && dleft<=2) items.push({color:'pink', text:'🎂 День рождения у '+escapeHTML(s.name)+' '+(dleft===0?'сегодня!':dleft===1?'завтра':'через '+dleft+' дн.')});
   });
   if(!items.length){ host.innerHTML='<div class="empty-state">Нет новых уведомлений</div>'; return; }
-  host.innerHTML = items.slice(0,6).map(it=>
-    '<div class="notif"><div class="notif-dot" style="background:var(--'+it.color+')"></div><div><div class="notif-text">'+it.text+'</div></div></div>'
-  ).join('');
+  host.innerHTML = items.slice(0,6).map(it=>{
+    const clickable = it.type==='debt';
+    const cls = clickable ? ' notif-clickable' : '';
+    const attrs = clickable ? ' onclick="openModal(\'payment\',{studentId:\''+it.studentId+'\'})" title="Нажмите, чтобы оплатить долг"' : '';
+    return '<div class="notif'+cls+'"'+attrs+'><div class="notif-dot" style="background:var(--'+it.color+')"></div><div><div class="notif-text">'+it.text+'</div></div></div>';
+  }).join('');
 }
 
 function renderBirthdays(){
