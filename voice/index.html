@@ -1254,12 +1254,12 @@
      остальными полями карточки "Голос"). Сетка колонок (1fr 22px 1fr)
      та же, что и у полей "От"/"До" диапазона выше — поэтому окошко
      получается ровно той же ширины, что и второе поле выбора ноты. --- */
-  .voice-basic-row{display:grid;grid-template-columns:1fr 22px 1fr;column-gap:8px;align-items:start;margin-bottom:2px}
+  .voice-basic-row{display:grid;grid-template-columns:1fr 22px 1fr;column-gap:8px;align-items:stretch;margin-bottom:2px}
   .voice-basic-col{grid-column:1/3;min-width:0;display:flex;flex-direction:column}
   .voice-basic-col select.input{margin-bottom:10px}
   .voice-basic-col select.input:last-child{margin-bottom:0}
   .voice-tools-box{grid-column:3;min-width:0;background:var(--card2);border:1px solid var(--border);
-    border-radius:var(--r2);padding:7px 12px;display:flex;flex-direction:column;justify-content:flex-start;gap:6px}
+    border-radius:var(--r2);padding:7px 12px;display:flex;flex-direction:column;justify-content:center;gap:6px}
   .voice-tools-box-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
   .voice-tools-box .voice-title-tools{flex-wrap:wrap;row-gap:6px}
   .voice-tools-box-actions{display:flex;gap:8px}
