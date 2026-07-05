@@ -1246,18 +1246,18 @@
   .range-mode-btn.active.mode-current{background:var(--accent);color:#fff}
   .range-mode-btn.active.mode-desired{background:var(--blue);color:#fff}
 
-  /* --- "Тип голоса" и окошко "Управление диапазоном" стоят в ОДНОЙ
-     строке сетки (row1) — их низ совпадает автоматически, т.к. высота
-     строки = высота самого высокого из них (align-items:stretch), а
-     не высота всего блока "Тип голоса"+"Статус" вместе. "Статус" —
-     отдельным элементом, auto-placement кладёt его уже в следующую
-     строку (row2), той же ширины, что и "Тип голоса". Оба поля
-     занимают grid-column:1 — РОВНО ту же колонку (и ширину), что и
-     поле "До" в диапазоне выше; окошко занимает grid-column:3 — ту
-     же колонку, что и поле "Си". Средняя колонка (22px) — пустой
-     зазор, как место под стрелку "→" в строке диапазона. --- */
-  .voice-basic-row{display:grid;grid-template-columns:1fr 22px 1fr;column-gap:8px;row-gap:10px;align-items:stretch;margin-bottom:2px}
-  .voice-basic-field{grid-column:1;min-width:0}
+  /* --- Левая колонка ("Тип голоса" + "Статус", друг под другом) и
+     окошко "Управление диапазоном" справа стоят в одной строке сетки
+     и растягиваются на одинаковую высоту (align-items:stretch) — то
+     есть верх окошка совпадает с верхом "Тип голоса", а низ окошка
+     совпадает с низом "Статус" (перпендикулярно/вровень со всеми
+     остальными полями карточки "Голос"). Сетка колонок (1fr 22px 1fr)
+     та же, что и у полей "От"/"До" диапазона выше — поэтому окошко
+     получается ровно той же ширины, что и второе поле выбора ноты. --- */
+  .voice-basic-row{display:grid;grid-template-columns:1fr 22px 1fr;column-gap:8px;align-items:stretch;margin-bottom:2px}
+  .voice-basic-col{grid-column:1/3;min-width:0;display:flex;flex-direction:column}
+  .voice-basic-col select.input{margin-bottom:10px}
+  .voice-basic-col select.input:last-child{margin-bottom:0}
   .voice-tools-box{grid-column:3;min-width:0;background:var(--card2);border:1px solid var(--border);
     border-radius:var(--r2);padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:9px}
   .voice-tools-box-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
@@ -1268,7 +1268,7 @@
   .voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   @media (max-width:640px){
     .voice-basic-row{grid-template-columns:1fr}
-    .voice-basic-field{grid-column:1}
+    .voice-basic-col{grid-column:1}
     .voice-tools-box{grid-column:1}
   }
 
@@ -3712,20 +3712,18 @@ function renderDetailProgress(){
       +'<div class="detail-card card-voice">'+voiceHeader
       + rangeFields
       +'<div class="voice-basic-row">'
-        +'<div class="voice-basic-field">'
+        +'<div class="voice-basic-col">'
           +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Тип голоса</div>'
           +'<select class="input" onchange="updateStudentField(\''+s.id+'\',\'voiceType\',this.value)">'
           +'<option value="" '+(!s.voiceType?'selected':'')+'>Не указан</option>'
           + ['Сопрано','Меццо-сопрано','Альт','Тенор','Баритон','Бас'].map(v=>'<option '+(v===s.voiceType?'selected':'')+'>'+v+'</option>').join('')
           +'</select>'
-        +'</div>'
-        + voiceToolsBox
-        +'<div class="voice-basic-field">'
           +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Статус</div>'
           +'<select class="input" onchange="updateStudentField(\''+s.id+'\',\'status\',this.value)">'
           + [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']].map(v=>'<option value="'+v[0]+'" '+(v[0]===s.status?'selected':'')+'>'+v[1]+'</option>').join('')
           +'</select>'
         +'</div>'
+        + voiceToolsBox
       +'</div></div>'
 
       +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
