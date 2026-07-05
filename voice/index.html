@@ -190,6 +190,18 @@
   .btn-blue{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(96,165,250,.35)}
   .btn-blue:hover{background:var(--blue);color:#fff}
   .btn:disabled{opacity:.4;cursor:not-allowed}
+  /* Анимация кнопок в опасной зоне (попап удаления карточки) — только на устройствах
+     с мышью и наведением (десктоп); на тач-экранах анимация отключена ниже. */
+  .btn-danger-anim{transition:transform .15s ease, box-shadow .15s ease, background .15s ease}
+  @media (hover:hover) and (pointer:fine){
+    .btn-danger-anim{animation:dangerPulse 2.4s ease-in-out infinite}
+    .btn-danger-anim:hover{animation-play-state:paused;transform:translateY(-1px) scale(1.05);box-shadow:0 6px 16px var(--red-glow)}
+    .btn-danger-anim:active{transform:translateY(0) scale(.96)}
+  }
+  @keyframes dangerPulse{
+    0%,100%{box-shadow:0 0 0 0 var(--red-glow)}
+    50%{box-shadow:0 0 0 7px transparent}
+  }
   .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
   .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;position:relative;overflow:hidden}
   .stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 var(--r2) 0 60px;opacity:.07}
@@ -567,6 +579,8 @@
   .tab{position:relative;z-index:1;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:#ffffff;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.22)}
   .tab.active{color:#ffffff;border-color:transparent}
   .tab:hover:not(.active){background:transparent;border-color:#ffffff}
+  .tab.tab-danger{color:var(--red);border-color:rgba(248,113,113,.35)}
+  .tab.tab-danger:hover{background:var(--red-bg);border-color:var(--red);color:var(--red)}
   .lesson-sub-banner{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
@@ -599,6 +613,7 @@
   .song-artist{font-size:11px;color:var(--text3)}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
   .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
+  #modal-content.modal-danger{border-color:var(--red)}
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
 
   /* ---------- Пикер выбора периода (открывается по клику на дату в расписании) ---------- */
@@ -1794,7 +1809,7 @@
           <div class="tab" onclick="switchDetailTab(this,'homework-tab')">Задания</div>
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
           <div class="tab" onclick="switchDetailTab(this,'finance-tab')">Финансы</div>
-          <div class="tab" onclick="switchDetailTab(this,'danger-tab')">Удалить карточку</div>
+          <div class="tab tab-danger" onclick="openModal('studentDanger',{studentId:currentStudentId})">Удалить карточку</div>
         </div>
         <div id="dtab-profile"></div>
         <div id="dtab-progress-tab" class="hidden"></div>
@@ -1802,7 +1817,6 @@
         <div id="dtab-homework-tab" class="hidden"></div>
         <div id="dtab-history" class="hidden"></div>
         <div id="dtab-finance-tab" class="hidden"></div>
-        <div id="dtab-danger-tab" class="hidden"></div>
       </div>
     </div>
 
@@ -3207,7 +3221,7 @@ function studentHomeworkTagHTML(studentId){
 // после того как он там что-то сохранял. Теперь вкладка запоминается и
 // восстанавливается — сбрасывается на "Профиль" только когда открывают
 // карточку заново (openStudent).
-const DETAIL_TABS = ['profile','progress-tab','repertoire','homework-tab','history','finance-tab','danger-tab'];
+const DETAIL_TABS = ['profile','progress-tab','repertoire','homework-tab','history','finance-tab'];
 let currentDetailTab = 'profile';
 
 // ---------- Восстановление раздела после обновления страницы ----------
@@ -3250,7 +3264,6 @@ function renderStudentDetailAll(){
   renderDetailHomework();
   renderDetailHistory();
   renderDetailFinance();
-  renderDetailDanger();
   document.querySelectorAll('#page-student-detail .tab-row .tab').forEach((t,i)=>t.classList.toggle('active', DETAIL_TABS[i]===currentDetailTab));
   document.querySelectorAll('#page-student-detail .tab-row').forEach(updateTabSlider);
   DETAIL_TABS.forEach(t=>{
@@ -4241,27 +4254,29 @@ function renderDetailFinance(){
     +'</div>';
 }
 
-/* ---------- Опасная зона: удаление карточки ученика ---------- */
-function renderDetailDanger(){
-  const s = studentById(currentStudentId); if(!s) return;
-  const host = document.getElementById('dtab-danger-tab');
+/* ---------- Опасная зона: удаление карточки ученика (попап) ----------
+   Раньше это была отдельная вкладка внутри карточки ученика. Теперь кнопка
+   "Удалить карточку" в строке вкладок открывает это же самое содержимое как
+   pop-up окно поверх любого раздела карточки (Профиль/Репертуар/История и т.д.),
+   а также центрируется одинаково и на десктопе, и на мобильном (см. .modal-bg). */
+function buildStudentDangerModal(ctx){
+  ctx = ctx||{};
+  const s = studentById(ctx.studentId||currentStudentId);
+  if(!s) return '<div class="modal-title">Ученик не найден <button class="modal-close" onclick="closeModal()">×</button></div>';
   const payCount = paymentsOfStudent(s.id).length;
-  host.innerHTML =
-    '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--red)">'
-      + '<div class="detail-title"><span class="detail-title-label danger">⚠️ Опасная зона</span></div>'
-      + '<div style="font-size:12px;color:var(--text2);margin-bottom:16px">Действия ниже необратимы. Перед удалением убедитесь, что это действительно нужно.</div>'
+  return '<div class="modal-title"><span>⚠️ Опасная зона</span><button class="modal-close" onclick="closeModal()">×</button></div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:16px">Действия ниже необратимы. Перед удалением убедитесь, что это действительно нужно.</div>'
 
-      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px;margin-bottom:10px">'
-        + '<div><div style="font-size:13px;font-weight:600">Очистить историю платежей</div>'
-        + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Удалит все финансовые записи ученика (сейчас: '+payCount+'). Абонементы и уроки останутся.</div></div>'
-        + '<button class="btn btn-ghost" style="border-color:var(--red);color:var(--red);white-space:nowrap" onclick="wipeStudentFinance(\''+s.id+'\')">Очистить</button>'
-      + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px;margin-bottom:10px">'
+      + '<div><div style="font-size:13px;font-weight:600">Очистить историю платежей</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Удалит все финансовые записи ученика (сейчас: '+payCount+'). Абонементы и уроки останутся.</div></div>'
+      + '<button class="btn btn-ghost btn-danger-anim" style="border-color:var(--red);color:var(--red);white-space:nowrap" onclick="wipeStudentFinance(\''+s.id+'\')">Очистить</button>'
+    + '</div>'
 
-      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px">'
-        + '<div><div style="font-size:13px;font-weight:600">Удалить карточку ученика</div>'
-        + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Полностью удалит ученика «'+escapeHTML(s.name)+'», а также все его уроки, платежи, абонементы, задания и репертуар.</div></div>'
-        + '<button class="btn" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')">🗑 Удалить</button>'
-      + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px">'
+      + '<div><div style="font-size:13px;font-weight:600">Удалить карточку ученика</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Полностью удалит ученика «'+escapeHTML(s.name)+'», а также все его уроки, платежи, абонементы, задания и репертуар.</div></div>'
+      + '<button class="btn btn-danger-anim" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')">🗑 Удалить</button>'
     + '</div>';
 }
 
@@ -4271,8 +4286,11 @@ function wipeStudentFinance(studentId){
   DB.payments = DB.payments.filter(p=>p.studentId!==studentId);
   saveDB();
   renderDetailFinance();
-  renderDetailDanger();
   toast('История платежей очищена ✓');
+  // Попап остаётся открытым — просто обновляем его содержимое (счётчик платежей и т.п.)
+  if(!document.getElementById('modal-bg').classList.contains('hidden')){
+    openModal('studentDanger',{studentId:studentId});
+  }
 }
 
 function deleteStudentCard(studentId){
@@ -4286,6 +4304,7 @@ function deleteStudentCard(studentId){
   DB.homework = DB.homework.filter(x=>x.studentId!==studentId);
   DB.repertoire = DB.repertoire.filter(x=>x.studentId!==studentId);
   saveDB();
+  closeModal();
   toast('Карточка ученика удалена ✓');
   showPage('students');
   renderSidebar();
@@ -5502,12 +5521,14 @@ const modalBuilders = {
   deleteLessonConfirm: buildDeleteLessonConfirmModal,
   deleteHomework: buildDeleteHomeworkModal,
   deleteSubscription: buildDeleteSubscriptionModal,
-  incomeGoal: buildIncomeGoalModal};
+  incomeGoal: buildIncomeGoalModal,
+  studentDanger: buildStudentDangerModal};
 function openModal(type, ctx){
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
   if(!builder){ console.warn('Неизвестный тип модального окна:', type); return; }
   document.getElementById('modal-content').innerHTML = builder(modalCtx);
+  document.getElementById('modal-content').classList.toggle('modal-danger', type==='studentDanger');
   document.getElementById('modal-bg').classList.remove('hidden');
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
@@ -5530,6 +5551,7 @@ function closeModal(e){
   if(!e){
     document.getElementById('modal-bg').classList.add('hidden');
     document.getElementById('modal-content').innerHTML='';
+    document.getElementById('modal-content').classList.remove('modal-danger');
     return;
   }
   const clickedCloseBtn = e.target && e.target.closest && e.target.closest('.modal-close');
@@ -5537,6 +5559,7 @@ function closeModal(e){
   if(clickedCloseBtn || clickedBgOnly){
     document.getElementById('modal-bg').classList.add('hidden');
     document.getElementById('modal-content').innerHTML='';
+    document.getElementById('modal-content').classList.remove('modal-danger');
   }
 }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
