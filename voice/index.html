@@ -567,6 +567,7 @@
   .tab{position:relative;z-index:1;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:#ffffff;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.22)}
   .tab.active{color:#ffffff;border-color:transparent}
   .tab:hover:not(.active){background:transparent;border-color:#ffffff}
+  .tab.tab-delete:hover{color:var(--red);border-color:var(--red)}
   .lesson-sub-banner{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
@@ -1795,7 +1796,7 @@
           <div class="tab" onclick="switchDetailTab(this,'homework-tab')">Задания</div>
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
           <div class="tab" onclick="switchDetailTab(this,'finance-tab')">Финансы</div>
-          <button class="btn-delete-icon" title="Удалить карточку ученика" onclick="openModal('studentDanger',{studentId:currentStudentId})"><i class="fa-solid fa-trash"></i></button>
+          <div class="tab tab-delete" onclick="openModal('studentDanger',{studentId:currentStudentId})">Удалить клиента</div>
         </div>
         <div id="dtab-profile"></div>
         <div id="dtab-progress-tab" class="hidden"></div>
