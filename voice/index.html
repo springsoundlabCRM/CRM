@@ -1268,12 +1268,18 @@
   /* --- Внутри окошка "Настройки" каждая пара кнопок (Текущий/Желаемый,
      РУС/ENG, Сохранить/Сброс) растягивается на всю ширину окошка и
      делится поровну между кнопками — так все кнопки вместе гармонично
-     заполняют всё пространство окошка, а не жмутся вразнобой слева. --- */
+     заполняют всё пространство окошка, а не жмутся вразнобой слева.
+     Паддинги и размер шрифта у всех трёх рядов одинаковые, чтобы
+     кнопки были ровно одного размера; у "Сброс" вертикальный паддинг
+     на 1px меньше остальных — компенсация его 1px рамки (border-ghost),
+     которой нет у остальных кнопок, иначе она была бы на 2px выше. --- */
   .voice-tools-box .range-mode-toggle,.voice-tools-box .lang-toggle{display:flex;width:100%}
-  .voice-tools-box .range-mode-btn,.voice-tools-box .lang-toggle-btn{flex:1;text-align:center}
+  .voice-tools-box .range-mode-btn,.voice-tools-box .lang-toggle-btn,
+  .voice-tools-box-actions .btn{flex:1;text-align:center;justify-content:center;
+    padding:7px 11px;font-size:11px;line-height:1.3}
   .voice-tools-box-actions{display:flex;gap:7px}
-  .voice-tools-box-actions .btn{flex:1;padding:7px 12px;font-size:11px;white-space:nowrap;justify-content:center}
-  .voice-reset-btn{background:var(--card);border:1px solid var(--border2);color:var(--text2)}
+  .voice-tools-box-actions .btn{white-space:nowrap}
+  .voice-reset-btn{background:var(--card);border:1px solid var(--border2);color:var(--text2);padding-top:6px;padding-bottom:6px}
   .voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   @media (max-width:640px){
     .voice-basic-row{grid-template-columns:1fr}
