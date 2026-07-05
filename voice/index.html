@@ -1172,7 +1172,6 @@
   .voice-title-tools{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
   @media (max-width:640px){
     .card-voice .detail-title{flex-wrap:wrap;row-gap:8px}
-    .card-voice .voice-title-tools{flex-wrap:wrap;justify-content:flex-end}
   }
   .lang-toggle{display:inline-flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px}
   .lang-toggle-btn{border:none;background:transparent;color:var(--text3);font-size:10.5px;font-weight:700;letter-spacing:.3px;
@@ -1246,6 +1245,27 @@
   .range-mode-btn:hover{color:var(--text)}
   .range-mode-btn.active.mode-current{background:var(--accent);color:#fff}
   .range-mode-btn.active.mode-desired{background:var(--blue);color:#fff}
+
+  /* --- Компактная строка "Тип голоса"/"Статус" (каждая половина ширины
+     карточки "Голос", как поля "От"/"До" диапазона) и отдельный блок
+     с инструментами диапазона (переключатель Текущий/Желаемый, язык
+     нотации РУС/ENG, кнопки "Сохранить" и "Сброс") — стоят рядом друг
+     с другом, занимая вторую половину ширины. --- */
+  .voice-basic-row{display:flex;gap:12px;align-items:stretch;margin-bottom:2px}
+  .voice-basic-col{flex:1;min-width:0;display:flex;flex-direction:column}
+  .voice-basic-col select.input{margin-bottom:10px}
+  .voice-basic-col select.input:last-child{margin-bottom:0}
+  .voice-tools-box{flex:1;min-width:0;background:var(--card2);border:1px solid var(--border);
+    border-radius:var(--r2);padding:10px 12px;display:flex;flex-direction:column;gap:9px;justify-content:center}
+  .voice-tools-box-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+  .voice-tools-box .voice-title-tools{flex-wrap:wrap;row-gap:8px}
+  .voice-tools-box-actions{display:flex;gap:8px}
+  .voice-tools-box-actions .btn{flex:1;justify-content:center;white-space:nowrap}
+  .voice-reset-btn{background:var(--card);border:1px solid var(--border2);color:var(--text2)}
+  .voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
+  @media (max-width:640px){
+    .voice-basic-row{flex-direction:column}
+  }
 
   /* --- Значок-пометка (i) с описанием графика по клику/тапу --- */
   .info-dot-btn{width:18px;height:18px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);
@@ -3644,15 +3664,26 @@ function renderDetailProgress(){
 
   const voiceHeader = '<div class="detail-title">'
     +'<span class="detail-title-label">🎤 Голос</span>'
+    +'</div>';
+
+  // Отдельный блок с инструментами диапазона (переключатель Текущий/
+  // Желаемый, язык нотации, кнопки "Сохранить" и "Сброс") — раньше стоял
+  // в шапке карточки "Голос", теперь вынесен в собственное окошко рядом
+  // с полями "Тип голоса"/"Статус".
+  const voiceToolsBox = '<div class="voice-tools-box">'
+    +'<div class="voice-tools-box-title">Управление диапазоном</div>'
     +'<div class="voice-title-tools">'
       + rangeModeToggle
       +'<div class="lang-toggle">'
         +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
         +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
       +'</div>'
-      +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">'+saveBtnLabel+'</button>'
     +'</div>'
-    +'</div>';
+    +'<div class="voice-tools-box-actions">'
+      +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">'+saveBtnLabel+'</button>'
+      +'<button type="button" class="btn btn-ghost voice-reset-btn" onclick="resetVoiceRangeProgress(\''+s.id+'\')" title="Сбросить прогресс диапазона (оба кольца)">↺ Сброс</button>'
+    +'</div>'
+  +'</div>';
 
   const rangeFields = '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Диапазон — '+(mode==='desired'?'желаемый (цель)':'текущий (сейчас поёт)')+'</div>'
     +'<div class="range-fields-row" id="range-fields-row">'
@@ -3675,15 +3706,20 @@ function renderDetailProgress(){
     +'<div class="progress-col">'
       +'<div class="detail-card card-voice">'+voiceHeader
       + rangeFields
-      +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Тип голоса</div>'
-      +'<select class="input" style="margin-bottom:10px" onchange="updateStudentField(\''+s.id+'\',\'voiceType\',this.value)">'
-      +'<option value="" '+(!s.voiceType?'selected':'')+'>Не указан</option>'
-      + ['Сопрано','Меццо-сопрано','Альт','Тенор','Баритон','Бас'].map(v=>'<option '+(v===s.voiceType?'selected':'')+'>'+v+'</option>').join('')
-      +'</select>'
-      +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Статус</div>'
-      +'<select class="input" onchange="updateStudentField(\''+s.id+'\',\'status\',this.value)">'
-      + [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']].map(v=>'<option value="'+v[0]+'" '+(v[0]===s.status?'selected':'')+'>'+v[1]+'</option>').join('')
-      +'</select></div>'
+      +'<div class="voice-basic-row">'
+        +'<div class="voice-basic-col">'
+          +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Тип голоса</div>'
+          +'<select class="input" onchange="updateStudentField(\''+s.id+'\',\'voiceType\',this.value)">'
+          +'<option value="" '+(!s.voiceType?'selected':'')+'>Не указан</option>'
+          + ['Сопрано','Меццо-сопрано','Альт','Тенор','Баритон','Бас'].map(v=>'<option '+(v===s.voiceType?'selected':'')+'>'+v+'</option>').join('')
+          +'</select>'
+          +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Статус</div>'
+          +'<select class="input" onchange="updateStudentField(\''+s.id+'\',\'status\',this.value)">'
+          + [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']].map(v=>'<option value="'+v[0]+'" '+(v[0]===s.status?'selected':'')+'>'+v[1]+'</option>').join('')
+          +'</select>'
+        +'</div>'
+        + voiceToolsBox
+      +'</div></div>'
 
       +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
 
@@ -3974,6 +4010,24 @@ function saveVoiceRange(studentId){
   // Поддерживаем старые текстовые поля для обратной совместимости
   s.rangeFrom = formatNote(from, s.voiceLang);
   s.rangeTo = formatNote(to, s.voiceLang);
+  saveDB();
+  renderDetailProgress();
+}
+
+/* --- Сброс карточки "Прогресс диапазона". Обнуляет ТОЛЬКО то, что
+   участвует в расчёте двух колец (стартовую базовую ширину и
+   зафиксированные "Текущий"/"Желаемый" диапазоны) — оба кольца
+   вернутся к состоянию "нет данных". Поля "От"/"До" в самой карточке
+   "Голос" (ещё не сохранённый выбор нот) не трогаем, чтобы можно было
+   сразу выбрать диапазон заново и сохранить его. --- */
+function resetVoiceRangeProgress(studentId){
+  const s = studentById(studentId); if(!s) return;
+  if(!confirm('Сбросить прогресс диапазона? Оба кольца — "Текущий" и "Желаемый" — вернутся к 0% ("нет данных"). Это действие нельзя отменить.')) return;
+  s.voiceRangeBaselineWidth = null;
+  s.voiceRangeSavedFrom = null;
+  s.voiceRangeSavedTo = null;
+  s.desiredSavedFrom = null;
+  s.desiredSavedTo = null;
   saveDB();
   renderDetailProgress();
 }
