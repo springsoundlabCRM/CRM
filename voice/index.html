@@ -564,8 +564,6 @@
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
   .notif{display:flex;gap:16px;padding:12px 12px 12px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px}
-  .notif-clickable{cursor:pointer;transition:background .15s,border-color .15s}
-  .notif-clickable:hover{background:var(--card2);border-color:var(--border2)}
   .notif-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
   /* Красный кружок (долг/просрочка) — сам кружок остаётся обычным красным, не темнеет и не светлеет.
      Пульсирует только свечение вокруг него: растёт и гаснет в красных тонах, затем мгновенно
@@ -739,7 +737,8 @@
        а нам для мобильной версии нужен другой порядок: Голос, Навыки,
        Заметки, Заметки о голосе (вместо Голос, Заметки, Навыки, ...) */
     .card-skills{order:2}
-    .card-notes{order:3}
+    .card-rangeprogress{order:3}
+    .card-notes{order:4}
   }
 
   /* ================================================================
@@ -881,7 +880,8 @@
     #dashTriColumn{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr}
     .card-skills{order:2}
-    .card-notes{order:3}
+    .card-rangeprogress{order:3}
+    .card-notes{order:4}
     .input-row{grid-template-columns:1fr 1fr}
   }
 
@@ -943,7 +943,8 @@
     .detail-panel{grid-template-columns:1fr;gap:10px}
     .detail-card{padding:12px}
     .card-skills{order:2}
-    .card-notes{order:3}
+    .card-rangeprogress{order:3}
+    .card-notes{order:4}
 
     /* Формы внутри модалок — поля друг под другом */
     .input-row{grid-template-columns:1fr!important;gap:0}
@@ -1158,6 +1159,73 @@
   .skill-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--card)}
   .skill-ring-val{position:relative;z-index:1;font-size:13px;font-weight:700;color:var(--text)}
   .skill-ring-label{font-size:10.5px;color:var(--text3);text-align:center;max-width:76px}
+
+  /* ============================================================
+     ГОЛОС: переключатель нотации (RU/EN), кнопка "Сохранить",
+     поля выбора диапазона (выпадающие "нотные" панели) и
+     карточка-кольцо прогресса диапазона
+     ============================================================ */
+  .voice-title-tools{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+  .lang-toggle{display:inline-flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px}
+  .lang-toggle-btn{border:none;background:transparent;color:var(--text3);font-size:10.5px;font-weight:700;letter-spacing:.3px;
+    padding:5px 10px;border-radius:6px;cursor:pointer;transition:all .15s;text-transform:none}
+  .lang-toggle-btn:hover{color:var(--text)}
+  .lang-toggle-btn.active{background:var(--accent);color:#fff}
+  .voice-save-btn{padding:6px 13px;font-size:11px;font-weight:600}
+  .voice-save-btn.is-dirty{box-shadow:0 0 0 3px var(--accent-glow)}
+
+  .range-fields-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative}
+  .range-field{flex:1;position:relative}
+  .range-field-btn{width:100%;text-align:left;background:var(--card2);border:1px solid var(--border);color:var(--text);
+    border-radius:9px;padding:9px 12px;font-size:13.5px;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s;
+    display:flex;align-items:center;justify-content:space-between;gap:6px;font-family:var(--font)}
+  .range-field-btn:hover{border-color:var(--accent)}
+  .range-field-btn.open{border-color:var(--accent);background:var(--bg3)}
+  .range-field-btn .rf-placeholder{color:var(--text3);font-weight:400;font-size:12px}
+  .range-field-btn .rf-caret{font-size:9px;color:var(--text3);transition:transform .15s}
+  .range-field-btn.open .rf-caret{transform:rotate(180deg)}
+  .range-arrow{color:var(--text3);font-size:13px;flex-shrink:0}
+
+  .note-popover{position:absolute;top:calc(100% + 6px);left:0;z-index:60;min-width:280px;max-width:340px;
+    background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);
+    box-shadow:0 14px 36px rgba(0,0,0,.35);padding:12px;
+    animation:notePopIn .16s cubic-bezier(.22,1,.36,1);max-height:340px;overflow-y:auto}
+  @keyframes notePopIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .note-pop-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:10px}
+  .note-oct-block{margin-bottom:10px}
+  .note-oct-block:last-child{margin-bottom:0}
+  .note-oct-label{font-size:10.5px;color:var(--accent);font-weight:700;margin-bottom:6px;padding-left:2px}
+  .note-btn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .note-btn{background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:7px;
+    padding:7px 4px;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;font-family:var(--font);text-align:center}
+  .note-btn:hover{border-color:var(--accent);color:var(--text);background:var(--bg3)}
+  .note-btn.sharp{color:var(--text3);font-size:11px}
+  .note-btn.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* --- Карточка-кольцо "Прогресс диапазона" --- */
+  .card-rangeprogress{grid-column:1/-1;display:flex;flex-direction:column}
+  .range-progress-body{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+  .range-ring-wrap{position:relative;width:118px;height:118px;flex-shrink:0;border-radius:50%;
+    background:conic-gradient(from 0deg,var(--rp-color,var(--accent)) calc(var(--rp-pct,0)*1%), var(--bg3) 0);
+    display:flex;align-items:center;justify-content:center;transition:--rp-pct 1s cubic-bezier(.22,1,.36,1)}
+  .range-ring-wrap::before{content:'';position:absolute;inset:11px;border-radius:50%;background:var(--card)}
+  .range-ring-center{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center}
+  .range-ring-center b{font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text)}
+  .range-ring-center span{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+  .range-progress-info{flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px}
+  .range-progress-row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;font-size:11.5px;color:var(--text3);
+    padding-bottom:7px;border-bottom:1px solid var(--border)}
+  .range-progress-row:last-child{border-bottom:none;padding-bottom:0}
+  .range-progress-row .v{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+  .range-progress-row .v.up{color:var(--green)}
+  .range-progress-row .v.down{color:var(--red)}
+  .range-progress-empty{color:var(--text3);font-size:12px;line-height:1.5}
+  @media (max-width:600px){
+    .range-progress-body{gap:16px}
+    .range-ring-wrap{width:96px;height:96px}
+    .range-ring-wrap::before{inset:9px}
+    .range-ring-center b{font-size:18px}
+  }
 
   /* --- Градиентные бары для графиков доходов + пунктирный тренд поверх --- */
   .bar{background:var(--accent);border-radius:5px 5px 2px 2px}
@@ -2813,17 +2881,14 @@ function renderNotifications(){
     const sub = activeSubscriptionOf(s.id);
     if(sub && (sub.totalLessons-sub.usedLessons)<=1) items.push({color:'amber', text:'У '+escapeHTML(s.name)+' заканчивается абонемент — остал'+((sub.totalLessons-sub.usedLessons)===1?'ся 1 урок':'ось 0 уроков')});
     const debt = studentDebt(s.id);
-    if(debt>0) items.push({color:'red', text:'Долг '+money(debt)+' — '+escapeHTML(s.name), type:'debt', studentId:s.id});
+    if(debt>0) items.push({color:'red', text:'Долг '+money(debt)+' — '+escapeHTML(s.name)});
     const dleft = daysUntilBirthday(s.birthday);
     if(dleft!==null && dleft<=2) items.push({color:'pink', text:'🎂 День рождения у '+escapeHTML(s.name)+' '+(dleft===0?'сегодня!':dleft===1?'завтра':'через '+dleft+' дн.')});
   });
   if(!items.length){ host.innerHTML='<div class="empty-state">Нет новых уведомлений</div>'; return; }
-  host.innerHTML = items.slice(0,6).map(it=>{
-    const clickable = it.type==='debt';
-    const cls = clickable ? ' notif-clickable' : '';
-    const attrs = clickable ? ' onclick="openModal(\'payment\',{studentId:\''+it.studentId+'\'})" title="Нажмите, чтобы оплатить долг"' : '';
-    return '<div class="notif'+cls+'"'+attrs+'><div class="notif-dot" style="background:var(--'+it.color+')"></div><div><div class="notif-text">'+it.text+'</div></div></div>';
-  }).join('');
+  host.innerHTML = items.slice(0,6).map(it=>
+    '<div class="notif"><div class="notif-dot" style="background:var(--'+it.color+')"></div><div><div class="notif-text">'+it.text+'</div></div></div>'
+  ).join('');
 }
 
 function renderBirthdays(){
@@ -3413,8 +3478,78 @@ function renderDetailProfile(){
     +'</div>';
 }
 
+/* ============================================================
+   ГОЛОС / ДИАПАЗОН — нотация RU/EN, выбор нот и прогресс диапазона
+   ============================================================ */
+
+/* Названия нот. Индекс 0..11 — полутон внутри октавы. */
+const NOTES_RU = ['До','До#','Ре','Ре#','Ми','Фа','Фа#','Соль','Соль#','Ля','Ля#','Си'];
+const NOTES_EN = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+/* Октавы для выбора. o — внутренний номер (0 = малая октава, 1 = первая и т.д.),
+   ruSuffix — как подписывать номер октавы по-русски, enSci — номер по научной
+   (латинской) системе, где До первой октавы = C4 (совпадает с общепринятой). */
+const VOICE_OCTAVES = [
+  {o:-1, ruLabel:'Большая',  ruSuffix:'',  enSci:2},
+  {o:0,  ruLabel:'Малая',    ruSuffix:'',  enSci:3},
+  {o:1,  ruLabel:'1-я',      ruSuffix:'1', enSci:4},
+  {o:2,  ruLabel:'2-я',      ruSuffix:'2', enSci:5},
+  {o:3,  ruLabel:'3-я',      ruSuffix:'3', enSci:6},
+  {o:4,  ruLabel:'4-я',      ruSuffix:'4', enSci:7},
+  {o:5,  ruLabel:'5-я',      ruSuffix:'5', enSci:8}
+];
+
+/* Абсолютный номер полутона — единая шкала для сравнения диапазонов,
+   не зависит от того, какой язык нотации выбран для отображения. */
+function noteAbs(n){ if(!n) return null; return n.o*12 + n.i; }
+
+function octaveMeta(o){ return VOICE_OCTAVES.find(x=>x.o===o); }
+
+/* Отображаемая подпись ноты на выбранном языке, например "До#1" / "D#4" */
+function formatNote(n, lang){
+  if(!n) return '';
+  const oct = octaveMeta(n.o); if(!oct) return '';
+  if(lang==='en') return NOTES_EN[n.i] + oct.enSci;
+  return NOTES_RU[n.i] + oct.ruSuffix;
+}
+
+/* Попытка распознать старые текстовые значения диапазона (например "До1",
+   "Соль#2"), сохранённые до появления структурированного выбора нот —
+   чтобы у преподавателей, уже заполнивших диапазон, ничего не потерялось. */
+function parseLegacyNoteText(text){
+  if(!text) return null;
+  text = String(text).trim();
+  if(!text) return null;
+  const tryLang = (arr, isEn) => {
+    const candidates = arr.map((n,i)=>({n,i})).sort((a,b)=>b.n.length-a.n.length);
+    for(const c of candidates){
+      if(text.toLowerCase().startsWith(c.n.toLowerCase())){
+        const rest = text.slice(c.n.length).trim();
+        let oNum = rest === '' ? (isEn?4:1) : parseInt(rest,10);
+        if(isNaN(oNum)) oNum = isEn?4:1;
+        const o = isEn ? (oNum-3) : oNum;
+        return {o:o, i:c.i};
+      }
+    }
+    return null;
+  };
+  return tryLang(NOTES_RU,false) || tryLang(NOTES_EN,true);
+}
+
+/* Гарантирует, что у ученика есть все нужные поля для карточки "Голос",
+   включая мягкую миграцию старых текстовых полей rangeFrom/rangeTo. */
+function ensureVoiceFields(s){
+  if(!s.voiceLang) s.voiceLang = 'ru';
+  if(s.rangeFromNote===undefined) s.rangeFromNote = parseLegacyNoteText(s.rangeFrom) || null;
+  if(s.rangeToNote===undefined)   s.rangeToNote   = parseLegacyNoteText(s.rangeTo)   || null;
+  if(s.voiceRangeBaselineWidth===undefined) s.voiceRangeBaselineWidth = null;
+  if(s.voiceRangeSavedFrom===undefined) s.voiceRangeSavedFrom = null;
+  if(s.voiceRangeSavedTo===undefined)   s.voiceRangeSavedTo   = null;
+}
+
 function renderDetailProgress(){
   const s = studentById(currentStudentId); if(!s) return;
+  ensureVoiceFields(s);
   const host = document.getElementById('dtab-progress-tab');
   const skillLabels = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма'};
   const sk = s.skills || {};
@@ -3427,13 +3562,42 @@ function renderDetailProgress(){
         }).join('')
       +'</div></div>';
   }).join('');
-  host.innerHTML = '<div class="detail-panel">'
-    +'<div class="detail-card card-voice"><div class="detail-title"><span class="detail-title-label">🎤 Голос</span></div>'
-    +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Диапазон</div>'
-    +'<div style="display:flex;gap:8px;margin-bottom:10px">'
-    +'<input class="input" id="voice-range-from" style="flex:1" placeholder="От (например: До1)" value="'+escapeHTML(s.rangeFrom||'')+'" onblur="updateStudentField(\''+s.id+'\',\'rangeFrom\',this.value)">'
-    +'<input class="input" id="voice-range-to" style="flex:1" placeholder="До (например: Соль2)" value="'+escapeHTML(s.rangeTo||'')+'" onblur="updateStudentField(\''+s.id+'\',\'rangeTo\',this.value)">'
+
+  const lang = s.voiceLang;
+  const fromLabel = formatNote(s.rangeFromNote, lang);
+  const toLabel = formatNote(s.rangeToNote, lang);
+
+  const voiceHeader = '<div class="detail-title">'
+    +'<span class="detail-title-label">🎤 Голос</span>'
+    +'<div class="voice-title-tools">'
+      +'<div class="lang-toggle">'
+        +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
+        +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
+      +'</div>'
+      +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">💾 Сохранить</button>'
     +'</div>'
+    +'</div>';
+
+  const rangeFields = '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Диапазон</div>'
+    +'<div class="range-fields-row" id="range-fields-row">'
+      +'<div class="range-field">'
+        +'<button type="button" class="range-field-btn" id="range-field-from" onclick="openNotePicker(\''+s.id+'\',\'from\',this)">'
+          +(fromLabel ? '<span>'+escapeHTML(fromLabel)+'</span>' : '<span class="rf-placeholder">Выбрать ноту</span>')
+          +'<span class="rf-caret">▾</span>'
+        +'</button>'
+      +'</div>'
+      +'<span class="range-arrow">→</span>'
+      +'<div class="range-field">'
+        +'<button type="button" class="range-field-btn" id="range-field-to" onclick="openNotePicker(\''+s.id+'\',\'to\',this)">'
+          +(toLabel ? '<span>'+escapeHTML(toLabel)+'</span>' : '<span class="rf-placeholder">Выбрать ноту</span>')
+          +'<span class="rf-caret">▾</span>'
+        +'</button>'
+      +'</div>'
+    +'</div>';
+
+  host.innerHTML = '<div class="detail-panel">'
+    +'<div class="detail-card card-voice">'+voiceHeader
+    + rangeFields
     +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Тип голоса</div>'
     +'<select class="input" style="margin-bottom:10px" onchange="updateStudentField(\''+s.id+'\',\'voiceType\',this.value)">'
     +'<option value="" '+(!s.voiceType?'selected':'')+'>Не указан</option>'
@@ -3449,9 +3613,135 @@ function renderDetailProgress(){
     +'</div>'
 
     +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
+
+    + renderRangeProgressCard(s)
+
     +'<div class="detail-card card-voicenotes" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">📝 Заметки о голосе</span></div>'
     +'<textarea class="input" style="flex:1;resize:none;min-height:80px" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
     +'</div></div>';
+}
+
+/* Кольцевая карточка "Прогресс диапазона" — стартует в 0%. Первое
+   сохранение диапазона фиксирует базовую ширину как 100%. Дальнейшие
+   сохранения показывают рост/уменьшение ширины диапазона относительно
+   этой базовой точки (может быть больше или меньше 100%). */
+function renderRangeProgressCard(s){
+  const baseline = s.voiceRangeBaselineWidth;
+  const savedFrom = s.voiceRangeSavedFrom, savedTo = s.voiceRangeSavedTo;
+  const lang = s.voiceLang;
+
+  if(!baseline || !savedFrom || !savedTo){
+    return '<div class="detail-card card-rangeprogress">'
+      +'<div class="detail-title"><span class="detail-title-label">🎯 Прогресс диапазона</span></div>'
+      +'<div class="range-progress-body">'
+        +'<div class="range-ring-wrap" style="--rp-pct:0;--rp-color:var(--border2)"><div class="range-ring-center"><b>0%</b><span>нет данных</span></div></div>'
+        +'<div class="range-progress-info"><div class="range-progress-empty">Выберите диапазон вверху и нажмите «Сохранить» — эта точка станет стартовыми 100%. Дальнейшие изменения диапазона будут показывать рост или снижение относительно неё.</div></div>'
+      +'</div></div>';
+  }
+
+  const width = noteAbs(savedTo) - noteAbs(savedFrom);
+  const pct = Math.max(0, Math.round((width/baseline)*100));
+  const diff = pct - 100;
+  const ringPct = Math.min(pct,100);
+  const color = pct>100 ? 'var(--green)' : (pct<100 ? 'var(--red)' : 'var(--accent)');
+  const diffClass = diff>0?'up':(diff<0?'down':'');
+  const diffText = diff===0 ? '0%' : (diff>0 ? '+'+diff+'%' : diff+'%');
+
+  return '<div class="detail-card card-rangeprogress">'
+    +'<div class="detail-title"><span class="detail-title-label">🎯 Прогресс диапазона</span></div>'
+    +'<div class="range-progress-body">'
+      +'<div class="range-ring-wrap" style="--rp-pct:'+ringPct+';--rp-color:'+color+'"><div class="range-ring-center"><b>'+pct+'%</b><span>от старта</span></div></div>'
+      +'<div class="range-progress-info">'
+        +'<div class="range-progress-row"><span>Текущий диапазон</span><span class="v">'+escapeHTML(formatNote(savedFrom,lang))+' — '+escapeHTML(formatNote(savedTo,lang))+'</span></div>'
+        +'<div class="range-progress-row"><span>Ширина (полутонов)</span><span class="v">'+width+' <span style="color:var(--text3);font-weight:400">(старт: '+baseline+')</span></span></div>'
+        +'<div class="range-progress-row"><span>Изменение с первой отметки</span><span class="v '+diffClass+'">'+diffText+'</span></div>'
+      +'</div>'
+    +'</div></div>';
+}
+
+/* --- Переключение языка нотации --- */
+function setVoiceLang(studentId, lang){
+  const s = studentById(studentId); if(!s) return;
+  s.voiceLang = lang;
+  saveDB();
+  renderDetailProgress();
+}
+
+/* --- Выпадающая панель выбора ноты для поля "От" / "До" --- */
+let _openNotePickerField = null;
+function closeNotePicker(){
+  const existing = document.querySelector('.note-popover');
+  if(existing) existing.remove();
+  document.querySelectorAll('.range-field-btn.open').forEach(b=>b.classList.remove('open'));
+  _openNotePickerField = null;
+}
+
+function openNotePicker(studentId, field, btnEl){
+  const s = studentById(studentId); if(!s) return;
+  // Повторный клик по уже открытому полю — просто закрыть панель
+  if(_openNotePickerField === field && document.querySelector('.note-popover')){
+    closeNotePicker();
+    return;
+  }
+  closeNotePicker();
+  btnEl.classList.add('open');
+  _openNotePickerField = field;
+
+  const lang = s.voiceLang;
+  const current = field==='from' ? s.rangeFromNote : s.rangeToNote;
+
+  const octBlocks = VOICE_OCTAVES.map(oct=>{
+    const octLabel = lang==='en' ? ('Октава '+oct.enSci) : (oct.ruLabel+' октава');
+    const notes = (lang==='en'?NOTES_EN:NOTES_RU).map((name,i)=>{
+      const isSelected = current && current.o===oct.o && current.i===i;
+      const isSharp = name.indexOf('#')>=0;
+      return '<button type="button" class="note-btn'+(isSharp?' sharp':'')+(isSelected?' selected':'')+'" '
+        +'onclick="event.stopPropagation();selectNote(\''+s.id+'\',\''+field+'\','+oct.o+','+i+')">'+escapeHTML(name)+'</button>';
+    }).join('');
+    return '<div class="note-oct-block"><div class="note-oct-label">'+octLabel+'</div><div class="note-btn-grid">'+notes+'</div></div>';
+  }).join('');
+
+  const pop = document.createElement('div');
+  pop.className = 'note-popover';
+  pop.onclick = function(e){ e.stopPropagation(); };
+  pop.innerHTML = '<div class="note-pop-title">'+(lang==='en'?'Выбор ноты (английская нотация)':'Выбор ноты (русская нотация)')+'</div>'+octBlocks;
+  btnEl.parentElement.appendChild(pop);
+}
+
+function selectNote(studentId, field, o, i){
+  const s = studentById(studentId); if(!s) return;
+  const note = {o:o, i:i};
+  if(field==='from') s.rangeFromNote = note; else s.rangeToNote = note;
+  closeNotePicker();
+  renderDetailProgress();
+}
+
+/* --- Сохранение диапазона: фиксирует базовую точку 100% при первом
+   сохранении, далее пересчитывает рост/уменьшение относительно неё --- */
+function saveVoiceRange(studentId){
+  const s = studentById(studentId); if(!s) return;
+  ensureVoiceFields(s);
+  const from = s.rangeFromNote, to = s.rangeToNote;
+  if(!from || !to){
+    alert('Сначала выберите обе ноты диапазона — «От» и «До».');
+    return;
+  }
+  const width = noteAbs(to) - noteAbs(from);
+  if(width <= 0){
+    alert('Верхняя нота диапазона должна быть выше нижней.');
+    return;
+  }
+  if(s.voiceRangeBaselineWidth == null){
+    // Первое сохранение — это отправная точка, всегда 100%
+    s.voiceRangeBaselineWidth = width;
+  }
+  s.voiceRangeSavedFrom = from;
+  s.voiceRangeSavedTo = to;
+  // Поддерживаем старые текстовые поля для обратной совместимости
+  s.rangeFrom = formatNote(from, s.voiceLang);
+  s.rangeTo = formatNote(to, s.voiceLang);
+  saveDB();
+  renderDetailProgress();
 }
 
 function setSkillMood(studentId, key, mood){
@@ -5784,6 +6074,13 @@ async function initApp(prefetchedDbSnap){
     }
   });
 }
+
+// Клик вне выпадающей панели выбора ноты диапазона — закрыть её
+document.addEventListener('click', function(e){
+  if (typeof closeNotePicker !== 'function') return;
+  const isPopover = e.target.closest && e.target.closest('.note-popover, .range-field-btn');
+  if (!isPopover) closeNotePicker();
+});
 
 // ===== PWA: ДИНАМИЧЕСКИЙ МАНИФЕСТ =====
 (function adaptThemeColor() {
