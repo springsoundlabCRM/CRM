@@ -1181,8 +1181,8 @@
   .voice-save-btn{padding:6px 13px;font-size:11px;font-weight:600}
   .voice-save-btn.is-dirty{box-shadow:0 0 0 3px var(--accent-glow)}
 
-  .range-fields-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative}
-  .range-field{flex:1;position:relative}
+  .range-fields-row{display:grid;grid-template-columns:1fr 22px 1fr;column-gap:8px;align-items:center;margin-bottom:10px;position:relative}
+  .range-field{position:relative;min-width:0}
   .range-field-btn{width:100%;text-align:left;background:var(--card2);border:1px solid var(--border);color:var(--text);
     border-radius:9px;padding:9px 12px;font-size:13.5px;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s;
     display:flex;align-items:center;justify-content:space-between;gap:6px;font-family:var(--font)}
@@ -1191,7 +1191,7 @@
   .range-field-btn .rf-placeholder{color:var(--text3);font-weight:400;font-size:12px}
   .range-field-btn .rf-caret{font-size:9px;color:var(--text3);transition:transform .15s}
   .range-field-btn.open .rf-caret{transform:rotate(180deg)}
-  .range-arrow{color:var(--text3);font-size:13px;flex-shrink:0}
+  .range-arrow{color:var(--text3);font-size:13px;text-align:center}
 
   /* --- Прогресс-вкладка: две колонки-стойки во всю высоту, без
      привязки к сетке detail-panel — это позволяет карточке
@@ -1246,25 +1246,32 @@
   .range-mode-btn.active.mode-current{background:var(--accent);color:#fff}
   .range-mode-btn.active.mode-desired{background:var(--blue);color:#fff}
 
-  /* --- Компактная строка "Тип голоса"/"Статус" (каждая половина ширины
-     карточки "Голос", как поля "От"/"До" диапазона) и отдельный блок
-     с инструментами диапазона (переключатель Текущий/Желаемый, язык
-     нотации РУС/ENG, кнопки "Сохранить" и "Сброс") — стоят рядом друг
-     с другом, занимая вторую половину ширины. --- */
-  .voice-basic-row{display:flex;gap:12px;align-items:stretch;margin-bottom:2px}
-  .voice-basic-col{flex:1;min-width:0;display:flex;flex-direction:column}
+  /* --- Компактная строка "Тип голоса"/"Статус" и отдельный блок с
+     инструментами диапазона (переключатель Текущий/Желаемый, язык
+     нотации РУС/ENG, кнопки "Сохранить" и "Сброс"). Использует ТУ ЖЕ
+     сетку колонок (1fr 22px 1fr), что и поля "От"/"До" диапазона выше,
+     поэтому окошко "Управление диапазоном" получается ровно той же
+     ширины, что и второе поле выбора ноты. align-items:start не даёт
+     окошку растягиваться на всю высоту колонки — оно остаётся
+     компактным и заканчивается примерно на уровне поля "Тип голоса". */
+  .voice-basic-row{display:grid;grid-template-columns:1fr 22px 1fr;column-gap:8px;align-items:start;margin-bottom:2px}
+  .voice-basic-col{grid-column:1/3;min-width:0;display:flex;flex-direction:column}
   .voice-basic-col select.input{margin-bottom:10px}
   .voice-basic-col select.input:last-child{margin-bottom:0}
-  .voice-tools-box{flex:1;min-width:0;background:var(--card2);border:1px solid var(--border);
-    border-radius:var(--r2);padding:10px 12px;display:flex;flex-direction:column;gap:9px;justify-content:center}
-  .voice-tools-box-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
-  .voice-tools-box .voice-title-tools{flex-wrap:wrap;row-gap:8px}
-  .voice-tools-box-actions{display:flex;gap:8px}
-  .voice-tools-box-actions .btn{flex:1;justify-content:center;white-space:nowrap}
+  .voice-tools-box{grid-column:3;min-width:0;background:var(--card2);border:1px solid var(--border);
+    border-radius:var(--r2);padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+  .voice-tools-box-title{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+  .voice-tools-box .voice-title-tools{flex-wrap:wrap;row-gap:6px;gap:6px}
+  .voice-tools-box .range-mode-btn{padding:4px 8px;font-size:10px}
+  .voice-tools-box .lang-toggle-btn{padding:4px 7px;font-size:10px}
+  .voice-tools-box-actions{display:flex;gap:6px}
+  .voice-tools-box-actions .btn{flex:0 0 auto;padding:5px 10px;font-size:10.5px;white-space:nowrap}
   .voice-reset-btn{background:var(--card);border:1px solid var(--border2);color:var(--text2)}
   .voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   @media (max-width:640px){
-    .voice-basic-row{flex-direction:column}
+    .voice-basic-row{grid-template-columns:1fr}
+    .voice-basic-col{grid-column:1}
+    .voice-tools-box{grid-column:1}
   }
 
   /* --- Значок-пометка (i) с описанием графика по клику/тапу --- */
