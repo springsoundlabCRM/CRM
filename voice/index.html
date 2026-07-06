@@ -3517,9 +3517,11 @@ function renderDetailProfile(){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
     subBlock = '<div class="detail-card"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
+      +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'
+      +'<div>'
       +'<div style="font-size:24px;font-weight:600;margin-bottom:6px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
-      +'<div style="display:flex;flex-direction:column;gap:16px;margin-top:16px">'
+      +'</div>'
       +'<div style="font-size:13px;color:var(--text3)">Осталось '+left+' '+pluralLessons(left)+'</div>'
       +'<div><div style="font-size:13px;color:var(--text3)">Куплен</div><div style="font-size:16px;font-weight:500;margin-top:4px">'+formatRu(sub.purchaseDate)+'</div></div>'
       +'<div><div style="font-size:13px;color:var(--text3)">Общая стоимость абонемента</div><div style="font-size:19px;font-weight:700;margin-top:4px;color:var(--accent)">'+money(sub.totalPrice)+'</div></div>'
@@ -3533,7 +3535,7 @@ function renderDetailProfile(){
   } else {
     const hasHistory = subHistoryOf(s.id).length>0;
     subBlock = '<div class="detail-card"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
-      +'<div class="empty-state" style="margin-bottom:10px">Нет активного абонемента</div>'
+      +'<div class="empty-state" style="flex:1;display:flex;align-items:center;justify-content:center;margin-bottom:10px">Нет активного абонемента</div>'
       +'<button class="btn btn-primary sub-new-btn" style="width:100%;justify-content:center;font-size:13px;font-weight:600" onclick="openModal(\'subscription\',{studentId:\''+s.id+'\'})">Новый абонемент</button>'
       + (hasHistory ? '<button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История абонементов</button>' : '')
       +'</div>';
@@ -3541,17 +3543,17 @@ function renderDetailProfile(){
 
   const bdayStr = s.birthday ? formatRu(s.birthday)+(ageFromBirthday(s.birthday)!==null?' · исполнится '+(ageFromBirthday(s.birthday)+1)+' лет':'') : 'не указан';
 
-  const contactBlock = '<div class="detail-card"><div class="detail-title" style="margin-bottom:18px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
-    +'<span style="display:inline-flex;align-items:center;text-align:left;max-width:60%;padding:6px 0">'
-    +'<span style="font-size:17px;font-weight:700;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escapeHTML(s.name)+'</span>'
+  const contactBlock = '<div class="detail-card"><div class="detail-title" style="margin-bottom:12px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
+    +'<span style="display:inline-flex;align-items:center;text-align:left;max-width:60%;padding:4px 0">'
+    +'<span style="font-size:15px;font-weight:700;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escapeHTML(s.name)+'</span>'
     +'</span>'
     +'</div>'
-    +'<div style="display:flex;flex-direction:column;gap:16px">'
-    +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">📱</span><input class="input" id="contact-phone" style="padding:9px 12px;font-size:13px" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00" onchange="saveContactField(\''+s.id+'\',\'phone\',this.value)">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
-    +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">✈️</span><input class="input" id="contact-telegram" style="padding:9px 12px;font-size:13px;color:var(--accent)" value="'+escapeHTML(s.telegram||'')+'" placeholder="@username" onchange="saveContactField(\''+s.id+'\',\'telegram\',this.value)"></div>'
-    +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">🎂</span><input type="date" class="input" id="contact-bday" style="padding:9px 12px;font-size:13px;width:auto" value="'+(s.birthday||'')+'" onchange="saveContactField(\''+s.id+'\',\'birthday\',this.value)"><span style="color:var(--text3);font-size:12px">'+(s.birthday?bdayStr:'')+'</span></div>'
-    +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">📅</span><input type="date" class="input" id="contact-studysince" style="padding:9px 12px;font-size:13px;width:auto" value="'+(s.studySince||s.createdAt||'')+'" onchange="saveContactField(\''+s.id+'\',\'studySince\',this.value)"><span style="color:var(--text3);font-size:12px">Начало занятий</span></div>'
-    +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">🎯</span><input class="input" id="contact-goal" style="padding:9px 12px;font-size:13px" value="'+escapeHTML(s.goal||'')+'" placeholder="Цель ученика..." onchange="saveContactField(\''+s.id+'\',\'goal\',this.value)"></div>'
+    +'<div style="display:flex;flex-direction:column;gap:9px;flex:1;justify-content:center">'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">📱</span><input class="input" id="contact-phone" style="padding:6px 10px;font-size:12px" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00" onchange="saveContactField(\''+s.id+'\',\'phone\',this.value)">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">✈️</span><input class="input" id="contact-telegram" style="padding:6px 10px;font-size:12px;color:var(--accent)" value="'+escapeHTML(s.telegram||'')+'" placeholder="@username" onchange="saveContactField(\''+s.id+'\',\'telegram\',this.value)"></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">🎂</span><input type="date" class="input" id="contact-bday" style="padding:6px 10px;font-size:12px;width:auto" value="'+(s.birthday||'')+'" onchange="saveContactField(\''+s.id+'\',\'birthday\',this.value)"><span style="color:var(--text3);font-size:11px">'+(s.birthday?bdayStr:'')+'</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">📅</span><input type="date" class="input" id="contact-studysince" style="padding:6px 10px;font-size:12px;width:auto" value="'+(s.studySince||s.createdAt||'')+'" onchange="saveContactField(\''+s.id+'\',\'studySince\',this.value)"><span style="color:var(--text3);font-size:11px">Начало занятий</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">🎯</span><input class="input" id="contact-goal" style="padding:6px 10px;font-size:12px" value="'+escapeHTML(s.goal||'')+'" placeholder="Цель ученика..." onchange="saveContactField(\''+s.id+'\',\'goal\',this.value)"></div>'
     +'</div>'
     +'</div>';
 
@@ -3646,7 +3648,9 @@ function renderDetailProfile(){
 
       + contactBlock
 
-      +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
+      +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'
+      +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'+rows+'</div>'
+      +'</div>'
 
       + subBlock
 
