@@ -568,6 +568,12 @@
   .tab.active{color:#ffffff;border-color:transparent}
   .tab:hover:not(.active){background:transparent;border-color:#ffffff}
   .tab.tab-delete:hover{color:var(--red);border-color:var(--red)}
+  /* Шестерёнка "настроить порядок блоков" рядом с "Удалить клиента" —
+     визуально ничем не отличается от обычных вкладок (тот же белый цвет,
+     та же подсветка рамкой при наведении), просто без текста, только иконка. */
+  .tab.tab-reorder{flex:0 0 auto;width:32px;padding:6px;font-size:13px}
+  .tab.tab-reorder.reorder-on{color:var(--accent);border-color:var(--accent)}
+  #profileReorderSaveBtn{padding:6px 14px;font-size:12px;align-self:center}
   .lesson-sub-banner{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;
     background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
@@ -1205,6 +1211,12 @@
      диапазона слева, Контакт/Абонемент/Заметки о голосе справа. --- */
   .profile-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:16px}
   .profile-grid > .detail-card{display:flex;flex-direction:column;overflow-y:auto;min-height:0}
+  /* Режим перестановки блоков вкладки "Профиль" (включается шестерёнкой):
+     все шесть карточек подсвечиваются фиолетовой окантовкой и становятся
+     перетаскиваемыми (drag & drop) друг относительно друга. */
+  .profile-grid.reorder-mode > .detail-card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);cursor:grab;user-select:none}
+  .profile-grid.reorder-mode > .detail-card.card-dragging{opacity:.35;cursor:grabbing}
+  .profile-grid.reorder-mode > .detail-card.card-drag-over{box-shadow:0 0 0 2px var(--accent)}
   @media (max-width:880px){
     /* На мобильной/планшетной версии карточки не должны быть статично
        растянуты на равную высоту с прокруткой внутри себя — вкладка
@@ -1806,6 +1818,8 @@
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
           <div class="tab" onclick="switchDetailTab(this,'finance-tab')">Финансы</div>
           <div class="tab tab-delete" onclick="openModal('studentDanger',{studentId:currentStudentId})">Удалить клиента</div>
+          <div class="tab tab-reorder" id="profileReorderBtn" title="Настроить порядок блоков вкладки «Профиль»" onclick="toggleProfileReorderMode()"><i class="fa-solid fa-gear"></i></div>
+          <button type="button" class="btn btn-primary" id="profileReorderSaveBtn" style="display:none" onclick="saveProfileReorderOrder()"><i class="fa-solid fa-check"></i> Сохранить</button>
         </div>
         <div id="dtab-profile"></div>
         <div id="dtab-repertoire" class="hidden"></div>
@@ -3247,6 +3261,7 @@ function openStudent(s){
   if(!s) return;
   currentStudentId = s.id;
   currentDetailTab = 'profile';
+  if(typeof profileReorderMode !== 'undefined') profileReorderMode = false;
   document.getElementById('detail-name').textContent = s.name;
   showPage('student-detail');
   renderStudentDetailAll();
@@ -3523,7 +3538,7 @@ function renderDetailProfile(){
   if(sub){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
-    subBlock = '<div class="detail-card"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
+    subBlock = '<div class="detail-card" data-card-key="sub"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
       +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'
       +'<div>'
       +'<div style="font-size:24px;font-weight:600;margin-bottom:6px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
@@ -3541,7 +3556,7 @@ function renderDetailProfile(){
       +'</div>';
   } else {
     const hasHistory = subHistoryOf(s.id).length>0;
-    subBlock = '<div class="detail-card"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
+    subBlock = '<div class="detail-card" data-card-key="sub"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
       +'<div class="empty-state" style="flex:1;display:flex;align-items:center;justify-content:center;margin-bottom:10px">Нет активного абонемента</div>'
       +'<button class="btn btn-primary sub-new-btn" style="width:100%;justify-content:center;font-size:13px;font-weight:600" onclick="openModal(\'subscription\',{studentId:\''+s.id+'\'})">Новый абонемент</button>'
       + (hasHistory ? '<button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История абонементов</button>' : '')
@@ -3550,7 +3565,7 @@ function renderDetailProfile(){
 
   const bdayStr = s.birthday ? formatRu(s.birthday)+(ageFromBirthday(s.birthday)!==null?' · исполнится '+(ageFromBirthday(s.birthday)+1)+' лет':'') : 'не указан';
 
-  const contactBlock = '<div class="detail-card"><div class="detail-title" style="margin-bottom:12px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
+  const contactBlock = '<div class="detail-card" data-card-key="contact"><div class="detail-title" style="margin-bottom:12px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
     +'<span style="display:inline-flex;align-items:center;text-align:left;max-width:60%;padding:4px 0">'
     +'<span style="font-size:15px;font-weight:700;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escapeHTML(s.name)+'</span>'
     +'</span>'
@@ -3635,10 +3650,7 @@ function renderDetailProfile(){
       +'</div>'
     +'</div>';
 
-  host.innerHTML = '<div class="detail-panel profile-grid">'
-      + contactBlock
-
-      +'<div class="detail-card card-voice">'+voiceHeader
+  const voiceBlock = '<div class="detail-card card-voice" data-card-key="voice">'+voiceHeader
       + rangeFields
       +'<div class="voice-basic-row">'
         +'<div class="voice-basic-col">'
@@ -3653,20 +3665,135 @@ function renderDetailProfile(){
           +'</select>'
         +'</div>'
         + voiceToolsBox
-      +'</div></div>'
+      +'</div></div>';
 
-      +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'
+  const skillsBlock = '<div class="detail-card card-skills" data-card-key="skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'
       +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'+rows+'</div>'
-      +'</div>'
+      +'</div>';
 
-      + subBlock
-
-      + renderRangeProgressCard(s)
-
-      +'<div class="detail-card card-voicenotes fill" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">📝 Заметки о голосе</span></div>'
+  const notesBlock = '<div class="detail-card card-voicenotes fill" data-card-key="notes" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">📝 Заметки о голосе</span></div>'
       +'<textarea class="input" style="flex:1;resize:none;min-height:80px" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
-      +'</div>'
+      +'</div>';
+
+  // Шесть карточек вкладки "Профиль" — порядок можно менять вручную
+  // (шестерёнка рядом с "Удалить клиента" → drag&drop → "Сохранить").
+  // Порядок хранится в самом ученике (s.profileCardOrder), поэтому у
+  // каждого преподавателя/ученика он может быть свой и переживает
+  // перезагрузку страницы. Если порядок ещё не задан или в нём не
+  // хватает/оказался лишний ключ (например, после обновления CRM) —
+  // подставляем ключи по умолчанию, ничего не теряя.
+  const PROFILE_CARD_KEYS = ['contact','voice','skills','sub','range','notes'];
+  const cardsByKey = { contact: contactBlock, voice: voiceBlock, skills: skillsBlock, sub: subBlock, range: renderRangeProgressCard(s), notes: notesBlock };
+  let order = Array.isArray(s.profileCardOrder) ? s.profileCardOrder.filter(k=>PROFILE_CARD_KEYS.includes(k)) : [];
+  PROFILE_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
+
+  host.innerHTML = '<div class="detail-panel profile-grid">'
+      + order.map(k=>cardsByKey[k]).join('')
     +'</div>';
+
+  // Если вкладку "Профиль" перерисовали, пока была включена
+  // шестерёнка-режим перестановки блоков (например, из-за смены смайлика
+  // навыка) — не сбрасываем режим молча, а сразу переносим его на новую
+  // разметку, иначе фиолетовая окантовка и drag&drop вдруг пропадут.
+  if(typeof profileReorderMode !== 'undefined' && profileReorderMode){
+    applyProfileReorderVisuals(true);
+  }
+}
+
+/* ============================================================
+   ПЕРЕСТАНОВКА БЛОКОВ ВКЛАДКИ "ПРОФИЛЬ" (шестерёнка + drag&drop)
+   ------------------------------------------------------------
+   Шестерёнка рядом с "Удалить клиента" включает режим редактирования:
+   все шесть карточек подсвечиваются фиолетовой окантовкой, их можно
+   перетаскивать (drag & drop) в любом порядке. Кнопка "Сохранить"
+   (появляется рядом с шестерёнкой) фиксирует итоговый порядок в самом
+   ученике (s.profileCardOrder) и выключает режим редактирования.
+   ============================================================ */
+let profileReorderMode = false;
+let profileDraggedCard = null;
+
+function toggleProfileReorderMode(){
+  profileReorderMode = !profileReorderMode;
+  applyProfileReorderVisuals(profileReorderMode);
+}
+
+/* Навешивает/снимает визуальное оформление режима и обработчики
+   drag&drop на текущую разметку карточек (вызывается и при включении/
+   выключении шестерёнкой, и повторно после любой перерисовки вкладки
+   "Профиль", пока режим остаётся включённым). */
+function applyProfileReorderVisuals(on){
+  const grid = document.querySelector('#dtab-profile .profile-grid');
+  const gearBtn = document.getElementById('profileReorderBtn');
+  const saveBtn = document.getElementById('profileReorderSaveBtn');
+  if(gearBtn) gearBtn.classList.toggle('reorder-on', on);
+  if(saveBtn) saveBtn.style.display = on ? '' : 'none';
+  if(!grid) return;
+  grid.classList.toggle('reorder-mode', on);
+  Array.from(grid.children).forEach(card=>{
+    if(on){
+      card.setAttribute('draggable','true');
+      card.addEventListener('dragstart', onProfileCardDragStart);
+      card.addEventListener('dragover', onProfileCardDragOver);
+      card.addEventListener('dragleave', onProfileCardDragLeave);
+      card.addEventListener('drop', onProfileCardDrop);
+      card.addEventListener('dragend', onProfileCardDragEnd);
+    } else {
+      card.removeAttribute('draggable');
+      card.classList.remove('card-dragging','card-drag-over');
+      card.removeEventListener('dragstart', onProfileCardDragStart);
+      card.removeEventListener('dragover', onProfileCardDragOver);
+      card.removeEventListener('dragleave', onProfileCardDragLeave);
+      card.removeEventListener('drop', onProfileCardDrop);
+      card.removeEventListener('dragend', onProfileCardDragEnd);
+    }
+  });
+}
+
+function onProfileCardDragStart(e){
+  profileDraggedCard = this;
+  this.classList.add('card-dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  try{ e.dataTransfer.setData('text/plain',''); }catch(err){}
+}
+function onProfileCardDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  if(!profileDraggedCard || profileDraggedCard===this) return;
+  this.classList.add('card-drag-over');
+}
+function onProfileCardDragLeave(){
+  this.classList.remove('card-drag-over');
+}
+function onProfileCardDrop(e){
+  e.preventDefault();
+  this.classList.remove('card-drag-over');
+  if(!profileDraggedCard || profileDraggedCard===this) return;
+  const grid = this.parentElement;
+  const cards = Array.from(grid.children);
+  const draggedIdx = cards.indexOf(profileDraggedCard);
+  const targetIdx = cards.indexOf(this);
+  if(draggedIdx < targetIdx) grid.insertBefore(profileDraggedCard, this.nextSibling);
+  else grid.insertBefore(profileDraggedCard, this);
+}
+function onProfileCardDragEnd(){
+  if(profileDraggedCard) profileDraggedCard.classList.remove('card-dragging');
+  profileDraggedCard = null;
+}
+
+/* Кнопка "Сохранить" рядом с шестерёнкой — фиксирует текущий порядок
+   карточек (тот, что человек только что расставил перетаскиванием) в
+   данных ученика и выключает режим редактирования. */
+function saveProfileReorderOrder(){
+  const grid = document.querySelector('#dtab-profile .profile-grid');
+  const s = studentById(currentStudentId);
+  if(grid && s){
+    const order = Array.from(grid.children).map(c=>c.dataset.cardKey).filter(Boolean);
+    s.profileCardOrder = order;
+    saveDB();
+  }
+  profileReorderMode = false;
+  applyProfileReorderVisuals(false);
+  toast('Порядок блоков сохранён ✓');
 }
 
 /* ============================================================
@@ -3827,7 +3954,7 @@ function renderRangeProgressCard(s){
     +'</div>';
   }
 
-  return '<div class="detail-card card-rangeprogress fill">'
+  return '<div class="detail-card card-rangeprogress fill" data-card-key="range">'
     +'<div class="detail-title"><span class="detail-title-label">🎯 Прогресс диапазона</span>'+infoBtn+'</div>'
     +'<div class="range-progress-body">'
       + currentBlock
