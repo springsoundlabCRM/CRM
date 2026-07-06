@@ -128,7 +128,7 @@
   #page-student-detail .content{display:flex;flex-direction:column}
   #page-student-detail .content>.tab-row{flex-shrink:0}
   #page-student-detail .content>div:not(.tab-row):not(.hidden){flex:1;display:flex;flex-direction:column;min-height:0}
-  #dtab-progress-tab>.progress-columns{flex:1;min-height:0}
+  #dtab-profile>.progress-columns{flex:1;min-height:0}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 24px;min-height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;row-gap:8px}
   /* Кнопки верхней панели расписания — точно как в оригинале SSL CRM */
   .tb-btn{
@@ -1791,7 +1791,6 @@
       <div class="content">
         <div class="tab-row">
           <div class="tab active" onclick="switchDetailTab(this,'profile')">Профиль</div>
-          <div class="tab" onclick="switchDetailTab(this,'progress-tab')">Прогресс</div>
           <div class="tab" onclick="switchDetailTab(this,'repertoire')">Репертуар</div>
           <div class="tab" onclick="switchDetailTab(this,'homework-tab')">Задания</div>
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
@@ -1799,7 +1798,6 @@
           <div class="tab tab-delete" onclick="openModal('studentDanger',{studentId:currentStudentId})">Удалить клиента</div>
         </div>
         <div id="dtab-profile"></div>
-        <div id="dtab-progress-tab" class="hidden"></div>
         <div id="dtab-repertoire" class="hidden"></div>
         <div id="dtab-homework-tab" class="hidden"></div>
         <div id="dtab-history" class="hidden"></div>
@@ -3208,7 +3206,7 @@ function studentHomeworkTagHTML(studentId){
 // после того как он там что-то сохранял. Теперь вкладка запоминается и
 // восстанавливается — сбрасывается на "Профиль" только когда открывают
 // карточку заново (openStudent).
-const DETAIL_TABS = ['profile','progress-tab','repertoire','homework-tab','history','finance-tab'];
+const DETAIL_TABS = ['profile','repertoire','homework-tab','history','finance-tab'];
 let currentDetailTab = 'profile';
 
 // ---------- Восстановление раздела после обновления страницы ----------
@@ -3246,7 +3244,6 @@ function openStudent(s){
 
 function renderStudentDetailAll(){
   renderDetailProfile();
-  renderDetailProgress();
   renderRepertoire();
   renderDetailHomework();
   renderDetailHistory();
@@ -3508,6 +3505,7 @@ function closeOverlay(){
    ============================================================ */
 function renderDetailProfile(){
   const s = studentById(currentStudentId); if(!s) return;
+  ensureVoiceFields(s);
   const host = document.getElementById('dtab-profile');
   const sub = activeSubscriptionOf(s.id);
 
@@ -3515,15 +3513,13 @@ function renderDetailProfile(){
   if(sub){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
-    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
-      +'<div style="flex:1;display:flex;flex-direction:column">'
+    subBlock = '<div class="detail-card"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
       +'<div style="font-size:24px;font-weight:600;margin-bottom:6px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
-      +'<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px">'
+      +'<div style="display:flex;flex-direction:column;gap:16px;margin-top:16px">'
       +'<div style="font-size:13px;color:var(--text3)">Осталось '+left+' '+pluralLessons(left)+'</div>'
       +'<div><div style="font-size:13px;color:var(--text3)">Куплен</div><div style="font-size:16px;font-weight:500;margin-top:4px">'+formatRu(sub.purchaseDate)+'</div></div>'
       +'<div><div style="font-size:13px;color:var(--text3)">Общая стоимость абонемента</div><div style="font-size:19px;font-weight:700;margin-top:4px;color:var(--accent)">'+money(sub.totalPrice)+'</div></div>'
-      +'</div>'
       +'</div>'
       +'<div style="margin-top:10px;display:flex;gap:6px">'
       +'<button class="btn btn-primary sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subTopup\',{studentId:\''+s.id+'\'})">Пополнить</button>'
@@ -3533,118 +3529,29 @@ function renderDetailProfile(){
       +'</div>';
   } else {
     const hasHistory = subHistoryOf(s.id).length>0;
-    subBlock = '<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
-      +'<div class="empty-state" style="margin-bottom:10px;flex:1">Нет активного абонемента</div>'
-      +'<button class="btn btn-primary sub-new-btn" style="width:100%;justify-content:center;flex:2;font-size:13px;font-weight:600" onclick="openModal(\'subscription\',{studentId:\''+s.id+'\'})">Новый абонемент</button>'
+    subBlock = '<div class="detail-card"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
+      +'<div class="empty-state" style="margin-bottom:10px">Нет активного абонемента</div>'
+      +'<button class="btn btn-primary sub-new-btn" style="width:100%;justify-content:center;font-size:13px;font-weight:600" onclick="openModal(\'subscription\',{studentId:\''+s.id+'\'})">Новый абонемент</button>'
       + (hasHistory ? '<button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История абонементов</button>' : '')
       +'</div>';
   }
 
   const bdayStr = s.birthday ? formatRu(s.birthday)+(ageFromBirthday(s.birthday)!==null?' · исполнится '+(ageFromBirthday(s.birthday)+1)+' лет':'') : 'не указан';
 
-  host.innerHTML = '<div class="detail-panel">'
-    +'<div class="detail-card" style="display:flex;flex-direction:column;height:100%"><div class="detail-title" style="margin-bottom:18px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
+  const contactBlock = '<div class="detail-card"><div class="detail-title" style="margin-bottom:18px;align-items:flex-start;flex-wrap:wrap;gap:8px"><span class="detail-title-label">👤 Контакт</span>'
     +'<span style="display:inline-flex;align-items:center;text-align:left;max-width:60%;padding:6px 0">'
     +'<span style="font-size:17px;font-weight:700;text-transform:none;letter-spacing:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escapeHTML(s.name)+'</span>'
     +'</span>'
     +'</div>'
-    +'<div style="display:flex;flex-direction:column;gap:16px;flex:1;justify-content:space-between">'
+    +'<div style="display:flex;flex-direction:column;gap:16px">'
     +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">📱</span><input class="input" id="contact-phone" style="padding:9px 12px;font-size:13px" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00" onchange="saveContactField(\''+s.id+'\',\'phone\',this.value)">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
     +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">✈️</span><input class="input" id="contact-telegram" style="padding:9px 12px;font-size:13px;color:var(--accent)" value="'+escapeHTML(s.telegram||'')+'" placeholder="@username" onchange="saveContactField(\''+s.id+'\',\'telegram\',this.value)"></div>'
     +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">🎂</span><input type="date" class="input" id="contact-bday" style="padding:9px 12px;font-size:13px;width:auto" value="'+(s.birthday||'')+'" onchange="saveContactField(\''+s.id+'\',\'birthday\',this.value)"><span style="color:var(--text3);font-size:12px">'+(s.birthday?bdayStr:'')+'</span></div>'
     +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">📅</span><input type="date" class="input" id="contact-studysince" style="padding:9px 12px;font-size:13px;width:auto" value="'+(s.studySince||s.createdAt||'')+'" onchange="saveContactField(\''+s.id+'\',\'studySince\',this.value)"><span style="color:var(--text3);font-size:12px">Начало занятий</span></div>'
     +'<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:var(--text3);width:22px;font-size:15px">🎯</span><input class="input" id="contact-goal" style="padding:9px 12px;font-size:13px" value="'+escapeHTML(s.goal||'')+'" placeholder="Цель ученика..." onchange="saveContactField(\''+s.id+'\',\'goal\',this.value)"></div>'
     +'</div>'
-    +'</div>'
-
-    + subBlock
     +'</div>';
-}
 
-/* ============================================================
-   ГОЛОС / ДИАПАЗОН — нотация RU/EN, выбор нот и прогресс диапазона
-   ============================================================ */
-
-/* Названия нот. Индекс 0..11 — полутон внутри октавы. */
-const NOTES_RU = ['До','До#','Ре','Ре#','Ми','Фа','Фа#','Соль','Соль#','Ля','Ля#','Си'];
-const NOTES_EN = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-
-/* Октавы для выбора. o — внутренний номер (0 = малая октава, 1 = первая и т.д.),
-   ruSuffix — как подписывать номер октавы по-русски, enSci — номер по научной
-   (латинской) системе, где До первой октавы = C4 (совпадает с общепринятой). */
-const VOICE_OCTAVES = [
-  {o:-1, ruLabel:'Большая',  ruSuffix:'',  enSci:2},
-  {o:0,  ruLabel:'Малая',    ruSuffix:'',  enSci:3},
-  {o:1,  ruLabel:'1-я',      ruSuffix:'1', enSci:4},
-  {o:2,  ruLabel:'2-я',      ruSuffix:'2', enSci:5},
-  {o:3,  ruLabel:'3-я',      ruSuffix:'3', enSci:6},
-  {o:4,  ruLabel:'4-я',      ruSuffix:'4', enSci:7},
-  {o:5,  ruLabel:'5-я',      ruSuffix:'5', enSci:8}
-];
-
-/* Абсолютный номер полутона — единая шкала для сравнения диапазонов,
-   не зависит от того, какой язык нотации выбран для отображения. */
-function noteAbs(n){ if(!n) return null; return n.o*12 + n.i; }
-
-function octaveMeta(o){ return VOICE_OCTAVES.find(x=>x.o===o); }
-
-/* Отображаемая подпись ноты на выбранном языке, например "До#1" / "D#4" */
-function formatNote(n, lang){
-  if(!n) return '';
-  const oct = octaveMeta(n.o); if(!oct) return '';
-  if(lang==='en') return NOTES_EN[n.i] + oct.enSci;
-  return NOTES_RU[n.i] + oct.ruSuffix;
-}
-
-/* Попытка распознать старые текстовые значения диапазона (например "До1",
-   "Соль#2"), сохранённые до появления структурированного выбора нот —
-   чтобы у преподавателей, уже заполнивших диапазон, ничего не потерялось. */
-function parseLegacyNoteText(text){
-  if(!text) return null;
-  text = String(text).trim();
-  if(!text) return null;
-  const tryLang = (arr, isEn) => {
-    const candidates = arr.map((n,i)=>({n,i})).sort((a,b)=>b.n.length-a.n.length);
-    for(const c of candidates){
-      if(text.toLowerCase().startsWith(c.n.toLowerCase())){
-        const rest = text.slice(c.n.length).trim();
-        let oNum = rest === '' ? (isEn?4:1) : parseInt(rest,10);
-        if(isNaN(oNum)) oNum = isEn?4:1;
-        const o = isEn ? (oNum-3) : oNum;
-        return {o:o, i:c.i};
-      }
-    }
-    return null;
-  };
-  return tryLang(NOTES_RU,false) || tryLang(NOTES_EN,true);
-}
-
-/* Гарантирует, что у ученика есть все нужные поля для карточки "Голос",
-   включая мягкую миграцию старых текстовых полей rangeFrom/rangeTo. */
-function ensureVoiceFields(s){
-  if(!s.voiceLang) s.voiceLang = 'ru';
-  if(s.rangeFromNote===undefined) s.rangeFromNote = parseLegacyNoteText(s.rangeFrom) || null;
-  if(s.rangeToNote===undefined)   s.rangeToNote   = parseLegacyNoteText(s.rangeTo)   || null;
-  if(s.voiceRangeBaselineWidth===undefined) s.voiceRangeBaselineWidth = null;
-  if(s.voiceRangeSavedFrom===undefined) s.voiceRangeSavedFrom = null;
-  if(s.voiceRangeSavedTo===undefined)   s.voiceRangeSavedTo   = null;
-  // Желаемый диапазон — цель, к которой ученик идёт. Хранится отдельно
-  // от текущего: desiredFromNote/desiredToNote — то, что выбрано в
-  // выпадающих панелях (до нажатия "Сохранить"), desiredSavedFrom/To —
-  // зафиксированная цель, которая реально участвует в расчёте прогресса.
-  if(s.desiredFromNote===undefined) s.desiredFromNote = null;
-  if(s.desiredToNote===undefined)   s.desiredToNote   = null;
-  if(s.desiredSavedFrom===undefined) s.desiredSavedFrom = null;
-  if(s.desiredSavedTo===undefined)   s.desiredSavedTo   = null;
-  // Какой диапазон сейчас редактируется в карточке "Голос" — переключается
-  // кнопками "Текущий" / "Желаемый".
-  if(s.voiceRangeEditMode!=='current' && s.voiceRangeEditMode!=='desired') s.voiceRangeEditMode = 'current';
-}
-
-function renderDetailProgress(){
-  const s = studentById(currentStudentId); if(!s) return;
-  ensureVoiceFields(s);
-  const host = document.getElementById('dtab-progress-tab');
   const skillLabels = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма'};
   const sk = s.skills || {};
   const moods = [['red','😞'],['yellow','😐'],['green','😊']];
@@ -3741,16 +3648,95 @@ function renderDetailProgress(){
     +'</div>'
 
     +'<div class="progress-col">'
-      +'<div class="detail-card card-notes" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">🎯 Заметки</span></div>'
-      +'<textarea class="input" style="flex:1;resize:none;min-height:80px" onblur="updateStudentField(\''+s.id+'\',\'notes\',this.value)" placeholder="Особенности ученика...">'+escapeHTML(s.notes||'')+'</textarea>'
-      +'</div>'
-
+      + contactBlock
+      + subBlock
       +'<div class="detail-card card-voicenotes fill" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">📝 Заметки о голосе</span></div>'
       +'<textarea class="input" style="flex:1;resize:none;min-height:80px" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
       +'</div>'
     +'</div>'
     +'</div>';
 }
+
+/* ============================================================
+   ГОЛОС / ДИАПАЗОН — нотация RU/EN, выбор нот и прогресс диапазона
+   ============================================================ */
+
+/* Названия нот. Индекс 0..11 — полутон внутри октавы. */
+const NOTES_RU = ['До','До#','Ре','Ре#','Ми','Фа','Фа#','Соль','Соль#','Ля','Ля#','Си'];
+const NOTES_EN = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+/* Октавы для выбора. o — внутренний номер (0 = малая октава, 1 = первая и т.д.),
+   ruSuffix — как подписывать номер октавы по-русски, enSci — номер по научной
+   (латинской) системе, где До первой октавы = C4 (совпадает с общепринятой). */
+const VOICE_OCTAVES = [
+  {o:-1, ruLabel:'Большая',  ruSuffix:'',  enSci:2},
+  {o:0,  ruLabel:'Малая',    ruSuffix:'',  enSci:3},
+  {o:1,  ruLabel:'1-я',      ruSuffix:'1', enSci:4},
+  {o:2,  ruLabel:'2-я',      ruSuffix:'2', enSci:5},
+  {o:3,  ruLabel:'3-я',      ruSuffix:'3', enSci:6},
+  {o:4,  ruLabel:'4-я',      ruSuffix:'4', enSci:7},
+  {o:5,  ruLabel:'5-я',      ruSuffix:'5', enSci:8}
+];
+
+/* Абсолютный номер полутона — единая шкала для сравнения диапазонов,
+   не зависит от того, какой язык нотации выбран для отображения. */
+function noteAbs(n){ if(!n) return null; return n.o*12 + n.i; }
+
+function octaveMeta(o){ return VOICE_OCTAVES.find(x=>x.o===o); }
+
+/* Отображаемая подпись ноты на выбранном языке, например "До#1" / "D#4" */
+function formatNote(n, lang){
+  if(!n) return '';
+  const oct = octaveMeta(n.o); if(!oct) return '';
+  if(lang==='en') return NOTES_EN[n.i] + oct.enSci;
+  return NOTES_RU[n.i] + oct.ruSuffix;
+}
+
+/* Попытка распознать старые текстовые значения диапазона (например "До1",
+   "Соль#2"), сохранённые до появления структурированного выбора нот —
+   чтобы у преподавателей, уже заполнивших диапазон, ничего не потерялось. */
+function parseLegacyNoteText(text){
+  if(!text) return null;
+  text = String(text).trim();
+  if(!text) return null;
+  const tryLang = (arr, isEn) => {
+    const candidates = arr.map((n,i)=>({n,i})).sort((a,b)=>b.n.length-a.n.length);
+    for(const c of candidates){
+      if(text.toLowerCase().startsWith(c.n.toLowerCase())){
+        const rest = text.slice(c.n.length).trim();
+        let oNum = rest === '' ? (isEn?4:1) : parseInt(rest,10);
+        if(isNaN(oNum)) oNum = isEn?4:1;
+        const o = isEn ? (oNum-3) : oNum;
+        return {o:o, i:c.i};
+      }
+    }
+    return null;
+  };
+  return tryLang(NOTES_RU,false) || tryLang(NOTES_EN,true);
+}
+
+/* Гарантирует, что у ученика есть все нужные поля для карточки "Голос",
+   включая мягкую миграцию старых текстовых полей rangeFrom/rangeTo. */
+function ensureVoiceFields(s){
+  if(!s.voiceLang) s.voiceLang = 'ru';
+  if(s.rangeFromNote===undefined) s.rangeFromNote = parseLegacyNoteText(s.rangeFrom) || null;
+  if(s.rangeToNote===undefined)   s.rangeToNote   = parseLegacyNoteText(s.rangeTo)   || null;
+  if(s.voiceRangeBaselineWidth===undefined) s.voiceRangeBaselineWidth = null;
+  if(s.voiceRangeSavedFrom===undefined) s.voiceRangeSavedFrom = null;
+  if(s.voiceRangeSavedTo===undefined)   s.voiceRangeSavedTo   = null;
+  // Желаемый диапазон — цель, к которой ученик идёт. Хранится отдельно
+  // от текущего: desiredFromNote/desiredToNote — то, что выбрано в
+  // выпадающих панелях (до нажатия "Сохранить"), desiredSavedFrom/To —
+  // зафиксированная цель, которая реально участвует в расчёте прогресса.
+  if(s.desiredFromNote===undefined) s.desiredFromNote = null;
+  if(s.desiredToNote===undefined)   s.desiredToNote   = null;
+  if(s.desiredSavedFrom===undefined) s.desiredSavedFrom = null;
+  if(s.desiredSavedTo===undefined)   s.desiredSavedTo   = null;
+  // Какой диапазон сейчас редактируется в карточке "Голос" — переключается
+  // кнопками "Текущий" / "Желаемый".
+  if(s.voiceRangeEditMode!=='current' && s.voiceRangeEditMode!=='desired') s.voiceRangeEditMode = 'current';
+}
+
 
 /* Карточка "Прогресс диапазона" — два круговых прогресс-кольца рядом
    (как кольцо "Удержание" в аналитике): слева "Текущий" (рост/уменьшение
@@ -3907,7 +3893,7 @@ function setVoiceLang(studentId, lang){
   const s = studentById(studentId); if(!s) return;
   s.voiceLang = lang;
   saveDB();
-  renderDetailProgress();
+  renderDetailProfile();
 }
 
 /* --- Переключение режима редактирования диапазона: "Текущий" —
@@ -3919,7 +3905,7 @@ function setVoiceRangeMode(studentId, mode){
   ensureVoiceFields(s);
   s.voiceRangeEditMode = (mode==='desired') ? 'desired' : 'current';
   closeNotePicker();
-  renderDetailProgress();
+  renderDetailProfile();
 }
 
 /* --- Выпадающая панель выбора ноты для поля "От" / "До" --- */
@@ -3976,7 +3962,7 @@ function selectNote(studentId, field, o, i){
     if(field==='from') s.rangeFromNote = note; else s.rangeToNote = note;
   }
   closeNotePicker();
-  renderDetailProgress();
+  renderDetailProfile();
 }
 
 /* --- Сохранение диапазона. В режиме "Текущий" фиксирует базовую точку
@@ -4001,7 +3987,7 @@ function saveVoiceRange(studentId){
     s.desiredSavedFrom = dFrom;
     s.desiredSavedTo = dTo;
     saveDB();
-    renderDetailProgress();
+    renderDetailProfile();
     return;
   }
 
@@ -4025,7 +4011,7 @@ function saveVoiceRange(studentId){
   s.rangeFrom = formatNote(from, s.voiceLang);
   s.rangeTo = formatNote(to, s.voiceLang);
   saveDB();
-  renderDetailProgress();
+  renderDetailProfile();
 }
 
 /* --- Сброс карточки "Прогресс диапазона". Обнуляет ТОЛЬКО то, что
@@ -4043,7 +4029,7 @@ function resetVoiceRangeProgress(studentId){
   s.desiredSavedFrom = null;
   s.desiredSavedTo = null;
   saveDB();
-  renderDetailProgress();
+  renderDetailProfile();
 }
 
 function setSkillMood(studentId, key, mood){
@@ -4051,7 +4037,7 @@ function setSkillMood(studentId, key, mood){
   if(!s.skills) s.skills={};
   s.skills[key]=mood;
   saveDB();
-  renderDetailProgress();
+  renderDetailProfile();
   if(!document.getElementById('page-students').classList.contains('hidden')) renderStudents();
 }
 
