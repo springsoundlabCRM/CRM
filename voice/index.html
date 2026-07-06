@@ -129,6 +129,26 @@
   #page-student-detail .content>.tab-row{flex-shrink:0}
   #page-student-detail .content>div:not(.tab-row):not(.hidden){flex:1;display:flex;flex-direction:column;min-height:0}
   #dtab-profile>.profile-grid{flex:1;min-height:0}
+  /* На мобильной версии .content вкладки ученика — это display:flex;
+     flex-direction:column ( см. правило выше, нужно для растяжения
+     активной вкладки на всю высоту) И ОДНОВРЕМЕННО overflow-y:auto
+     (обычная прокрутка страницы). Это сочетание — известная особенность
+     флексбокса: когда flex-контейнер с overflow-y:auto реально
+     прокручивается (контент выше доступной высоты, как происходит на
+     телефоне, где все карточки вкладки "Профиль" идут одна под другой),
+     браузер обрезает его собственный padding-bottom в конце прокрутки —
+     последняя карточка утыкается прямо в нижнюю панель без всякого
+     отступа. У дашборда на телефоне .content — обычный блочный элемент
+     (без display:flex), поэтому там баг не проявляется и отступ снизу
+     виден нормально. Лечится добавлением НАСТОЯЩЕГО пустого элемента
+     (flex-элемента, а не padding) в конец списка — псевдоэлемент ::after
+     ниже играет роль "распорки": по высоте он равен тому же
+     padding-bottom, что и у .content на этой ширине экрана (значения
+     проставлены в мобильных медиа-запросах ниже), и, будучи настоящим
+     flex-элементом, никогда не обрезается при прокрутке. На компьютере
+     высота остаётся 0 — там вкладка не прокручивается целиком (карточки
+     сами скроллятся внутри себя), поэтому распорка там не нужна. */
+  #page-student-detail .content::after{content:'';display:block;flex-shrink:0;height:0}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 24px;min-height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;row-gap:8px}
   /* Кнопки верхней панели расписания — точно как в оригинале SSL CRM */
   .tb-btn{
@@ -748,11 +768,13 @@
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
     .schedule-grid{grid-template-columns:repeat(7,minmax(120px,1fr));overflow-x:auto}
     .detail-panel{grid-template-columns:1fr}
-    /* На одной колонке карточки идут друг под другом в порядке DOM,
-       а нам для мобильной версии нужен другой порядок: Голос, Навыки,
-       Заметки, Заметки о голосе (вместо Голос, Заметки, Навыки, ...) */
-    .card-skills{order:2}
-    .card-notes{order:3}
+    /* Раньше здесь фиксировался порядок карточек "Навыки"/"Заметки" через
+       CSS order:2/3 — но теперь порядок карточек вкладки "Профиль"
+       настраивается вручную (шестерёнка → drag&drop → "Сохранить", см.
+       PROFILE_CARD_KEYS в JS), и жёсткий CSS order конфликтовал бы с
+       этим выбором, всегда утягивая "Навыки"/"Заметки" в конец независимо
+       от того, что реально выбрал человек. Поэтому эти правила убраны —
+       порядок карточек полностью определяется их порядком в DOM. */
   }
 
   /* ================================================================
@@ -886,6 +908,8 @@
     .sidebar.mobile-open{transform:translateX(0)}
     .hamburger-btn{display:flex!important}
     .content{padding:16px}
+    #page-student-detail .content{padding-bottom:0}
+    #page-student-detail .content::after{height:16px}
     .topbar{padding:8px 12px;min-height:54px;gap:8px;row-gap:6px}
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
@@ -893,8 +917,6 @@
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr}
-    .card-skills{order:2}
-    .card-notes{order:3}
     .input-row{grid-template-columns:1fr 1fr}
   }
 
@@ -904,6 +926,8 @@
     .app{flex-direction:column}
     .sidebar{width:78vw;max-width:300px;min-width:0}
     .content{padding:12px}
+    #page-student-detail .content{padding-bottom:0}
+    #page-student-detail .content::after{height:12px}
     .topbar{
       flex-wrap:nowrap;min-height:50px;padding:8px 10px;
       gap:6px;overflow-x:auto;
@@ -955,8 +979,6 @@
     #page-analytics .content > div{grid-template-columns:1fr!important}
     .detail-panel{grid-template-columns:1fr;gap:10px}
     .detail-card{padding:12px}
-    .card-skills{order:2}
-    .card-notes{order:3}
 
     /* Формы внутри модалок — поля друг под другом */
     .input-row{grid-template-columns:1fr!important;gap:0}
@@ -1033,6 +1055,8 @@
   /* ================= УЗКИЙ ТЕЛЕФОН (≤380px) ================= */
   @media (max-width:380px){
     .content{padding:10px}
+    #page-student-detail .content{padding-bottom:0}
+    #page-student-detail .content::after{height:10px}
     .stat-value{font-size:18px}
     .stat-card{padding:10px}
     .student-card{padding:8px}
@@ -1241,14 +1265,18 @@
        вкладка, наоборот, должна скроллиться целиком вместе с остальным
        контентом — но если оставить flex:1, контейнер вкладки продолжает
        "схлопываться" до доступной высоты экрана, а сами карточки
-       визуально вылезают за его пределы (overflow:visible). Из-за этого
-       нижний padding блока .content оказывается не после последней
-       карточки, а где-то посередине невидимого "схлопнутого" контейнера,
-       и последняя карточка вплотную упирается в нижнее меню. Отменяем
+       визуально вылезают за его пределы (overflow:visible). Отменяем
        здесь flex:1 у самой вкладки, чтобы её контейнер имел настоящую
-       высоту содержимого — тогда обычный padding-bottom у .content
-       (тот же отступ, что и у карточки "Доходы за 6 месяцев" на
-       дашборде) снова появляется под последней карточкой. */
+       высоту содержимого и страница вкладки скроллилась вместе с
+       остальным контентом, как обычная страница. (Раньше на этом месте
+       предполагалось, что после этого обычный padding-bottom у .content
+       сам появится под последней карточкой — но это не так: .content
+       здесь ещё и display:flex;flex-direction:column, а у скроллящегося
+       flex-контейнера браузер обрезает его padding-bottom в конце
+       прокрутки — известная особенность флексбокса. Поэтому фактический
+       нижний отступ обеспечивает отдельная "распорка"
+       #page-student-detail .content::after чуть выше по файлу — см.
+       комментарий рядом с ней.) */
     #dtab-profile{flex:none;min-height:0}
     #dtab-profile>.profile-grid{flex:none;min-height:0}
     .profile-grid > .detail-card{overflow-y:visible;min-height:0}
@@ -3709,20 +3737,31 @@ function renderDetailProfile(){
 
   // Шесть карточек вкладки "Профиль" — порядок можно менять вручную
   // (шестерёнка рядом с "Удалить клиента" → drag&drop → "Сохранить").
-  // Порядок хранится в самом ученике ОТДЕЛЬНО для компьютерной
-  // (s.profileCardOrderDesktop) и мобильной (s.profileCardOrderMobile)
-  // версии — перестановка карточек на одной версии никак не влияет на
-  // другую. Старое поле s.profileCardOrder (до разделения на
-  // десктоп/мобилку) используется как запасной вариант только пока для
-  // конкретной версии ещё не было ни одного собственного сохранения —
-  // это нужно, чтобы у уже существующих учеников ничего не "обнулилось"
-  // после обновления CRM. Если порядок ещё не задан или в нём не
-  // хватает/оказался лишний ключ (например, после обновления CRM) —
-  // подставляем ключи по умолчанию, ничего не теряя.
+  // Порядок ОБЩИЙ для ВСЕХ учеников (текущих и новых) — хранится не в
+  // самом ученике, а глобально в DB.settings, ОТДЕЛЬНО для компьютерной
+  // (DB.settings.profileCardOrderDesktop) и мобильной
+  // (DB.settings.profileCardOrderMobile) версии, поэтому перестановка на
+  // одной версии никак не влияет на другую, но при этом одинаково
+  // применяется сразу ко всем ученикам аккаунта. Старые поля
+  // s.profileCardOrderDesktop / s.profileCardOrderMobile / s.profileCardOrder
+  // (сохранённые ДО того, как порядок стал общим) используются как
+  // запасной вариант только пока в DB.settings ещё вообще ничего не
+  // сохранялось для этой версии — чтобы у уже существующих аккаунтов
+  // ничего не "обнулилось" после обновления CRM (в этом случае мы берём
+  // порядок первого попавшегося ученика, у которого он был). Если порядок
+  // ещё не задан или в нём не хватает/оказался лишний ключ (например,
+  // после обновления CRM) — подставляем ключи по умолчанию, ничего не теряя.
   const PROFILE_CARD_KEYS = ['contact','voice','skills','sub','range','notes'];
   const cardsByKey = { contact: contactBlock, voice: voiceBlock, skills: skillsBlock, sub: subBlock, range: renderRangeProgressCard(s), notes: notesBlock };
   const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
-  const rawOrder = Array.isArray(s[profileOrderField]) ? s[profileOrderField] : s.profileCardOrder;
+  DB.settings = DB.settings || {};
+  let rawOrder = DB.settings[profileOrderField];
+  if(!Array.isArray(rawOrder)){
+    // Запасной вариант для старых баз: ищем у любого ученика ранее
+    // сохранённый (ещё "личный") порядок для этой же версии.
+    const legacyStudent = (DB.students||[]).find(st=>Array.isArray(st[profileOrderField]) || Array.isArray(st.profileCardOrder));
+    if(legacyStudent) rawOrder = legacyStudent[profileOrderField] || legacyStudent.profileCardOrder;
+  }
   let order = Array.isArray(rawOrder) ? rawOrder.filter(k=>PROFILE_CARD_KEYS.includes(k)) : [];
   PROFILE_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
 
@@ -3745,8 +3784,9 @@ function renderDetailProfile(){
    Шестерёнка рядом с "Удалить клиента" включает режим редактирования:
    все шесть карточек подсвечиваются фиолетовой окантовкой, их можно
    перетаскивать (drag & drop) в любом порядке. Кнопка "Сохранить"
-   (появляется рядом с шестерёнкой) фиксирует итоговый порядок в самом
-   ученике (s.profileCardOrder) и выключает режим редактирования.
+   (появляется рядом с шестерёнкой) фиксирует итоговый порядок ГЛОБАЛЬНО
+   в DB.settings (сразу для всех учеников — текущих и новых) и выключает
+   режим редактирования.
    ============================================================ */
 let profileReorderMode = false;
 let profileDragState = null; // активное перетаскивание: {card, placeholder, pointerId, startX, startY, offsetX, offsetY, dragging}
@@ -3947,8 +3987,9 @@ function finishProfileCardDrag(st){
 }
 
 /* Кнопка "Сохранить" рядом с шестерёнкой — фиксирует текущий порядок
-   карточек (тот, что человек только что расставил перетаскиванием) в
-   данных ученика и выключает режим редактирования. */
+   карточек (тот, что человек только что расставил перетаскиванием)
+   ГЛОБАЛЬНО в DB.settings, то есть сразу для ВСЕХ учеников (текущих и
+   новых), и выключает режим редактирования. */
 function saveProfileReorderOrder(){
   const grid = document.querySelector('#dtab-profile .profile-grid');
   const s = studentById(currentStudentId);
@@ -3956,8 +3997,12 @@ function saveProfileReorderOrder(){
     const order = Array.from(grid.children).map(c=>c.dataset.cardKey).filter(Boolean);
     // Сохраняем отдельно для той версии (десктоп/мобилка), на которой
     // сейчас реально расставили карточки — вторая версия при этом не трогается.
+    // Хранится в DB.settings (глобально на весь аккаунт), а НЕ в конкретном
+    // ученике — поэтому применяется сразу ко всем ученикам, а не только к тому,
+    // в чьей карточке была нажата "Сохранить".
     const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
-    s[profileOrderField] = order;
+    DB.settings = DB.settings || {};
+    DB.settings[profileOrderField] = order;
     saveDB();
   }
   profileReorderMode = false;
