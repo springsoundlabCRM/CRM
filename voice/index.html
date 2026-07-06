@@ -3636,6 +3636,8 @@ function renderDetailProfile(){
     +'</div>';
 
   host.innerHTML = '<div class="detail-panel profile-grid">'
+      + contactBlock
+
       +'<div class="detail-card card-voice">'+voiceHeader
       + rangeFields
       +'<div class="voice-basic-row">'
@@ -3652,8 +3654,6 @@ function renderDetailProfile(){
         +'</div>'
         + voiceToolsBox
       +'</div></div>'
-
-      + contactBlock
 
       +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'
       +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'+rows+'</div>'
