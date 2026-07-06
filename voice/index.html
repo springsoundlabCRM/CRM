@@ -1214,8 +1214,9 @@
   /* Режим перестановки блоков вкладки "Профиль" (включается шестерёнкой):
      все шесть карточек подсвечиваются фиолетовой окантовкой и становятся
      перетаскиваемыми (drag & drop) друг относительно друга. */
-  .profile-grid.reorder-mode > .detail-card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);cursor:grab;user-select:none}
-  .profile-grid.reorder-mode > .detail-card.card-dragging{box-shadow:0 0 0 2px var(--accent);cursor:grabbing;z-index:2}
+  .profile-grid.reorder-mode > .detail-card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+  .profile-grid.reorder-mode > .detail-card.card-dragging{cursor:grabbing;box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 2px var(--accent)}
+  .profile-card-placeholder{visibility:hidden;pointer-events:none}
   @media (max-width:880px){
     /* На мобильной/планшетной версии карточки не должны быть статично
        растянуты на равную высоту с прокруткой внутри себя — вкладка
@@ -3709,17 +3710,27 @@ function renderDetailProfile(){
    ученике (s.profileCardOrder) и выключает режим редактирования.
    ============================================================ */
 let profileReorderMode = false;
-let profileDraggedCard = null;
+let profileDragState = null; // активное перетаскивание: {card, placeholder, pointerId, startX, startY, offsetX, offsetY, dragging}
+const PROFILE_DRAG_THRESHOLD = 6; // px — сколько нужно сдвинуть палец/курсор, прежде чем считать это перетаскиванием, а не обычным тапом по карточке
 
 function toggleProfileReorderMode(){
+  // Если вдруг переключили режим прямо во время активного перетаскивания —
+  // сначала аккуратно завершаем его, чтобы карточка не "зависла" отдельно от сетки.
+  if(profileDragState){
+    document.removeEventListener('pointermove', onProfileCardPointerMove);
+    document.removeEventListener('pointerup', onProfileCardPointerUp);
+    document.removeEventListener('pointercancel', onProfileCardPointerUp);
+    if(profileDragState.dragging) finishProfileCardDrag(profileDragState);
+    profileDragState = null;
+  }
   profileReorderMode = !profileReorderMode;
   applyProfileReorderVisuals(profileReorderMode);
 }
 
-/* Навешивает/снимает визуальное оформление режима и обработчики
-   drag&drop на текущую разметку карточек (вызывается и при включении/
-   выключении шестерёнкой, и повторно после любой перерисовки вкладки
-   "Профиль", пока режим остаётся включённым). */
+/* Навешивает/снимает визуальное оформление режима и обработчик начала
+   перетаскивания на текущую разметку карточек (вызывается и при
+   включении/выключении шестерёнкой, и повторно после любой перерисовки
+   вкладки "Профиль", пока режим остаётся включённым). */
 function applyProfileReorderVisuals(on){
   const grid = document.querySelector('#dtab-profile .profile-grid');
   const gearBtn = document.getElementById('profileReorderBtn');
@@ -3729,84 +3740,161 @@ function applyProfileReorderVisuals(on){
   if(!grid) return;
   grid.classList.toggle('reorder-mode', on);
   Array.from(grid.children).forEach(card=>{
+    if(!card.dataset || !card.dataset.cardKey) return;
     if(on){
-      card.setAttribute('draggable','true');
-      card.addEventListener('dragstart', onProfileCardDragStart);
-      card.addEventListener('dragover', onProfileCardDragOver);
-      card.addEventListener('drop', onProfileCardDrop);
-      card.addEventListener('dragend', onProfileCardDragEnd);
+      card.addEventListener('pointerdown', onProfileCardPointerDown);
     } else {
-      card.removeAttribute('draggable');
+      card.removeEventListener('pointerdown', onProfileCardPointerDown);
       card.classList.remove('card-dragging');
-      card.style.transform = '';
-      card.style.transition = '';
-      card.removeEventListener('dragstart', onProfileCardDragStart);
-      card.removeEventListener('dragover', onProfileCardDragOver);
-      card.removeEventListener('drop', onProfileCardDrop);
-      card.removeEventListener('dragend', onProfileCardDragEnd);
+      card.style.cssText = '';
     }
   });
 }
 
-function onProfileCardDragStart(e){
-  profileDraggedCard = this;
-  this.classList.add('card-dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  try{ e.dataTransfer.setData('text/plain',''); }catch(err){}
+/* ------------------------------------------------------------
+   Собственная реализация drag & drop на Pointer Events (единая для
+   мыши, тачпада и пальца на телефоне — никакого нативного HTML5
+   drag&drop с его полупрозрачным "призраком"). Идея:
+   - при нажатии на карточку запоминаем стартовую точку;
+   - как только сдвиг превышает порог — реально "отрываем" карточку:
+     на её месте в сетке остаётся невидимый placeholder (держит место),
+     а сама карточка становится position:fixed и с этого момента ВСЕГДА
+     остаётся полностью непрозрачной, просто следует за пальцем/курсором;
+   - как только карточка перекрывает любую другую больше чем на 50% её
+     площади — они меняются местами (местом с ней меняется placeholder),
+     с плавной анимацией переезда;
+   - при отпускании — карточка плавно долетает до места placeholder'а и
+     занимает его окончательно.
+   ------------------------------------------------------------ */
+function onProfileCardPointerDown(e){
+  if(e.button !== undefined && e.button !== 0) return; // только основная кнопка/тап
+  if(e.target.closest && e.target.closest('input,select,textarea,button,a')) return; // не мешаем полям и кнопкам внутри карточки
+  const card = this;
+  profileDragState = { card, pointerId:e.pointerId, startX:e.clientX, startY:e.clientY, dragging:false, placeholder:null, offsetX:0, offsetY:0 };
+  document.addEventListener('pointermove', onProfileCardPointerMove);
+  document.addEventListener('pointerup', onProfileCardPointerUp);
+  document.addEventListener('pointercancel', onProfileCardPointerUp);
 }
 
-/* Карточки меняются местами МГНОВЕННО, ещё во время перетаскивания —
-   как только курсор заходит на середину (50% площади) соседнего блока,
-   не дожидаясь отпускания кнопки мыши. Никакой прозрачности — обе
-   карточки всегда остаются полностью непрозрачными, просто плавно
-   "доезжают" (FLIP-анимация transform) каждая на своё новое место. */
-function onProfileCardDragOver(e){
+function onProfileCardPointerMove(e){
+  const st = profileDragState; if(!st) return;
+  if(!st.dragging){
+    const dx = e.clientX-st.startX, dy = e.clientY-st.startY;
+    if(Math.hypot(dx,dy) < PROFILE_DRAG_THRESHOLD) return; // ещё просто тап, не перетаскивание
+    beginProfileCardDrag(st);
+  }
   e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  if(!profileDraggedCard || profileDraggedCard===this) return;
-  const rect = this.getBoundingClientRect();
-  const marginX = rect.width * 0.25, marginY = rect.height * 0.25;
-  const insideHalf = e.clientX >= rect.left+marginX && e.clientX <= rect.right-marginX
-                   && e.clientY >= rect.top+marginY  && e.clientY <= rect.bottom-marginY;
-  if(!insideHalf) return; // курсор ещё не зашёл на 50% площади блока — рано меняться местами
-  swapProfileCards(profileDraggedCard, this);
+  st.card.style.left = (e.clientX - st.offsetX)+'px';
+  st.card.style.top  = (e.clientY - st.offsetY)+'px';
+  checkProfileCardSwap(st);
 }
 
-function onProfileCardDrop(e){ e.preventDefault(); }
+function beginProfileCardDrag(st){
+  const card = st.card;
+  const rect = card.getBoundingClientRect();
+  st.offsetX = st.startX - rect.left;
+  st.offsetY = st.startY - rect.top;
 
-function onProfileCardDragEnd(){
-  if(profileDraggedCard) profileDraggedCard.classList.remove('card-dragging');
-  profileDraggedCard = null;
+  // Невидимый заместитель держит место карточки в сетке, пока она сама летает за курсором.
+  const placeholder = document.createElement('div');
+  placeholder.className = card.className+' profile-card-placeholder';
+  const grid = card.parentNode;
+  grid.insertBefore(placeholder, card);
+  st.placeholder = placeholder;
+
+  card.classList.add('card-dragging');
+  card.style.position = 'fixed';
+  card.style.left = rect.left+'px';
+  card.style.top = rect.top+'px';
+  card.style.width = rect.width+'px';
+  card.style.height = rect.height+'px';
+  card.style.margin = '0';
+  card.style.zIndex = '1000';
+  document.body.appendChild(card); // чтобы карточка была поверх всего и не обрезалась родителями со скроллом/overflow
+  st.dragging = true;
 }
 
-/* Меняет местами два DOM-узла внутри сетки и плавно анимирует переход
-   (FLIP: First–Last–Invert–Play), чтобы блоки визуально "переезжали"
-   друг на место друга, а не мгновенно перескакивали. */
-function swapProfileCards(a, b){
-  if(!a || !b || a===b || a.parentNode!==b.parentNode) return;
-  const grid = a.parentNode;
-  const cards = Array.from(grid.children);
-  const firstRects = cards.map(c=>c.getBoundingClientRect());
+/* Проверяет, перекрывает ли летящая карточка какую-либо из карточек в
+   сетке больше чем на 50% её площади — и если да, тут же меняет её
+   местами с "дыркой" (placeholder), где карточка была изначально. */
+function checkProfileCardSwap(st){
+  const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
+  const dragRect = st.card.getBoundingClientRect();
+  const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
+  for(const sib of siblings){
+    const r = sib.getBoundingClientRect();
+    const overlapW = Math.min(dragRect.right,r.right) - Math.max(dragRect.left,r.left);
+    const overlapH = Math.min(dragRect.bottom,r.bottom) - Math.max(dragRect.top,r.top);
+    if(overlapW<=0 || overlapH<=0) continue;
+    const sibArea = (r.right-r.left)*(r.bottom-r.top);
+    if(sibArea<=0) continue;
+    if((overlapW*overlapH)/sibArea >= 0.5){
+      swapPlaceholderWithSibling(st.placeholder, sib);
+      break;
+    }
+  }
+}
 
-  const placeholder = document.createComment('swap-placeholder');
-  grid.insertBefore(placeholder, a);
-  grid.insertBefore(a, b);
-  grid.insertBefore(b, placeholder);
-  grid.removeChild(placeholder);
-
-  cards.forEach((c,i)=>{
-    const first = firstRects[i];
-    const last = c.getBoundingClientRect();
-    const dx = first.left - last.left, dy = first.top - last.top;
-    if(!dx && !dy) return;
-    c.style.transition = 'none';
-    c.style.transform = 'translate('+dx+'px,'+dy+'px)';
-    c.getBoundingClientRect(); // форсируем рефлоу, чтобы браузер зафиксировал стартовую точку
-    requestAnimationFrame(()=>{
-      c.style.transition = 'transform .22s cubic-bezier(.22,1,.36,1)';
-      c.style.transform = '';
-    });
+/* Меняет местами placeholder и соседнюю карточку (плавно анимируя
+   именно соседнюю карточку — FLIP: First–Last–Invert–Play), тем самым
+   перемещая "дырку", которую догоняет летящая карточка. */
+function swapPlaceholderWithSibling(placeholder, sib){
+  const grid = placeholder.parentNode;
+  const firstRect = sib.getBoundingClientRect();
+  if(placeholder.nextSibling === sib){
+    grid.insertBefore(sib, placeholder);
+  } else if(sib.nextSibling === placeholder){
+    grid.insertBefore(placeholder, sib);
+  } else {
+    const marker = document.createComment('profile-swap-marker');
+    grid.insertBefore(marker, placeholder);
+    grid.insertBefore(placeholder, sib);
+    grid.insertBefore(sib, marker);
+    grid.removeChild(marker);
+  }
+  const lastRect = sib.getBoundingClientRect();
+  const dx = firstRect.left-lastRect.left, dy = firstRect.top-lastRect.top;
+  if(!dx && !dy) return;
+  sib.style.transition = 'none';
+  sib.style.transform = 'translate('+dx+'px,'+dy+'px)';
+  sib.getBoundingClientRect(); // форсируем рефлоу, чтобы зафиксировать стартовую точку анимации
+  requestAnimationFrame(()=>{
+    sib.style.transition = 'transform .18s cubic-bezier(.22,1,.36,1)';
+    sib.style.transform = '';
   });
+  sib.addEventListener('transitionend', function te(){ sib.style.transition=''; sib.removeEventListener('transitionend', te); });
+}
+
+function onProfileCardPointerUp(){
+  const st = profileDragState;
+  document.removeEventListener('pointermove', onProfileCardPointerMove);
+  document.removeEventListener('pointerup', onProfileCardPointerUp);
+  document.removeEventListener('pointercancel', onProfileCardPointerUp);
+  profileDragState = null;
+  if(!st) return;
+  if(!st.dragging) return; // обычный тап без реального перетаскивания — ничего перестраивать не нужно
+  finishProfileCardDrag(st);
+}
+
+/* Отпустили — карточка плавно долетает до места placeholder'а и
+   встаёт туда окончательно (возвращается в обычный поток сетки). */
+function finishProfileCardDrag(st){
+  const card = st.card, placeholder = st.placeholder;
+  const grid = placeholder.parentNode;
+  const targetRect = placeholder.getBoundingClientRect();
+  let done = false;
+  const cleanup = ()=>{
+    if(done) return; done = true;
+    card.removeEventListener('transitionend', cleanup);
+    if(placeholder.parentNode){ grid.insertBefore(card, placeholder); grid.removeChild(placeholder); }
+    card.classList.remove('card-dragging');
+    card.style.cssText = '';
+  };
+  card.style.transition = 'left .16s cubic-bezier(.22,1,.36,1), top .16s cubic-bezier(.22,1,.36,1)';
+  card.style.left = targetRect.left+'px';
+  card.style.top = targetRect.top+'px';
+  card.addEventListener('transitionend', cleanup);
+  setTimeout(cleanup, 220); // страховка, если transitionend по какой-то причине не сработает
 }
 
 /* Кнопка "Сохранить" рядом с шестерёнкой — фиксирует текущий порядок
