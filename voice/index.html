@@ -128,7 +128,7 @@
   #page-student-detail .content{display:flex;flex-direction:column}
   #page-student-detail .content>.tab-row{flex-shrink:0}
   #page-student-detail .content>div:not(.tab-row):not(.hidden){flex:1;display:flex;flex-direction:column;min-height:0}
-  #dtab-profile>.progress-columns{flex:1;min-height:0}
+  #dtab-profile>.profile-grid{flex:1;min-height:0}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 24px;min-height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;row-gap:8px}
   /* Кнопки верхней панели расписания — точно как в оригинале SSL CRM */
   .tb-btn{
@@ -1199,11 +1199,14 @@
      привязки к сетке detail-panel — это позволяет карточке
      "Прогресс диапазона" слева и "Заметки о голосе" справа тянуться
      вниз и заканчиваться на одном уровне, без отдельной прокрутки --- */
-  .progress-columns{display:flex;gap:16px;align-items:stretch}
-  .progress-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px}
-  .progress-col > .detail-card.fill{flex:1;min-height:200px}
+  /* --- Вкладка "Профиль": сетка 2 колонки × 3 ряда — все 6 карточек
+     строго одинакового размера (колонки и ряды перпендикулярны друг
+     другу), без прокрутки колёсиком мыши: Голос/Навыки/Прогресс
+     диапазона слева, Контакт/Абонемент/Заметки о голосе справа. --- */
+  .profile-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:16px}
+  .profile-grid > .detail-card{display:flex;flex-direction:column;overflow-y:auto;min-height:0}
   @media (max-width:880px){
-    .progress-columns{flex-direction:column}
+    .profile-grid{grid-template-columns:1fr;grid-template-rows:none}
   }
 
   /* --- Карточка "Прогресс диапазона": два круговых прогресс-кольца
@@ -3623,8 +3626,7 @@ function renderDetailProfile(){
       +'</div>'
     +'</div>';
 
-  host.innerHTML = '<div class="detail-panel progress-columns">'
-    +'<div class="progress-col">'
+  host.innerHTML = '<div class="detail-panel profile-grid">'
       +'<div class="detail-card card-voice">'+voiceHeader
       + rangeFields
       +'<div class="voice-basic-row">'
@@ -3642,18 +3644,17 @@ function renderDetailProfile(){
         + voiceToolsBox
       +'</div></div>'
 
+      + contactBlock
+
       +'<div class="detail-card card-skills"><div class="detail-title"><span class="detail-title-label">📊 Навыки</span> <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">кликните на смайлик, чтобы изменить</span></div>'+rows+'</div>'
 
-      + renderRangeProgressCard(s)
-    +'</div>'
-
-    +'<div class="progress-col">'
-      + contactBlock
       + subBlock
+
+      + renderRangeProgressCard(s)
+
       +'<div class="detail-card card-voicenotes fill" style="display:flex;flex-direction:column"><div class="detail-title"><span class="detail-title-label">📝 Заметки о голосе</span></div>'
       +'<textarea class="input" style="flex:1;resize:none;min-height:80px" placeholder="Особенности голоса, прогресс по диапазону..." onblur="updateStudentField(\''+s.id+'\',\'voiceNotes\',this.value)">'+escapeHTML(s.voiceNotes||'')+'</textarea>'
       +'</div>'
-    +'</div>'
     +'</div>';
 }
 
