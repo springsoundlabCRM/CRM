@@ -1319,7 +1319,12 @@
     display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;padding:0}
   .info-dot-btn:hover,.info-dot-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
   .info-popover-wrap{position:relative;display:inline-flex}
-  .info-popover{position:absolute;top:calc(100% + 8px);right:0;z-index:60;width:250px;
+  /* position:fixed (а не absolute) + высокий z-index — чтобы попап всегда
+     открывался поверх всех карточек и поверх модалки карточки ученика,
+     а не обрезался внутренним overflow-y:auto своей карточки. Точные
+     top/bottom/left выставляются в JS (positionInfoPopover), т.к. зависят
+     от того, в каком ряду сетки сейчас стоит карточка. */
+  .info-popover{position:fixed;z-index:150;width:250px;
     background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);
     box-shadow:0 14px 36px rgba(0,0,0,.35);padding:12px 13px;font-size:11.5px;line-height:1.5;color:var(--text2);
     animation:notePopIn .16s cubic-bezier(.22,1,.36,1);text-align:left;font-weight:400;text-transform:none;letter-spacing:normal}
@@ -4157,13 +4162,62 @@ function toggleRangeInfoPopover(evt, studentId){
   pop.className = 'info-popover';
   pop.onclick = function(e){ e.stopPropagation(); };
   pop.innerHTML = '<div class="info-popover-title">Прогресс диапазона</div>'+body;
-  btn.parentElement.appendChild(pop);
+  document.body.appendChild(pop); // не внутрь карточки — иначе обрежется её overflow-y:auto и не будет "поверх всех окон"
+  positionInfoPopover(pop, btn);
+  // Пока попап открыт, любой скролл/ресайз может сдвинуть кнопку относительно
+  // фиксированно спозиционированного попапа — проще и надёжнее его закрыть.
+  window.addEventListener('scroll', closeRangeInfoPopover, true);
+  window.addEventListener('resize', closeRangeInfoPopover);
+}
+
+/* Ставит попап-подсказку рядом с кнопкой "i", но как position:fixed
+   элемент в document.body (поверх всех карточек и модалки карточки
+   ученика). Направление раскрытия зависит от того, в каком ряду сетки
+   "Профиль" сейчас находится карточка с этой кнопкой (карточки можно
+   перетаскивать местами через "перестановку блоков", поэтому положение
+   каждый раз проверяется заново, а не берётся из фиксированного ключа
+   карточки): нижний ряд — открываем вверх, иначе — вниз, как раньше. */
+function positionInfoPopover(pop, btn){
+  const wrap = btn.parentElement;
+  const wrapRect = wrap.getBoundingClientRect();
+  const POPOVER_WIDTH = 250;
+  const openUpward = isBottomRowProfileCard(btn.closest('.detail-card'));
+
+  let left = wrapRect.right - POPOVER_WIDTH;
+  left = Math.max(8, Math.min(left, window.innerWidth - POPOVER_WIDTH - 8));
+  pop.style.left = left+'px';
+
+  if(openUpward){
+    pop.style.top = 'auto';
+    pop.style.bottom = (window.innerHeight - wrapRect.top + 8)+'px';
+  } else {
+    pop.style.bottom = 'auto';
+    pop.style.top = (wrapRect.bottom + 8)+'px';
+  }
+}
+
+/* true, если карточка стоит в нижнем ряду сетки вкладки "Профиль"
+   (2 колонки × 3 ряда на десктопе, 1 колонка на мобильном) — с учётом
+   текущего порядка карточек после перетаскивания. */
+function isBottomRowProfileCard(card){
+  if(!card) return false;
+  const grid = card.closest('.profile-grid');
+  if(!grid) return false;
+  const siblings = Array.from(grid.children).filter(c=>c.dataset && c.dataset.cardKey);
+  const idx = siblings.indexOf(card);
+  if(idx === -1) return false;
+  const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+  const totalRows = Math.ceil(siblings.length/cols);
+  const rowIndex = Math.floor(idx/cols);
+  return rowIndex === totalRows-1;
 }
 
 function closeRangeInfoPopover(){
   const existing = document.querySelector('.info-popover');
   if(existing) existing.remove();
   document.querySelectorAll('.info-dot-btn.active').forEach(b=>b.classList.remove('active'));
+  window.removeEventListener('scroll', closeRangeInfoPopover, true);
+  window.removeEventListener('resize', closeRangeInfoPopover);
 }
 
 /* --- Переключение языка нотации --- */
