@@ -904,6 +904,12 @@
     .app{flex-direction:column}
     .sidebar{width:78vw;max-width:300px;min-width:0}
     .content{padding:12px}
+    /* На этом брейкпоинте появляется нижнее меню (5 кнопок, .bottom-nav) —
+       без доп. отступа последняя карточка вкладки "Профиль" (единственная
+       колонка на мобильном) прилегает к нему вплотную. --bottom-nav-h
+       — реальная измеренная высота меню (см. setNavH в скрипте ниже),
+       поэтому отступ всегда точно соответствует его размеру на устройстве. */
+    #dtab-profile{padding-bottom:calc(var(--bottom-nav-h) + 16px)}
     .topbar{
       flex-wrap:nowrap;min-height:50px;padding:8px 10px;
       gap:6px;overflow-x:auto;
@@ -3694,14 +3700,18 @@ function renderDetailProfile(){
 
   // Шесть карточек вкладки "Профиль" — порядок можно менять вручную
   // (шестерёнка рядом с "Удалить клиента" → drag&drop → "Сохранить").
-  // Порядок хранится в самом ученике (s.profileCardOrder), поэтому у
-  // каждого преподавателя/ученика он может быть свой и переживает
-  // перезагрузку страницы. Если порядок ещё не задан или в нём не
-  // хватает/оказался лишний ключ (например, после обновления CRM) —
-  // подставляем ключи по умолчанию, ничего не теряя.
+  // Порядок хранится ЛОКАЛЬНО в браузере (localStorage), а НЕ в самом
+  // ученике / общей базе (которая синхронизируется через Firestore на все
+  // устройства аккаунта). Так и должно быть: это персональная настройка
+  // конкретного устройства — на компьютере и на телефоне один и тот же
+  // преподаватель может расставить карточки по-разному, и они не будут
+  // затирать друг друга. Если порядок ещё не задан на этом устройстве или
+  // в нём не хватает/оказался лишний ключ (например, после обновления
+  // CRM) — подставляем ключи по умолчанию, ничего не теряя.
   const PROFILE_CARD_KEYS = ['contact','voice','skills','sub','range','notes'];
   const cardsByKey = { contact: contactBlock, voice: voiceBlock, skills: skillsBlock, sub: subBlock, range: renderRangeProgressCard(s), notes: notesBlock };
-  let order = Array.isArray(s.profileCardOrder) ? s.profileCardOrder.filter(k=>PROFILE_CARD_KEYS.includes(k)) : [];
+  let order = readProfileCardOrder(s.id) || [];
+  order = order.filter(k=>PROFILE_CARD_KEYS.includes(k));
   PROFILE_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
 
   host.innerHTML = '<div class="detail-panel profile-grid">'
@@ -3723,9 +3733,33 @@ function renderDetailProfile(){
    Шестерёнка рядом с "Удалить клиента" включает режим редактирования:
    все шесть карточек подсвечиваются фиолетовой окантовкой, их можно
    перетаскивать (drag & drop) в любом порядке. Кнопка "Сохранить"
-   (появляется рядом с шестерёнкой) фиксирует итоговый порядок в самом
-   ученике (s.profileCardOrder) и выключает режим редактирования.
+   (появляется рядом с шестерёнкой) фиксирует итоговый порядок В
+   ЛОКАЛЬНОМ ХРАНИЛИЩЕ ЭТОГО УСТРОЙСТВА (см. readProfileCardOrder /
+   writeProfileCardOrder ниже) и выключает режим редактирования.
    ============================================================ */
+
+/* Порядок карточек профиля хранится в localStorage — НЕ в общей базе
+   (Firestore), которая одинакова на всех устройствах одного аккаунта.
+   Ключ включает currentUid (чтобы разные преподаватели, заходящие с
+   одного браузера, не путали настройки друг друга) и id ученика (у
+   каждого ученика — свой порядок карточек). localStorage физически
+   привязан к конкретному браузеру/устройству, поэтому расстановка на
+   телефоне и на компьютере естественным образом не пересекается. */
+function profileCardOrderKey(studentId){
+  return 'voiceloft_profile_card_order_'+(currentUid||'anon')+'_'+studentId;
+}
+function readProfileCardOrder(studentId){
+  try{
+    const raw = localStorage.getItem(profileCardOrderKey(studentId));
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  }catch(e){ return null; }
+}
+function writeProfileCardOrder(studentId, order){
+  try{ localStorage.setItem(profileCardOrderKey(studentId), JSON.stringify(order)); }
+  catch(e){ /* приватный режим браузера и т.п. — не критично, просто не запомнится на этом устройстве */ }
+}
+
 let profileReorderMode = false;
 let profileDragState = null; // активное перетаскивание: {card, placeholder, pointerId, startX, startY, offsetX, offsetY, dragging}
 const PROFILE_DRAG_THRESHOLD = 6; // px — сколько нужно сдвинуть палец/курсор, прежде чем считать это перетаскиванием, а не обычным тапом по карточке
@@ -3925,15 +3959,14 @@ function finishProfileCardDrag(st){
 }
 
 /* Кнопка "Сохранить" рядом с шестерёнкой — фиксирует текущий порядок
-   карточек (тот, что человек только что расставил перетаскиванием) в
-   данных ученика и выключает режим редактирования. */
+   карточек (тот, что человек только что расставил перетаскиванием)
+   локально на этом устройстве и выключает режим редактирования. */
 function saveProfileReorderOrder(){
   const grid = document.querySelector('#dtab-profile .profile-grid');
   const s = studentById(currentStudentId);
   if(grid && s){
     const order = Array.from(grid.children).map(c=>c.dataset.cardKey).filter(Boolean);
-    s.profileCardOrder = order;
-    saveDB();
+    writeProfileCardOrder(s.id, order);
   }
   profileReorderMode = false;
   applyProfileReorderVisuals(false);
