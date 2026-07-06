@@ -3812,12 +3812,21 @@ function beginProfileCardDrag(st){
   card.style.zIndex = '1000';
   document.body.appendChild(card); // чтобы карточка была поверх всего и не обрезалась родителями со скроллом/overflow
   st.dragging = true;
+  st.swapCooldownUntil = 0; // защита от "дребезга": пока сосед доезжает после свапа, новые свапы не проверяем
 }
 
 /* Проверяет, перекрывает ли летящая карточка какую-либо из карточек в
    сетке больше чем на 50% её площади — и если да, тут же меняет её
-   местами с "дыркой" (placeholder), где карточка была изначально. */
+   местами с "дыркой" (placeholder), где карточка была изначально.
+   Сразу после свапа включается короткая "заморозка" проверки: пока
+   соседняя карточка ещё доезжает на своё новое место (плавно едет
+   0.18с), её координаты в это время меняются каждый кадр — если
+   проверять свап именно в этот момент, срабатывание может повториться
+   несколько раз подряд и карточки будут дёргаться туда-сюда. Поэтому
+   следующую проверку делаем только после того, как анимация соседа
+   гарантированно завершилась. */
 function checkProfileCardSwap(st){
+  if(Date.now() < (st.swapCooldownUntil||0)) return;
   const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
   const dragRect = st.card.getBoundingClientRect();
   const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
@@ -3830,6 +3839,7 @@ function checkProfileCardSwap(st){
     if(sibArea<=0) continue;
     if((overlapW*overlapH)/sibArea >= 0.5){
       swapPlaceholderWithSibling(st.placeholder, sib);
+      st.swapCooldownUntil = Date.now() + 220; // чуть больше длительности анимации соседа (.18s)
       break;
     }
   }
