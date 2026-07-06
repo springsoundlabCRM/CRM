@@ -1206,7 +1206,14 @@
   .profile-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:16px}
   .profile-grid > .detail-card{display:flex;flex-direction:column;overflow-y:auto;min-height:0}
   @media (max-width:880px){
+    /* На мобильной/планшетной версии карточки не должны быть статично
+       растянуты на равную высоту с прокруткой внутри себя — вкладка
+       "Профиль" должна вести себя так же, как остальные вкладки
+       карточки ученика: обычная одна колонка, естественная высота
+       карточек, страница целиком скроллится колесиком/пальцем. */
     .profile-grid{grid-template-columns:1fr;grid-template-rows:none}
+    #dtab-profile>.profile-grid{flex:none;min-height:0}
+    .profile-grid > .detail-card{overflow-y:visible;min-height:0}
   }
 
   /* --- Карточка "Прогресс диапазона": два круговых прогресс-кольца
