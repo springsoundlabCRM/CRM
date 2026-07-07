@@ -5296,22 +5296,52 @@ function fitAnalyticsPage(){
   // На мобильных версиях сжатие не нужно — сбрасываем, если оно вдруг осталось от предыдущей ширины экрана
   if(window.innerWidth < ANALYTICS_DESKTOP_MIN_WIDTH){
     wrap.style.transform = '';
+    wrap.style.marginBottom = '';
     return;
   }
 
-  // Сначала сбрасываем масштаб, чтобы измерить "настоящую" высоту контента без сжатия
+  // Сначала полностью сбрасываем и масштаб, и компенсирующий отступ, чтобы измерить
+  // "настоящую" высоту контента без каких-либо предыдущих поджатий
   wrap.style.transform = 'none';
+  wrap.style.marginBottom = '';
 
   requestAnimationFrame(()=>{
     const naturalHeight = wrap.scrollHeight;
     const available = contentEl.clientHeight;
-    if(naturalHeight > available && available > 0){
-      // Небольшой запас (0.5%), чтобы не упереться в 1px из-за округления и не получить обратно прокрутку
-      const scale = Math.max(Math.min(available / naturalHeight, 1) * 0.995, 0.8);
-      wrap.style.transform = 'scale('+scale+')';
-    } else {
+    if(!(naturalHeight > available) || available <= 0){
       wrap.style.transform = '';
+      wrap.style.marginBottom = '';
+      return;
     }
+
+    // Небольшой запас (1%), чтобы не упереться в 1px из-за округления шрифтов/DPI
+    let scale = Math.max(Math.min(available / naturalHeight, 1) * 0.99, 0.8);
+
+    const apply = function(s){
+      wrap.style.transform = 'scale('+s+')';
+      // ВАЖНО: transform — чисто визуальный эффект, сам по себе он не уменьшает место,
+      // которое блок физически занимает в потоке документа (а значит, contentEl.scrollHeight
+      // и прокрутка колёсиком могут остаться, даже когда картинка визуально уже уменьшена).
+      // Поэтому дополнительно "поджимаем" реальный отступ снизу отрицательным margin —
+      // это гарантированно убирает лишнее место независимо от того, как конкретно браузер
+      // считает scrollable overflow для трансформированных элементов.
+      const shrinkBy = naturalHeight * (1 - s);
+      wrap.style.marginBottom = '-' + shrinkBy + 'px';
+    };
+
+    apply(scale);
+
+    // Финальная проверка "по факту": если после применения прокрутка всё ещё есть
+    // (например, из-за нестандартного рендеринга шрифтов на конкретном компьютере),
+    // ещё немного доуменьшаем шаг за шагом, пока прокрутка гарантированно не исчезнет.
+    requestAnimationFrame(()=>{
+      let guard = 0;
+      while(contentEl.scrollHeight > contentEl.clientHeight + 1 && scale > 0.75 && guard < 12){
+        scale = scale * 0.99;
+        apply(scale);
+        guard++;
+      }
+    });
   });
 }
 
