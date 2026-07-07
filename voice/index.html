@@ -3903,6 +3903,16 @@ function renderDetailProfile(){
 let profileReorderMode = false;
 let profileDragState = null; // активное перетаскивание: {card, placeholder, pointerId, startX, startY, offsetX, offsetY, dragging}
 const PROFILE_DRAG_THRESHOLD = 6; // px — сколько нужно сдвинуть палец/курсор, прежде чем считать это перетаскиванием, а не обычным тапом по карточке
+// "Снимок" порядка карточек на момент включения шестерёнки — нужен, чтобы
+// откатить все перестановки назад, если человек натаскал карточки как
+// угодно, но нажал шестерёнку повторно (выключил режим), а НЕ кнопку
+// "Сохранить". Только "Сохранить" фиксирует новый порядок; повторный клик
+// по самой шестерёнке всегда должен вернуть карточки туда, где они были
+// до начала перетаскивания. Заполняется в toggleProfileReorderMode() при
+// включении режима и используется в revertProfileCardOrder() при
+// выключении без сохранения; сбрасывается в null после отмены и после
+// успешного сохранения.
+let profileReorderSnapshotOrder = null;
 
 function toggleProfileReorderMode(){
   // Если вдруг переключили режим прямо во время активного перетаскивания —
@@ -3916,12 +3926,36 @@ function toggleProfileReorderMode(){
     profileDragState = null;
   }
   profileReorderMode = !profileReorderMode;
+  if(profileReorderMode){
+    // Включили режим — запоминаем текущий (ещё не тронутый) порядок карточек,
+    // чтобы было куда откатываться, если пользователь передумает и не сохранит.
+    const grid = document.querySelector('#dtab-profile .profile-grid');
+    profileReorderSnapshotOrder = grid ? Array.from(grid.children).map(c=>c.dataset && c.dataset.cardKey).filter(Boolean) : null;
+  } else {
+    // Выключили режим ЧЕРЕЗ ШЕСТЕРЁНКУ (не через "Сохранить" — тот путь
+    // выключает режим сам, напрямую, минуя эту функцию) — значит, изменения
+    // отменяются, и карточки должны вернуться на исходные места.
+    revertProfileCardOrder();
+    profileReorderSnapshotOrder = null;
+  }
   // При включении режима перестановки убираем фокус с того, что могло
   // быть выделено/активно до этого (иначе, например, на телефоне может
   // остаться открытой клавиатура от поля, в которое только что вводили
   // текст) — сами поля ввода дальше блокируются через applyProfileReorderVisuals().
   if(profileReorderMode && document.activeElement && document.activeElement.blur) document.activeElement.blur();
   applyProfileReorderVisuals(profileReorderMode);
+}
+
+/* Возвращает карточки вкладки "Профиль" в порядок, сохранённый в
+   profileReorderSnapshotOrder — физически переставляет существующие DOM-
+   узлы (просто через appendChild по порядку), ничего не перерисовывая
+   заново, чтобы не потерять несохранённые правки в других полях. */
+function revertProfileCardOrder(){
+  const grid = document.querySelector('#dtab-profile .profile-grid');
+  if(!grid || !profileReorderSnapshotOrder) return;
+  const byKey = {};
+  Array.from(grid.children).forEach(c=>{ if(c.dataset && c.dataset.cardKey) byKey[c.dataset.cardKey] = c; });
+  profileReorderSnapshotOrder.forEach(k=>{ const el = byKey[k]; if(el) grid.appendChild(el); });
 }
 
 /* Навешивает/снимает визуальное оформление режима и обработчик начала
@@ -4200,6 +4234,10 @@ function saveProfileReorderOrder(){
     saveDB();
   }
   profileReorderMode = false;
+  // Изменения только что были явно сохранены — снимок исходного порядка
+  // больше не нужен: откатывать теперь уже не к чему, новый порядок сам
+  // стал "исходным" для следующего захода в режим перестановки.
+  profileReorderSnapshotOrder = null;
   applyProfileReorderVisuals(false);
   toast('Порядок блоков сохранён ✓');
 }
