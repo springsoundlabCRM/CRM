@@ -457,6 +457,16 @@
   #dtab-finance-tab .finance-sub{font-size:12.5px}
   #dtab-finance-tab .finance-amount{font-size:16px}
   .lesson-note{min-height:75px;box-sizing:border-box}
+  /* Тот же самый приём — теперь для главного раздела "Финансы" в "Учёте"
+     (подразделы "Все"/"Оплачено"/"Долги"/"Абонементы", #page-finances):
+     карточки платежей/абонементов немного выше и с чуть более крупным
+     текстом, по аналогии с тем, что уже сделано для вкладки "Финансы"
+     внутри карточки ученика. Расположение строк внутри карточки не
+     меняется — просто больше padding и чуть крупнее шрифт. */
+  #page-finances .finance-row{padding:16px 14px;margin-bottom:10px;min-height:75px;box-sizing:border-box}
+  #page-finances .finance-name{font-size:14.5px}
+  #page-finances .finance-sub{font-size:12.5px}
+  #page-finances .finance-amount{font-size:16px}
   .finance-name{flex:1;font-size:13px;font-weight:500;min-width:0}
   .finance-sub{font-size:11px;color:var(--text3);margin-top:1px}
   .finance-amount{font-size:14px;font-weight:600;text-align:right}
