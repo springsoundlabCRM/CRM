@@ -493,8 +493,8 @@
      фиксированную высоту ячейки сетки без внутренней прокрутки — сама
      мобильная версия при этом не меняется. */
   .sub-usedtotal{font-size:24px;margin-bottom:6px}
-  .sub-bought-val{font-size:16px;margin-top:4px}
-  .sub-cost-val{font-size:19px;margin-top:4px}
+  .sub-bought-val{font-size:12px;font-weight:500;color:var(--text3);text-transform:none;letter-spacing:normal}
+  .sub-cost-val{font-size:15px}
   .sub-btn-row{margin-top:10px}
   .sub-delete-btn{margin-top:8px}
   .skill-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -1293,17 +1293,17 @@
   /* Компактная версия карточки "Абонемент" — ТОЛЬКО на десктопе (см.
      @media max-width:880px ниже, где вся вкладка "Профиль" вообще
      перестаёт быть фиксированной сеткой). На десктопе карточка живёт
-     внутри ячейки сетки фиксированной высоты (1fr), и с добавлением
-     строки "Общая стоимость абонемента" контента стало чуть больше, чем
-     помещается — появлялась внутренняя прокрутка, а кнопка "Удалить
-     абонемент" уезжала вниз, за пределы видимой области. Здесь ничего не
-     переставляется местами — просто чуть уменьшены шрифты/отступы, чтобы
-     всё содержимое снова помещалось в карточку без прокрутки. */
+     внутри ячейки сетки фиксированной высоты (1fr). Дата покупки вынесена
+     в правый верхний угол заголовка карточки (рядом с "💳 Абонемент"), а
+     "Общая стоимость абонемента" и сумма — в одну строку через двоеточие,
+     это освобождает место и не даёт содержимому карточки уезжать за
+     пределы видимой области. Здесь ничего лишнего не переставляется —
+     просто чуть уменьшены шрифты/отступы под фиксированную высоту ячейки. */
   @media (min-width:881px){
     .sub-title{margin-bottom:10px}
     .sub-usedtotal{font-size:20px;margin-bottom:4px}
-    .sub-bought-val{font-size:15px;margin-top:3px}
-    .sub-cost-val{font-size:16px;margin-top:3px}
+    .sub-bought-val{font-size:11px}
+    .sub-cost-val{font-size:14px}
     .sub-btn-row{margin-top:8px}
     .sub-delete-btn{margin-top:6px}
   }
@@ -3761,15 +3761,14 @@ function renderDetailProfile(){
   if(sub){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
-    subBlock = '<div class="detail-card sub-active-card" data-card-key="sub"><div class="detail-title sub-title"><span class="detail-title-label">💳 Абонемент</span></div>'
+    subBlock = '<div class="detail-card sub-active-card" data-card-key="sub"><div class="detail-title sub-title"><span class="detail-title-label">💳 Абонемент</span><span class="sub-bought-val">Куплен: '+formatRu(sub.purchaseDate)+'</span></div>'
       +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'
       +'<div>'
       +'<div class="sub-usedtotal" style="font-weight:600">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
       +'</div>'
       +'<div style="font-size:13px;color:var(--text3)">Осталось '+left+' '+pluralLessons(left)+'</div>'
-      +'<div><div style="font-size:13px;color:var(--text3)">Куплен</div><div class="sub-bought-val" style="font-weight:500">'+formatRu(sub.purchaseDate)+'</div></div>'
-      +'<div><div style="font-size:13px;color:var(--text3)">Общая стоимость абонемента</div><div class="sub-cost-val" style="font-weight:700;color:var(--accent)">'+money(sub.totalPrice)+'</div></div>'
+      +'<div style="font-size:13px;color:var(--text3)">Общая стоимость абонемента: <span class="sub-cost-val" style="font-weight:700;color:var(--accent)">'+money(sub.totalPrice)+'</span></div>'
       +'</div>'
       +'<div class="sub-btn-row" style="display:flex;gap:6px">'
       +'<button class="btn btn-primary sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subTopup\',{studentId:\''+s.id+'\'})">Пополнить</button>'
