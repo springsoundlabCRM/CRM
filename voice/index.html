@@ -436,6 +436,13 @@
   .finance-row.is-debt{border-left:3px solid var(--red)}
   .finance-row.is-partial{border-left:3px solid var(--amber)}
   .finance-row.is-paid{border-left:3px solid var(--green)}
+  /* Строки платежей на вкладке "Финансы" внутри карточки ученика (не
+     общий раздел "Финансы" в левом меню — там .finance-row не трогаем)
+     должны быть по размеру такими же, как записи на вкладке "История
+     уроков" (.lesson-note: padding 16px 14px, margin-bottom 10px). Раньше
+     здесь использовался общий, более компактный размер .finance-row, из-за
+     чего карточки платежей выглядели заметно мельче соседней вкладки. */
+  #dtab-finance-tab .finance-row{padding:16px 14px;margin-bottom:10px}
   .finance-name{flex:1;font-size:13px;font-weight:500;min-width:0}
   .finance-sub{font-size:11px;color:var(--text3);margin-top:1px}
   .finance-amount{font-size:14px;font-weight:600;text-align:right}
