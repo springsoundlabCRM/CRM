@@ -1173,6 +1173,12 @@
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
+  /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
+     #analyticsScaleWrap чуть сжимается через JS (см. fitAnalyticsPage), если контент
+     не помещается по высоте — сам масштаб считается динамически под конкретный экран,
+     поэтому здесь только базовые свойства для плавного и аккуратного сжатия. */
+  #analyticsScaleWrap{transform-origin:top center;transition:transform .12s ease}
+
   .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 18px}
   .pill-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;min-width:140px;flex:1}
   .pill-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
@@ -2018,6 +2024,7 @@
       <div class="topbar"><div class="topbar-title">Аналитика <span class="topbar-subtitle">полная картина по ученикам и доходам</span></div></div>
       <div class="content">
 
+        <div id="analyticsScaleWrap">
         <div class="pill-row" id="analyticsPillRow">
           <div class="pill-stat"><div class="pill-stat-label">Учеников</div><b id="anPillStudents">0</b></div>
           <div class="pill-stat"><div class="pill-stat-label">Средний прогресс</div><b id="anPillProgress">0%</b></div>
@@ -2079,6 +2086,7 @@
           </div>
           <div class="year-chart" id="yearChart"></div>
           <div style="display:flex;gap:6px" id="yearLabels"></div>
+        </div>
         </div>
       </div>
     </div>
@@ -5268,9 +5276,66 @@ function renderAnalytics(){
   ).join('');
 
   renderYearChart();
+  fitAnalyticsPage();
 }
 
-function shiftYear(d){ analyticsYear += d; renderYearChart(); }
+/* ---------- Автоподгонка страницы "Аналитика" под один экран (только десктоп) ----------
+   Задача: убрать прокрутку колёсиком внутри окна аналитики на компьютере, ничего не меняя
+   в самой вёрстке карточек — просто чуть сжать всё содержимое целиком (как лёгкий zoom-out),
+   если оно не помещается по высоте. На мобильных устройствах (узкий экран) ничего не трогаем —
+   там осталась обычная прокрутка, как и было.
+   Масштаб считается каждый раз заново по реальной высоте контента и высоте окна, поэтому
+   работает одинаково корректно на любом разрешении экрана и при любом количестве данных. */
+const ANALYTICS_DESKTOP_MIN_WIDTH = 881; // совпадает с общим брейкпоинтом десктоп/мобайл в остальной вёрстке
+function fitAnalyticsPage(){
+  const wrap = document.getElementById('analyticsScaleWrap');
+  if(!wrap) return;
+  const contentEl = wrap.parentElement; // .content с overflow-y:auto
+  if(!contentEl) return;
+
+  // На мобильных версиях сжатие не нужно — сбрасываем, если оно вдруг осталось от предыдущей ширины экрана
+  if(window.innerWidth < ANALYTICS_DESKTOP_MIN_WIDTH){
+    wrap.style.transform = '';
+    return;
+  }
+
+  // Сначала сбрасываем масштаб, чтобы измерить "настоящую" высоту контента без сжатия
+  wrap.style.transform = 'none';
+
+  requestAnimationFrame(()=>{
+    const naturalHeight = wrap.scrollHeight;
+    const available = contentEl.clientHeight;
+    if(naturalHeight > available && available > 0){
+      // Небольшой запас (0.5%), чтобы не упереться в 1px из-за округления и не получить обратно прокрутку
+      const scale = Math.max(Math.min(available / naturalHeight, 1) * 0.995, 0.8);
+      wrap.style.transform = 'scale('+scale+')';
+    } else {
+      wrap.style.transform = '';
+    }
+  });
+}
+
+// Пересчитываем при изменении размера окна (например, при разворачивании/сворачивании окна
+// браузера на компьютере) — но только пока открыта вкладка "Аналитика".
+let _analyticsFitResizeTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(_analyticsFitResizeTimer);
+  _analyticsFitResizeTimer = setTimeout(()=>{
+    if(currentPageName === 'analytics') fitAnalyticsPage();
+  }, 120);
+});
+
+// Веб-шрифт (Inter) иногда подгружается уже ПОСЛЕ того, как страница "Аналитика" успела
+// отрендериться и посчитать масштаб — из-за подмены шрифта высота текста чуть меняется,
+// и без этой подстраховки прокрутка колёсиком могла бы на долю секунды вернуться.
+// Пересчитываем масштаб ровно один раз, когда все шрифты точно готовы.
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(function(){
+    if(currentPageName === 'analytics') fitAnalyticsPage();
+  });
+}
+
+function shiftYear(d){ analyticsYear += d; renderYearChart(); fitAnalyticsPage(); }
 
 function renderYearChart(){
   document.getElementById('yearLabel').textContent = analyticsYear;
