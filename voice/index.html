@@ -1309,8 +1309,13 @@
   }
   /* Режим перестановки блоков вкладки "Профиль" (включается шестерёнкой):
      все шесть карточек подсвечиваются фиолетовой окантовкой и становятся
-     перетаскиваемыми (drag & drop) друг относительно друга. */
-  .profile-grid.reorder-mode > .detail-card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+     перетаскиваемыми (drag & drop) друг относительно друга.
+     touch-action ЗДЕСЬ — pan-y (а не none): пока карточка ещё не "подхвачена"
+     долгим нажатием (см. onProfileCardPointerDown/onProfileCardPointerMove в
+     JS), палец должен свободно листать страницу вверх/вниз, как обычно.
+     Полный запрет жестов (touch-action:none) включается ТОЛЬКО у самой
+     летящей карточки — см. правило .detail-card.card-dragging ниже. */
+  .profile-grid.reorder-mode > .detail-card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
   /* Пока включён режим перестановки карточек (шестерёнка), вся карточка —
      это исключительно "ручка" для перетаскивания. Раньше клик по полю
      ввода/выпадающему списку/кнопке ВНУТРИ карточки (например, телефон
@@ -3949,7 +3954,17 @@ function renderDetailProfile(){
    ============================================================ */
 let profileReorderMode = false;
 let profileDragState = null; // активное перетаскивание: {card, placeholder, pointerId, startX, startY, offsetX, offsetY, dragging}
-const PROFILE_DRAG_THRESHOLD = 6; // px — сколько нужно сдвинуть палец/курсор, прежде чем считать это перетаскиванием, а не обычным тапом по карточке
+const PROFILE_DRAG_THRESHOLD = 6; // px — мышь/стилус: сколько нужно сдвинуть курсор, прежде чем считать это перетаскиванием, а не обычным кликом по карточке
+// На телефоне (палец) перетаскивание НЕ должно начинаться от простого
+// движения — иначе обычная прокрутка страницы становится невозможной
+// (см. onProfileCardPointerDown/Move ниже). Вместо порога в пикселях для
+// тача используется долгое нажатие: карточка "подхватывается" только если
+// палец простоял на месте (в пределах PROFILE_LONGPRESS_MOVE_TOLERANCE)
+// не меньше PROFILE_LONGPRESS_MS миллисекунд. Если за это время палец
+// заметно сдвинулся — значит, человек листает страницу, и мы просто не
+// вмешиваемся (даём браузеру прокрутить как обычно).
+const PROFILE_LONGPRESS_MS = 500; // мс — длительность удержания перед стартом перетаскивания на тач-устройствах
+const PROFILE_LONGPRESS_MOVE_TOLERANCE = 10; // px — сдвиг пальца больше этого во время ожидания долгого нажатия отменяет перетаскивание (это скролл)
 // "Снимок" порядка карточек на момент включения шестерёнки — нужен, чтобы
 // откатить все перестановки назад, если человек натаскал карточки как
 // угодно, но нажал шестерёнку повторно (выключил режим), а НЕ кнопку
@@ -3968,6 +3983,7 @@ function toggleProfileReorderMode(){
     document.removeEventListener('pointermove', onProfileCardPointerMove);
     document.removeEventListener('pointerup', onProfileCardPointerUp);
     document.removeEventListener('pointercancel', onProfileCardPointerUp);
+    if(profileDragState.longPressTimer){ clearTimeout(profileDragState.longPressTimer); profileDragState.longPressTimer = null; }
     stopProfileAutoScroll(profileDragState);
     if(profileDragState.dragging) finishProfileCardDrag(profileDragState);
     profileDragState = null;
@@ -4048,10 +4064,27 @@ function onProfileCardPointerDown(e){
   if(e.button !== undefined && e.button !== 0) return; // только основная кнопка/тап
   if(e.target.closest && e.target.closest('input,select,textarea,button,a')) return; // не мешаем полям и кнопкам внутри карточки
   const card = this;
-  profileDragState = { card, pointerId:e.pointerId, startX:e.clientX, startY:e.clientY, dragging:false, placeholder:null, offsetX:0, offsetY:0 };
+  const isTouch = e.pointerType === 'touch' || e.pointerType === 'pen';
+  profileDragState = { card, pointerId:e.pointerId, startX:e.clientX, startY:e.clientY, dragging:false, placeholder:null, offsetX:0, offsetY:0, pointerType:e.pointerType, longPressTimer:null };
   document.addEventListener('pointermove', onProfileCardPointerMove);
   document.addEventListener('pointerup', onProfileCardPointerUp);
   document.addEventListener('pointercancel', onProfileCardPointerUp);
+  if(isTouch){
+    // Тач: не хватаем карточку сразу — ждём долгое нажатие (см. константы
+    // выше). Пока таймер не сработал, палец может свободно листать
+    // страницу — см. ветку isTouch в onProfileCardPointerMove ниже, она
+    // ничего не блокирует и не вызывает preventDefault.
+    const st = profileDragState;
+    st.longPressTimer = setTimeout(function(){
+      if(profileDragState !== st || st.pointerId !== e.pointerId) return; // палец уже отпущен/сменился — не подхватываем
+      st.longPressTimer = null;
+      // Тактильный отклик о том, что карточка "подхвачена" для перемещения.
+      // Поддерживается не везде (например, отсутствует в iOS Safari) —
+      // поэтому аккуратно проверяем наличие API перед вызовом.
+      if(navigator.vibrate){ try{ navigator.vibrate(35); }catch(err){} }
+      beginProfileCardDrag(st);
+    }, PROFILE_LONGPRESS_MS);
+  }
 }
 
 function onProfileCardPointerMove(e){
@@ -4059,7 +4092,24 @@ function onProfileCardPointerMove(e){
   st.lastClientX = e.clientX; st.lastClientY = e.clientY;
   if(!st.dragging){
     const dx = e.clientX-st.startX, dy = e.clientY-st.startY;
-    if(Math.hypot(dx,dy) < PROFILE_DRAG_THRESHOLD) return; // ещё просто тап, не перетаскивание
+    const isTouch = st.pointerType === 'touch' || st.pointerType === 'pen';
+    if(isTouch){
+      // Пока долгое нажатие не сработало — это обычная прокрутка пальцем,
+      // мы её никак не трогаем (без preventDefault). Если палец успел
+      // заметно сдвинуться раньше, чем истекли положенные полсекунды —
+      // значит, человек листает страницу, а не собирается перетаскивать
+      // карточку: отменяем таймер, чтобы drag не начался "с опозданием"
+      // прямо посреди прокрутки.
+      if(st.longPressTimer && Math.hypot(dx,dy) >= PROFILE_LONGPRESS_MOVE_TOLERANCE){
+        clearTimeout(st.longPressTimer);
+        st.longPressTimer = null;
+      }
+      return;
+    }
+    // Мышь/стилус — прежнее поведение без задержки: конфликта со скроллом
+    // страницы колесом мыши нет, поэтому перетаскивание стартует сразу
+    // после небольшого сдвига курсора.
+    if(Math.hypot(dx,dy) < PROFILE_DRAG_THRESHOLD) return; // ещё просто клик, не перетаскивание
     beginProfileCardDrag(st);
   }
   e.preventDefault();
@@ -4235,6 +4285,7 @@ function onProfileCardPointerUp(){
   document.removeEventListener('pointercancel', onProfileCardPointerUp);
   profileDragState = null;
   if(!st) return;
+  if(st.longPressTimer){ clearTimeout(st.longPressTimer); st.longPressTimer = null; } // отпустили палец раньше, чем сработало долгое нажатие
   stopProfileAutoScroll(st);
   if(!st.dragging) return; // обычный тап без реального перетаскивания — ничего перестраивать не нужно
   finishProfileCardDrag(st);
