@@ -3748,16 +3748,11 @@ function renderDetailProfile(){
   // самом ученике, а глобально в DB.settings, ОТДЕЛЬНО для компьютерной
   // (DB.settings.profileCardOrderDesktop) и мобильной
   // (DB.settings.profileCardOrderMobile) версии, поэтому перестановка на
-  // одной версии никак не влияет на другую, но при этом одинаково
-  // применяется сразу ко всем ученикам аккаунта. Старые поля
-  // s.profileCardOrderDesktop / s.profileCardOrderMobile / s.profileCardOrder
-  // (сохранённые ДО того, как порядок стал общим) используются как
-  // запасной вариант только пока в DB.settings ещё вообще ничего не
-  // сохранялось для этой версии — чтобы у уже существующих аккаунтов
-  // ничего не "обнулилось" после обновления CRM (в этом случае мы берём
-  // порядок первого попавшегося ученика, у которого он был). Если порядок
-  // ещё не задан или в нём не хватает/оказался лишний ключ (например,
-  // после обновления CRM) — подставляем ключи по умолчанию, ничего не теряя.
+  // одной версии никак не влияет на другую (даже до первого сохранения —
+  // см. запасной вариант ниже), но при этом одинаково применяется сразу
+  // ко всем ученикам аккаунта. Если порядок для этой версии ещё не задан
+  // или в нём не хватает/оказался лишний ключ (например, после
+  // обновления CRM) — подставляем ключи по умолчанию, ничего не теряя.
   const PROFILE_CARD_KEYS = ['contact','voice','skills','sub','range','notes'];
   const cardsByKey = { contact: contactBlock, voice: voiceBlock, skills: skillsBlock, sub: subBlock, range: renderRangeProgressCard(s), notes: notesBlock };
   const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
@@ -3765,9 +3760,15 @@ function renderDetailProfile(){
   let rawOrder = DB.settings[profileOrderField];
   if(!Array.isArray(rawOrder)){
     // Запасной вариант для старых баз: ищем у любого ученика ранее
-    // сохранённый (ещё "личный") порядок для этой же версии.
-    const legacyStudent = (DB.students||[]).find(st=>Array.isArray(st[profileOrderField]) || Array.isArray(st.profileCardOrder));
-    if(legacyStudent) rawOrder = legacyStudent[profileOrderField] || legacyStudent.profileCardOrder;
+    // сохранённый (ещё "личный") порядок, но СТРОГО для той же версии
+    // (десктоп/мобилка) — специально НЕ используем общее старое поле
+    // s.profileCardOrder (единое на оба устройства), иначе телефон при
+    // первом же открытии "унаследует" ещё не сохранённый отдельно
+    // порядок компьютера (и наоборот), а это ровно то, чего быть не
+    // должно: телефон и компьютер обязаны быть полностью независимы
+    // друг от друга с самого первого раза, даже до первого сохранения.
+    const legacyStudent = (DB.students||[]).find(st=>Array.isArray(st[profileOrderField]));
+    if(legacyStudent) rawOrder = legacyStudent[profileOrderField];
   }
   let order = Array.isArray(rawOrder) ? rawOrder.filter(k=>PROFILE_CARD_KEYS.includes(k)) : [];
   PROFILE_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
