@@ -438,11 +438,18 @@
   .finance-row.is-paid{border-left:3px solid var(--green)}
   /* Строки платежей на вкладке "Финансы" внутри карточки ученика (не
      общий раздел "Финансы" в левом меню — там .finance-row не трогаем)
-     должны быть по размеру такими же, как записи на вкладке "История
-     уроков" (.lesson-note: padding 16px 14px, margin-bottom 10px). Раньше
-     здесь использовался общий, более компактный размер .finance-row, из-за
-     чего карточки платежей выглядели заметно мельче соседней вкладки. */
-  #dtab-finance-tab .finance-row{padding:16px 14px;margin-bottom:10px}
+     должны быть по высоте такими же, как записи на вкладке "История
+     уроков" (.lesson-note). Одного padding недостаточно: у .lesson-note
+     обычно две строки текста (дата+статус и заметка) с бОльшими
+     шрифтами/line-height, поэтому даже с одинаковым padding он всё равно
+     выходит выше платежа (там всего иконка + название + мелкая подпись).
+     Поэтому дополнительно фиксируем одинаковую минимальную высоту (min-height)
+     на обоих — конкретное число подобрано по фактической высоте
+     .lesson-note в самом коротком варианте (без домашнего задания), так
+     что сама "История уроков" визуально не меняется, а карточки платежей
+     дотягиваются вверх до того же размера. */
+  #dtab-finance-tab .finance-row{padding:16px 14px;margin-bottom:10px;min-height:75px;box-sizing:border-box}
+  .lesson-note{min-height:75px;box-sizing:border-box}
   .finance-name{flex:1;font-size:13px;font-weight:500;min-width:0}
   .finance-sub{font-size:11px;color:var(--text3);margin-top:1px}
   .finance-amount{font-size:14px;font-weight:600;text-align:right}
