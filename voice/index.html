@@ -190,18 +190,11 @@
     /* ===== Аналитика на компьютере: та же логика, что и в Дашборде — страница
        ЖЁСТКО статична и не крутится колесом мыши ни при каких обстоятельствах.
        JS (fitAnalyticsPage) отвечает только за то, чтобы содержимое визуально
-       чуть сжалось и поместилось целиком; а overflow:hidden здесь — это
-       гарантия на случай, если расчёт масштаба на конкретном компьютере
-       окажется неточным на пару пикселей: прокрутки не будет в любом случае. ===== */
-    #page-analytics .content{display:flex;flex-direction:column;overflow:hidden !important;min-height:0}
-    /* Верхняя часть (воронка/удержание/лидерборд/навыки/внимание/сводка) занимает всё
-       оставшееся место — ровно как #dashScrollArea в Дашборде — а "Доход по месяцам"
-       (аналог "Доходы за 6 месяцев") прижат к самому низу и НЕ растягивается. Благодаря
-       этому нижняя грань графика в Аналитике всегда оказывается на той же высоте, что и
-       нижняя грань графика "Доходы за 6 месяцев" в Дашборде. */
-    #analyticsScaleWrap{flex:1 1 auto;overflow:hidden;min-height:0}
-    #analyticsScaleWrap > .an-row-3:last-child{margin-bottom:0}
-    #incomeYearCard{flex-shrink:0;margin-top:16px}
+       чуть сжалось целиком (единым блоком, включая график "Доход по месяцам")
+       и поместилось без остатка; overflow:hidden здесь — гарантия на случай,
+       если расчёт масштаба на конкретном компьютере окажется неточным на
+       пару пикселей: прокрутки не будет в любом случае. ===== */
+    #page-analytics .content{overflow:hidden !important}
     /* Вся верхняя часть больше НЕ скроллится как страница — она статична
        и просто ужимается/растягивается под доступную высоту. Крутится
        колесом мыши только сам список карточек "Сегодня" (и, для
@@ -2086,8 +2079,6 @@
           </div>
         </div>
 
-        </div><!-- /analyticsScaleWrap -->
-
         <div class="an-card" id="incomeYearCard">
           <div class="detail-title" style="margin-bottom:6px">
             <span class="detail-title-label">💵 Доход по месяцам — <span id="yearLabel">2026</span></span>
@@ -2104,6 +2095,7 @@
           <div class="year-chart" id="yearChart"></div>
           <div style="display:flex;gap:6px" id="yearLabels"></div>
         </div>
+        </div><!-- /analyticsScaleWrap -->
         </div>
       </div>
     </div>
@@ -5304,9 +5296,12 @@ function renderAnalytics(){
    Масштаб считается каждый раз заново по реальной высоте контента и высоте окна, поэтому
    работает одинаково корректно на любом разрешении экрана и при любом количестве данных. */
 const ANALYTICS_DESKTOP_MIN_WIDTH = 881; // совпадает с общим брейкпоинтом десктоп/мобайл в остальной вёрстке
+const ANALYTICS_BOTTOM_BREATHING_ROOM = 14; // px запаса снизу, чтобы график не был прижат вплотную к самому краю
 function fitAnalyticsPage(){
   const wrap = document.getElementById('analyticsScaleWrap');
   if(!wrap) return;
+  const contentEl = wrap.parentElement; // .content с overflow:hidden
+  if(!contentEl) return;
 
   // На мобильных версиях сжатие не нужно — сбрасываем, если оно вдруг осталось от предыдущей ширины экрана
   if(window.innerWidth < ANALYTICS_DESKTOP_MIN_WIDTH){
@@ -5319,12 +5314,12 @@ function fitAnalyticsPage(){
 
   requestAnimationFrame(()=>{
     const naturalHeight = wrap.scrollHeight;
-    // wrap теперь сам является гибким блоком (flex:1) внутри .content — браузер уже
-    // выделил ему ровно то место, что осталось ПОСЛЕ карточки "Доход по месяцам",
-    // которая всегда прижата к самому низу. Поэтому здесь достаточно вписать
-    // содержимое именно в эту, уже готовую высоту — и нижняя грань графика
-    // автоматически окажется на той же линии, что и в Дашборде.
-    const available = wrap.clientHeight;
+    // Всё содержимое (включая график "Доход по месяцам") — один цельный блок,
+    // который уменьшается равномерно целиком, как единая картинка (zoom-out),
+    // без изменения размеров отдельных карточек друг относительно друга.
+    // Небольшой запас снизу (ANALYTICS_BOTTOM_BREATHING_ROOM), чтобы график не
+    // упирался вплотную в самый низ окна, а имел небольшой воздух, как и везде.
+    const available = contentEl.clientHeight - ANALYTICS_BOTTOM_BREATHING_ROOM;
     if(!(naturalHeight > available) || available <= 0){
       wrap.style.transform = '';
       return;
