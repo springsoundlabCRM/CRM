@@ -3748,11 +3748,16 @@ function renderDetailProfile(){
   // самом ученике, а глобально в DB.settings, ОТДЕЛЬНО для компьютерной
   // (DB.settings.profileCardOrderDesktop) и мобильной
   // (DB.settings.profileCardOrderMobile) версии, поэтому перестановка на
-  // одной версии никак не влияет на другую (даже до первого сохранения —
-  // см. запасной вариант ниже), но при этом одинаково применяется сразу
-  // ко всем ученикам аккаунта. Если порядок для этой версии ещё не задан
-  // или в нём не хватает/оказался лишний ключ (например, после
-  // обновления CRM) — подставляем ключи по умолчанию, ничего не теряя.
+  // одной версии никак не влияет на другую, но при этом одинаково
+  // применяется сразу ко всем ученикам аккаунта. Старые поля
+  // s.profileCardOrderDesktop / s.profileCardOrderMobile / s.profileCardOrder
+  // (сохранённые ДО того, как порядок стал общим) используются как
+  // запасной вариант только пока в DB.settings ещё вообще ничего не
+  // сохранялось для этой версии — чтобы у уже существующих аккаунтов
+  // ничего не "обнулилось" после обновления CRM (в этом случае мы берём
+  // порядок первого попавшегося ученика, у которого он был). Если порядок
+  // ещё не задан или в нём не хватает/оказался лишний ключ (например,
+  // после обновления CRM) — подставляем ключи по умолчанию, ничего не теряя.
   const PROFILE_CARD_KEYS = ['contact','voice','skills','sub','range','notes'];
   const cardsByKey = { contact: contactBlock, voice: voiceBlock, skills: skillsBlock, sub: subBlock, range: renderRangeProgressCard(s), notes: notesBlock };
   const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
@@ -3760,15 +3765,9 @@ function renderDetailProfile(){
   let rawOrder = DB.settings[profileOrderField];
   if(!Array.isArray(rawOrder)){
     // Запасной вариант для старых баз: ищем у любого ученика ранее
-    // сохранённый (ещё "личный") порядок, но СТРОГО для той же версии
-    // (десктоп/мобилка) — специально НЕ используем общее старое поле
-    // s.profileCardOrder (единое на оба устройства), иначе телефон при
-    // первом же открытии "унаследует" ещё не сохранённый отдельно
-    // порядок компьютера (и наоборот), а это ровно то, чего быть не
-    // должно: телефон и компьютер обязаны быть полностью независимы
-    // друг от друга с самого первого раза, даже до первого сохранения.
-    const legacyStudent = (DB.students||[]).find(st=>Array.isArray(st[profileOrderField]));
-    if(legacyStudent) rawOrder = legacyStudent[profileOrderField];
+    // сохранённый (ещё "личный") порядок для этой же версии.
+    const legacyStudent = (DB.students||[]).find(st=>Array.isArray(st[profileOrderField]) || Array.isArray(st.profileCardOrder));
+    if(legacyStudent) rawOrder = legacyStudent[profileOrderField] || legacyStudent.profileCardOrder;
   }
   let order = Array.isArray(rawOrder) ? rawOrder.filter(k=>PROFILE_CARD_KEYS.includes(k)) : [];
   PROFILE_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
@@ -3807,7 +3806,6 @@ function toggleProfileReorderMode(){
     document.removeEventListener('pointermove', onProfileCardPointerMove);
     document.removeEventListener('pointerup', onProfileCardPointerUp);
     document.removeEventListener('pointercancel', onProfileCardPointerUp);
-    stopProfileAutoScroll(profileDragState);
     if(profileDragState.dragging) finishProfileCardDrag(profileDragState);
     profileDragState = null;
   }
@@ -3866,7 +3864,6 @@ function onProfileCardPointerDown(e){
 
 function onProfileCardPointerMove(e){
   const st = profileDragState; if(!st) return;
-  st.lastClientX = e.clientX; st.lastClientY = e.clientY;
   if(!st.dragging){
     const dx = e.clientX-st.startX, dy = e.clientY-st.startY;
     if(Math.hypot(dx,dy) < PROFILE_DRAG_THRESHOLD) return; // ещё просто тап, не перетаскивание
@@ -3876,45 +3873,6 @@ function onProfileCardPointerMove(e){
   st.card.style.left = (e.clientX - st.offsetX)+'px';
   st.card.style.top  = (e.clientY - st.offsetY)+'px';
   checkProfileCardSwap(st);
-}
-
-/* На телефоне карточки вкладки "Профиль" идут одна под другой в один
-   столбец и обычно не помещаются целиком на экране. Пока карточка не
-   "оторвана" (обычный режим), страницу можно листать пальцем как
-   обычно, но у поднятой (letящей) карточки на ней стоит touch-action:none
-   (см. CSS .reorder-mode > .detail-card), поэтому обычная прокрутка
-   пальцем во время перетаскивания браузером уже не сработает — её нужно
-   имитировать самим: пока карточка "летит" рядом с верхним или нижним
-   краем прокручиваемой области (.content), автоматически прокручиваем
-   эту область, как это делают почти все приложения с перетаскиванием
-   списков. Скорость растёт по мере приближения к самому краю. Работает
-   одинаково и на телефоне, и на компьютере (на компьютере обычно просто
-   не пригождается, т.к. сетка 2×3 и так целиком помещается на экране). */
-function startProfileAutoScroll(st){
-  const EDGE = 60;      // px — зона у края контейнера, в которой начинается автоскролл
-  const MAX_SPEED = 16; // px за кадр у самого края
-  function tick(){
-    if(profileDragState !== st || !st.dragging){ return; }
-    const container = st.scrollContainer;
-    if(container && st.lastClientY!=null){
-      const rect = container.getBoundingClientRect();
-      const y = st.lastClientY;
-      let dy = 0;
-      if(y < rect.top+EDGE) dy = -MAX_SPEED*Math.min(1,(rect.top+EDGE-y)/EDGE);
-      else if(y > rect.bottom-EDGE) dy = MAX_SPEED*Math.min(1,(y-(rect.bottom-EDGE))/EDGE);
-      if(dy){
-        const before = container.scrollTop;
-        const max = container.scrollHeight - container.clientHeight;
-        container.scrollTop = Math.max(0, Math.min(max, before+dy));
-        if(container.scrollTop !== before) checkProfileCardSwap(st);
-      }
-    }
-    st.autoScrollRAF = requestAnimationFrame(tick);
-  }
-  st.autoScrollRAF = requestAnimationFrame(tick);
-}
-function stopProfileAutoScroll(st){
-  if(st && st.autoScrollRAF){ cancelAnimationFrame(st.autoScrollRAF); st.autoScrollRAF = null; }
 }
 
 function beginProfileCardDrag(st){
@@ -3940,33 +3898,21 @@ function beginProfileCardDrag(st){
   card.style.zIndex = '1000';
   document.body.appendChild(card); // чтобы карточка была поверх всего и не обрезалась родителями со скроллом/overflow
   st.dragging = true;
-  st.lockedSiblingKey = null; // гистерезис свапа — см. checkProfileCardSwap
-  // ВАЖНО: искать прокручиваемого родителя нужно от placeholder'а, а не от
-  // самой карточки — карточка к этому моменту уже перенесена в <body> (строкой
-  // выше) специально для того, чтобы быть поверх всего, и у неё внутри body
-  // никакого предка с классом .content больше нет.
-  st.scrollContainer = placeholder.closest('.content');
-  startProfileAutoScroll(st);
+  st.swapCooldownUntil = 0; // защита от "дребезга": пока сосед доезжает после свапа, новые свапы не проверяем
 }
 
 /* Проверяет, перекрывает ли летящая карточка какую-либо из карточек в
    сетке больше чем на 50% её площади — и если да, тут же меняет её
    местами с "дыркой" (placeholder), где карточка была изначально.
-   Свап происходит мгновенно, без анимации — карточка-сосед сразу же
-   "перепрыгивает" на своё новое место (сначала было сделано с плавной
-   0.18с анимацией, но во время этой анимации координаты соседа менялись
-   каждый кадр, из-за чего повторная проверка иногда попадала прямо в
-   середину анимации и запускала обратный свап — сосед начинал дёргаться
-   туда-сюда под пальцем/курсором; мгновенный свап полностью убирает эту
-   гонку состояний).
-   Дополнительно — гистерезис против дребезга у самой границы 50%: после
-   свапа с конкретным соседом мы "запираем" именно эту пару и не даём ей
-   тут же поменяться обратно, пока перекрытие с этим соседом не упадёт
-   заметно ниже (примерно до 30%) — то есть пока летящая карточка
-   действительно не отодвинется в сторону. Без этого малейшее дрожание
-   пальца ровно на границе 50% приводило бы к бесконечному свапу туда и
-   обратно на каждую проверку. */
+   Сразу после свапа включается короткая "заморозка" проверки: пока
+   соседняя карточка ещё доезжает на своё новое место (плавно едет
+   0.18с), её координаты в это время меняются каждый кадр — если
+   проверять свап именно в этот момент, срабатывание может повториться
+   несколько раз подряд и карточки будут дёргаться туда-сюда. Поэтому
+   следующую проверку делаем только после того, как анимация соседа
+   гарантированно завершилась. */
 function checkProfileCardSwap(st){
+  if(Date.now() < (st.swapCooldownUntil||0)) return;
   const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
   const dragRect = st.card.getBoundingClientRect();
   const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
@@ -3974,30 +3920,23 @@ function checkProfileCardSwap(st){
     const r = sib.getBoundingClientRect();
     const overlapW = Math.min(dragRect.right,r.right) - Math.max(dragRect.left,r.left);
     const overlapH = Math.min(dragRect.bottom,r.bottom) - Math.max(dragRect.top,r.top);
-    const key = sib.dataset.cardKey;
-    if(overlapW<=0 || overlapH<=0){
-      if(key === st.lockedSiblingKey) st.lockedSiblingKey = null; // разошлись полностью — точно разблокировано
-      continue;
-    }
+    if(overlapW<=0 || overlapH<=0) continue;
     const sibArea = (r.right-r.left)*(r.bottom-r.top);
     if(sibArea<=0) continue;
-    const ratio = (overlapW*overlapH)/sibArea;
-    if(key === st.lockedSiblingKey){
-      if(ratio < 0.3) st.lockedSiblingKey = null; // достаточно отдалились — можно снова менять местами с этим же соседом
-      continue; // пока не отдалились — этот сосед временно не участвует в проверке
-    }
-    if(ratio >= 0.5){
+    if((overlapW*overlapH)/sibArea >= 0.5){
       swapPlaceholderWithSibling(st.placeholder, sib);
-      st.lockedSiblingKey = key;
+      st.swapCooldownUntil = Date.now() + 220; // чуть больше длительности анимации соседа (.18s)
       break;
     }
   }
 }
 
-/* Меняет местами placeholder и соседнюю карточку — мгновенно (без
-   анимации), сосед сразу же оказывается на новом месте. */
+/* Меняет местами placeholder и соседнюю карточку (плавно анимируя
+   именно соседнюю карточку — FLIP: First–Last–Invert–Play), тем самым
+   перемещая "дырку", которую догоняет летящая карточка. */
 function swapPlaceholderWithSibling(placeholder, sib){
   const grid = placeholder.parentNode;
+  const firstRect = sib.getBoundingClientRect();
   if(placeholder.nextSibling === sib){
     grid.insertBefore(sib, placeholder);
   } else if(sib.nextSibling === placeholder){
@@ -4009,6 +3948,17 @@ function swapPlaceholderWithSibling(placeholder, sib){
     grid.insertBefore(sib, marker);
     grid.removeChild(marker);
   }
+  const lastRect = sib.getBoundingClientRect();
+  const dx = firstRect.left-lastRect.left, dy = firstRect.top-lastRect.top;
+  if(!dx && !dy) return;
+  sib.style.transition = 'none';
+  sib.style.transform = 'translate('+dx+'px,'+dy+'px)';
+  sib.getBoundingClientRect(); // форсируем рефлоу, чтобы зафиксировать стартовую точку анимации
+  requestAnimationFrame(()=>{
+    sib.style.transition = 'transform .18s cubic-bezier(.22,1,.36,1)';
+    sib.style.transform = '';
+  });
+  sib.addEventListener('transitionend', function te(){ sib.style.transition=''; sib.removeEventListener('transitionend', te); });
 }
 
 function onProfileCardPointerUp(){
@@ -4018,7 +3968,6 @@ function onProfileCardPointerUp(){
   document.removeEventListener('pointercancel', onProfileCardPointerUp);
   profileDragState = null;
   if(!st) return;
-  stopProfileAutoScroll(st);
   if(!st.dragging) return; // обычный тап без реального перетаскивания — ничего перестраивать не нужно
   finishProfileCardDrag(st);
 }
