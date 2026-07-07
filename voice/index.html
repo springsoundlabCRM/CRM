@@ -3431,6 +3431,23 @@ function renderStudentDetailAll(){
   DETAIL_TABS.forEach(t=>{
     document.getElementById('dtab-'+t).classList.toggle('hidden', t!==currentDetailTab);
   });
+  updateProfileReorderBtnVisibility();
+}
+
+/* Шестерёнка перестановки карточек ("Голос"/"Контакт"/"Абонемент" и т.д.)
+   имеет смысл только на вкладке "Профиль" — на остальных вкладках карточки
+   ("Репертуар", "Задания", "История уроков", "Финансы") эта шестерёнка
+   никак не работает, и её присутствие там только сбивает с толку (может
+   показаться, что она что-то делает и в этих разделах тоже). Поэтому
+   прячем её полностью, как только уходим со вкладки "Профиль", и заодно
+   на всякий случай выключаем сам режим перестановки, если он вдруг был
+   включён (чтобы не остаться "подвешенным" в чужой вкладке). Возвращаем
+   обратно, когда снова открываем "Профиль". */
+function updateProfileReorderBtnVisibility(){
+  const gearBtn = document.getElementById('profileReorderBtn');
+  const onProfile = currentDetailTab === 'profile';
+  if(profileReorderMode && !onProfile) toggleProfileReorderMode();
+  if(gearBtn) gearBtn.classList.toggle('hidden', !onProfile);
 }
 
 function switchDetailTab(el, tab){
@@ -3442,6 +3459,7 @@ function switchDetailTab(el, tab){
     document.getElementById('dtab-'+t).classList.add('hidden');
   });
   document.getElementById('dtab-'+tab).classList.remove('hidden');
+  updateProfileReorderBtnVisibility();
   saveNavState();
 }
 
