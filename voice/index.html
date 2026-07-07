@@ -1281,6 +1281,13 @@
     #dtab-profile>.profile-grid{flex:none;min-height:0}
     .profile-grid > .detail-card{overflow-y:visible;min-height:0}
     .detail-card.card-dragging{overflow-y:visible}
+    /* Та же самая проблема (контейнер вкладки схлопывается через flex:1,
+       а реальный контент — репертуар/задания/история/финансы — вылезает
+       за его пределы через overflow:visible, из-за чего последняя
+       карточка утыкается в нижнее меню без отступа) касается ВСЕХ
+       вкладок карточки ученика, а не только "Профиль". Поэтому убираем
+       flex:1 у них всех и здесь, а не только у #dtab-profile выше. */
+    #page-student-detail .content>div:not(.tab-row):not(.hidden){flex:none;min-height:0}
   }
 
   /* --- Карточка "Прогресс диапазона": два круговых прогресс-кольца
