@@ -5325,6 +5325,16 @@ window.addEventListener('resize', function(){
   }, 120);
 });
 
+// Веб-шрифт (Inter) иногда подгружается уже ПОСЛЕ того, как страница "Аналитика" успела
+// отрендериться и посчитать масштаб — из-за подмены шрифта высота текста чуть меняется,
+// и без этой подстраховки прокрутка колёсиком могла бы на долю секунды вернуться.
+// Пересчитываем масштаб ровно один раз, когда все шрифты точно готовы.
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(function(){
+    if(currentPageName === 'analytics') fitAnalyticsPage();
+  });
+}
+
 function shiftYear(d){ analyticsYear += d; renderYearChart(); fitAnalyticsPage(); }
 
 function renderYearChart(){
