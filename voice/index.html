@@ -2385,6 +2385,14 @@ let financeFilter = 'all';
 let scheduleWeekStart = startOfWeek(new Date());
 let analyticsYear = new Date().getFullYear();
 
+// Ключ месяца (год-месяц), на который в последний раз считался дашборд —
+// нужен, чтобы понять, что наступило 1-е число нового месяца, пока
+// приложение оставалось открытым (телефон не перезагружали, вкладку не
+// закрывали), и вовремя пересчитать блоки "Посещаемость" и "Цель по
+// доходу" заново, а не показывать замороженные цифры прошлого месяца.
+// См. checkDashboardMonthRollover() ниже.
+let dashboardMonthKey = null;
+
 function getCurrentTeacher(){ return DB.teachers.find(t=>t.id===DB.currentTeacherId) || DB.teachers[0]; }
 // Неактивные ученики ("статус: Неактивный") нигде в приложении не должны
 // всплывать — ни в дашборде, ни в финансах, ни в выпадающих списках при
@@ -2908,6 +2916,11 @@ function renderSidebar(){
    ============================================================ */
 function renderDashboard(){
   const now=new Date();
+  // Запоминаем, на какой месяц сейчас пересчитан дашборд — используется
+  // в checkDashboardMonthRollover(), чтобы отследить наступление нового
+  // месяца, пока приложение остаётся открытым, и обновить блоки
+  // "Посещаемость" и "Цель по доходу" без перезагрузки страницы.
+  dashboardMonthKey = now.getFullYear()+'-'+now.getMonth();
   const hour=now.getHours();
   const greet = hour<6?'Доброй ночи 🌙': hour<12?'Доброе утро ☀️': hour<18?'Добрый день 👋':'Добрый вечер 🌆';
   document.getElementById('greetTitle').textContent = greet;
@@ -3040,6 +3053,29 @@ function renderDashboardPulse(myStudents, active, now){
     '<div class="kpi-ring-extra-row"><span>Активные ученики</span><span class="v">'+active.length+'</span></div>'
     +'<div class="kpi-ring-extra-row"><span>Пробный урок</span><span class="v">'+trialCnt+'</span></div>'
     +'<div class="kpi-ring-extra-row"><span>Всего учеников</span><span class="v">'+myStudents.length+'</span></div>';
+}
+
+/* Проверка "не наступил ли новый месяц, пока дашборд был открыт".
+   Блоки "Посещаемость" и "Цель по доходу" считаются внутри
+   renderDashboardPulse() строго за текущий месяц (now.getFullYear()/
+   now.getMonth()), поэтому сама формула всегда верна — проблема лишь в
+   том, что на телефоне/в браузере страница может не перезагружаться
+   днями: человек открыл дашборд 31-го числа и просто не закрывал вкладку
+   (или свернул PWA) — и тогда renderDashboard() с новым Date() внутри
+   попросту не вызывается повторно, а старые цифры остаются на экране.
+   Эта функция ничего не пересчитывает сама — она лишь сравнивает
+   сохранённый dashboardMonthKey с текущим годом-месяцем и, если они
+   разошлись, просто заново вызывает renderDashboard(), чтобы обе карточки
+   обновились "с нуля" для нового месяца. Вызывается по таймеру и при
+   возврате приложения на передний план (см. ниже). */
+function checkDashboardMonthRollover(){
+  const dashPage = document.getElementById('page-dashboard');
+  if(!dashPage || dashPage.classList.contains('hidden')) return;
+  const now = new Date();
+  const key = now.getFullYear()+'-'+now.getMonth();
+  if(dashboardMonthKey !== null && dashboardMonthKey !== key){
+    renderDashboard();
+  }
 }
 
 function weekdayInRu(d){ const names=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']; return names[d.getDay()]; }
@@ -6746,9 +6782,23 @@ window.addEventListener('fb-ready', function(){
   setInterval(function(){
     if(currentUid && document.getElementById('app').style.display !== 'none'){
       checkSubscriptionAndRoute(true);
+      // Заодно этим же фоновым таймером проверяем, не наступил ли новый
+      // месяц, пока дашборд был открыт — если да, "Посещаемость" и "Цель
+      // по доходу" пересчитаются заново (см. checkDashboardMonthRollover).
+      checkDashboardMonthRollover();
     }
   }, 10*60*1000);
 });
+
+// Помимо фонового таймера выше (раз в 10 минут), проверяем смену месяца
+// сразу в момент, когда человек возвращается в приложение — например,
+// разблокировал телефон и открыл вкладку/PWA снова после полуночи 1-го
+// числа. Так обновление происходит мгновенно, а не спустя до 10 минут.
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible') checkDashboardMonthRollover();
+});
+window.addEventListener('focus', function(){ checkDashboardMonthRollover(); });
+window.addEventListener('pageshow', function(){ checkDashboardMonthRollover(); });
 
 
 async function initApp(prefetchedDbSnap){
