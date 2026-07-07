@@ -448,6 +448,16 @@
   .detail-title{font-size:12px;font-weight:600;color:#ffffff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
   .detail-title-label{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;border-radius:7px;padding:4px 10px;color:#ffffff}
   .detail-title-label.danger{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+  /* Размеры карточки "Абонемент" (вкладка Профиль) по умолчанию — как было
+     раньше. На десктопе (см. media (min-width:881px) ниже, рядом с
+     .profile-grid) эта же карточка чуть компактнее, чтобы влезать в
+     фиксированную высоту ячейки сетки без внутренней прокрутки — сама
+     мобильная версия при этом не меняется. */
+  .sub-usedtotal{font-size:24px;margin-bottom:6px}
+  .sub-bought-val{font-size:16px;margin-top:4px}
+  .sub-cost-val{font-size:19px;margin-top:4px}
+  .sub-btn-row{margin-top:10px}
+  .sub-delete-btn{margin-top:8px}
   .skill-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .skill-name{font-size:12px;width:110px;flex-shrink:0;color:var(--text2)}
   .skill-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
@@ -1235,6 +1245,23 @@
      диапазона слева, Контакт/Абонемент/Заметки о голосе справа. --- */
   .profile-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:16px}
   .profile-grid > .detail-card{display:flex;flex-direction:column;overflow-y:auto;min-height:0}
+  /* Компактная версия карточки "Абонемент" — ТОЛЬКО на десктопе (см.
+     @media max-width:880px ниже, где вся вкладка "Профиль" вообще
+     перестаёт быть фиксированной сеткой). На десктопе карточка живёт
+     внутри ячейки сетки фиксированной высоты (1fr), и с добавлением
+     строки "Общая стоимость абонемента" контента стало чуть больше, чем
+     помещается — появлялась внутренняя прокрутка, а кнопка "Удалить
+     абонемент" уезжала вниз, за пределы видимой области. Здесь ничего не
+     переставляется местами — просто чуть уменьшены шрифты/отступы, чтобы
+     всё содержимое снова помещалось в карточку без прокрутки. */
+  @media (min-width:881px){
+    .sub-title{margin-bottom:10px}
+    .sub-usedtotal{font-size:20px;margin-bottom:4px}
+    .sub-bought-val{font-size:15px;margin-top:3px}
+    .sub-cost-val{font-size:16px;margin-top:3px}
+    .sub-btn-row{margin-top:8px}
+    .sub-delete-btn{margin-top:6px}
+  }
   /* Режим перестановки блоков вкладки "Профиль" (включается шестерёнкой):
      все шесть карточек подсвечиваются фиолетовой окантовкой и становятся
      перетаскиваемыми (drag & drop) друг относительно друга. */
@@ -3641,21 +3668,21 @@ function renderDetailProfile(){
   if(sub){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
-    subBlock = '<div class="detail-card" data-card-key="sub"><div class="detail-title"><span class="detail-title-label">💳 Абонемент</span></div>'
+    subBlock = '<div class="detail-card sub-active-card" data-card-key="sub"><div class="detail-title sub-title"><span class="detail-title-label">💳 Абонемент</span></div>'
       +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'
       +'<div>'
-      +'<div style="font-size:24px;font-weight:600;margin-bottom:6px">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
+      +'<div class="sub-usedtotal" style="font-weight:600">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
       +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div>'
       +'</div>'
       +'<div style="font-size:13px;color:var(--text3)">Осталось '+left+' '+pluralLessons(left)+'</div>'
-      +'<div><div style="font-size:13px;color:var(--text3)">Куплен</div><div style="font-size:16px;font-weight:500;margin-top:4px">'+formatRu(sub.purchaseDate)+'</div></div>'
-      +'<div><div style="font-size:13px;color:var(--text3)">Общая стоимость абонемента</div><div style="font-size:19px;font-weight:700;margin-top:4px;color:var(--accent)">'+money(sub.totalPrice)+'</div></div>'
+      +'<div><div style="font-size:13px;color:var(--text3)">Куплен</div><div class="sub-bought-val" style="font-weight:500">'+formatRu(sub.purchaseDate)+'</div></div>'
+      +'<div><div style="font-size:13px;color:var(--text3)">Общая стоимость абонемента</div><div class="sub-cost-val" style="font-weight:700;color:var(--accent)">'+money(sub.totalPrice)+'</div></div>'
       +'</div>'
-      +'<div style="margin-top:10px;display:flex;gap:6px">'
+      +'<div class="sub-btn-row" style="display:flex;gap:6px">'
       +'<button class="btn btn-primary sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subTopup\',{studentId:\''+s.id+'\'})">Пополнить</button>'
       +'<button class="btn btn-ghost sub-action-btn" style="flex:1;justify-content:center" onclick="openModal(\'subHistory\',{studentId:\''+s.id+'\'})">📜 История</button>'
       +'</div>'
-      +'<button class="btn btn-danger sub-action-btn" style="width:100%;justify-content:center;margin-top:8px" onclick="openModal(\'deleteSubscription\',{subId:\''+sub.id+'\'})">Удалить абонемент</button>'
+      +'<button class="btn btn-danger sub-action-btn sub-delete-btn" style="width:100%;justify-content:center" onclick="openModal(\'deleteSubscription\',{subId:\''+sub.id+'\'})">Удалить абонемент</button>'
       +'</div>';
   } else {
     const hasHistory = subHistoryOf(s.id).length>0;
