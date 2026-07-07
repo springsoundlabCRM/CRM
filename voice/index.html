@@ -3940,7 +3940,7 @@ function beginProfileCardDrag(st){
   card.style.zIndex = '1000';
   document.body.appendChild(card); // чтобы карточка была поверх всего и не обрезалась родителями со скроллом/overflow
   st.dragging = true;
-  st.swapCooldownUntil = 0; // защита от "дребезга": пока сосед доезжает после свапа, новые свапы не проверяем
+  st.lockedSiblingKey = null; // гистерезис свапа — см. checkProfileCardSwap
   // ВАЖНО: искать прокручиваемого родителя нужно от placeholder'а, а не от
   // самой карточки — карточка к этому моменту уже перенесена в <body> (строкой
   // выше) специально для того, чтобы быть поверх всего, и у неё внутри body
@@ -3952,15 +3952,21 @@ function beginProfileCardDrag(st){
 /* Проверяет, перекрывает ли летящая карточка какую-либо из карточек в
    сетке больше чем на 50% её площади — и если да, тут же меняет её
    местами с "дыркой" (placeholder), где карточка была изначально.
-   Сразу после свапа включается короткая "заморозка" проверки: пока
-   соседняя карточка ещё доезжает на своё новое место (плавно едет
-   0.18с), её координаты в это время меняются каждый кадр — если
-   проверять свап именно в этот момент, срабатывание может повториться
-   несколько раз подряд и карточки будут дёргаться туда-сюда. Поэтому
-   следующую проверку делаем только после того, как анимация соседа
-   гарантированно завершилась. */
+   Свап происходит мгновенно, без анимации — карточка-сосед сразу же
+   "перепрыгивает" на своё новое место (сначала было сделано с плавной
+   0.18с анимацией, но во время этой анимации координаты соседа менялись
+   каждый кадр, из-за чего повторная проверка иногда попадала прямо в
+   середину анимации и запускала обратный свап — сосед начинал дёргаться
+   туда-сюда под пальцем/курсором; мгновенный свап полностью убирает эту
+   гонку состояний).
+   Дополнительно — гистерезис против дребезга у самой границы 50%: после
+   свапа с конкретным соседом мы "запираем" именно эту пару и не даём ей
+   тут же поменяться обратно, пока перекрытие с этим соседом не упадёт
+   заметно ниже (примерно до 30%) — то есть пока летящая карточка
+   действительно не отодвинется в сторону. Без этого малейшее дрожание
+   пальца ровно на границе 50% приводило бы к бесконечному свапу туда и
+   обратно на каждую проверку. */
 function checkProfileCardSwap(st){
-  if(Date.now() < (st.swapCooldownUntil||0)) return;
   const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
   const dragRect = st.card.getBoundingClientRect();
   const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
@@ -3968,23 +3974,30 @@ function checkProfileCardSwap(st){
     const r = sib.getBoundingClientRect();
     const overlapW = Math.min(dragRect.right,r.right) - Math.max(dragRect.left,r.left);
     const overlapH = Math.min(dragRect.bottom,r.bottom) - Math.max(dragRect.top,r.top);
-    if(overlapW<=0 || overlapH<=0) continue;
+    const key = sib.dataset.cardKey;
+    if(overlapW<=0 || overlapH<=0){
+      if(key === st.lockedSiblingKey) st.lockedSiblingKey = null; // разошлись полностью — точно разблокировано
+      continue;
+    }
     const sibArea = (r.right-r.left)*(r.bottom-r.top);
     if(sibArea<=0) continue;
-    if((overlapW*overlapH)/sibArea >= 0.5){
+    const ratio = (overlapW*overlapH)/sibArea;
+    if(key === st.lockedSiblingKey){
+      if(ratio < 0.3) st.lockedSiblingKey = null; // достаточно отдалились — можно снова менять местами с этим же соседом
+      continue; // пока не отдалились — этот сосед временно не участвует в проверке
+    }
+    if(ratio >= 0.5){
       swapPlaceholderWithSibling(st.placeholder, sib);
-      st.swapCooldownUntil = Date.now() + 220; // чуть больше длительности анимации соседа (.18s)
+      st.lockedSiblingKey = key;
       break;
     }
   }
 }
 
-/* Меняет местами placeholder и соседнюю карточку (плавно анимируя
-   именно соседнюю карточку — FLIP: First–Last–Invert–Play), тем самым
-   перемещая "дырку", которую догоняет летящая карточка. */
+/* Меняет местами placeholder и соседнюю карточку — мгновенно (без
+   анимации), сосед сразу же оказывается на новом месте. */
 function swapPlaceholderWithSibling(placeholder, sib){
   const grid = placeholder.parentNode;
-  const firstRect = sib.getBoundingClientRect();
   if(placeholder.nextSibling === sib){
     grid.insertBefore(sib, placeholder);
   } else if(sib.nextSibling === placeholder){
@@ -3996,17 +4009,6 @@ function swapPlaceholderWithSibling(placeholder, sib){
     grid.insertBefore(sib, marker);
     grid.removeChild(marker);
   }
-  const lastRect = sib.getBoundingClientRect();
-  const dx = firstRect.left-lastRect.left, dy = firstRect.top-lastRect.top;
-  if(!dx && !dy) return;
-  sib.style.transition = 'none';
-  sib.style.transform = 'translate('+dx+'px,'+dy+'px)';
-  sib.getBoundingClientRect(); // форсируем рефлоу, чтобы зафиксировать стартовую точку анимации
-  requestAnimationFrame(()=>{
-    sib.style.transition = 'transform .18s cubic-bezier(.22,1,.36,1)';
-    sib.style.transform = '';
-  });
-  sib.addEventListener('transitionend', function te(){ sib.style.transition=''; sib.removeEventListener('transitionend', te); });
 }
 
 function onProfileCardPointerUp(){
