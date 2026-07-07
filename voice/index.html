@@ -3807,6 +3807,7 @@ function toggleProfileReorderMode(){
     document.removeEventListener('pointermove', onProfileCardPointerMove);
     document.removeEventListener('pointerup', onProfileCardPointerUp);
     document.removeEventListener('pointercancel', onProfileCardPointerUp);
+    stopProfileAutoScroll(profileDragState);
     if(profileDragState.dragging) finishProfileCardDrag(profileDragState);
     profileDragState = null;
   }
@@ -3865,6 +3866,7 @@ function onProfileCardPointerDown(e){
 
 function onProfileCardPointerMove(e){
   const st = profileDragState; if(!st) return;
+  st.lastClientX = e.clientX; st.lastClientY = e.clientY;
   if(!st.dragging){
     const dx = e.clientX-st.startX, dy = e.clientY-st.startY;
     if(Math.hypot(dx,dy) < PROFILE_DRAG_THRESHOLD) return; // ещё просто тап, не перетаскивание
@@ -3874,6 +3876,45 @@ function onProfileCardPointerMove(e){
   st.card.style.left = (e.clientX - st.offsetX)+'px';
   st.card.style.top  = (e.clientY - st.offsetY)+'px';
   checkProfileCardSwap(st);
+}
+
+/* На телефоне карточки вкладки "Профиль" идут одна под другой в один
+   столбец и обычно не помещаются целиком на экране. Пока карточка не
+   "оторвана" (обычный режим), страницу можно листать пальцем как
+   обычно, но у поднятой (letящей) карточки на ней стоит touch-action:none
+   (см. CSS .reorder-mode > .detail-card), поэтому обычная прокрутка
+   пальцем во время перетаскивания браузером уже не сработает — её нужно
+   имитировать самим: пока карточка "летит" рядом с верхним или нижним
+   краем прокручиваемой области (.content), автоматически прокручиваем
+   эту область, как это делают почти все приложения с перетаскиванием
+   списков. Скорость растёт по мере приближения к самому краю. Работает
+   одинаково и на телефоне, и на компьютере (на компьютере обычно просто
+   не пригождается, т.к. сетка 2×3 и так целиком помещается на экране). */
+function startProfileAutoScroll(st){
+  const EDGE = 60;      // px — зона у края контейнера, в которой начинается автоскролл
+  const MAX_SPEED = 16; // px за кадр у самого края
+  function tick(){
+    if(profileDragState !== st || !st.dragging){ return; }
+    const container = st.scrollContainer;
+    if(container && st.lastClientY!=null){
+      const rect = container.getBoundingClientRect();
+      const y = st.lastClientY;
+      let dy = 0;
+      if(y < rect.top+EDGE) dy = -MAX_SPEED*Math.min(1,(rect.top+EDGE-y)/EDGE);
+      else if(y > rect.bottom-EDGE) dy = MAX_SPEED*Math.min(1,(y-(rect.bottom-EDGE))/EDGE);
+      if(dy){
+        const before = container.scrollTop;
+        const max = container.scrollHeight - container.clientHeight;
+        container.scrollTop = Math.max(0, Math.min(max, before+dy));
+        if(container.scrollTop !== before) checkProfileCardSwap(st);
+      }
+    }
+    st.autoScrollRAF = requestAnimationFrame(tick);
+  }
+  st.autoScrollRAF = requestAnimationFrame(tick);
+}
+function stopProfileAutoScroll(st){
+  if(st && st.autoScrollRAF){ cancelAnimationFrame(st.autoScrollRAF); st.autoScrollRAF = null; }
 }
 
 function beginProfileCardDrag(st){
@@ -3900,6 +3941,12 @@ function beginProfileCardDrag(st){
   document.body.appendChild(card); // чтобы карточка была поверх всего и не обрезалась родителями со скроллом/overflow
   st.dragging = true;
   st.swapCooldownUntil = 0; // защита от "дребезга": пока сосед доезжает после свапа, новые свапы не проверяем
+  // ВАЖНО: искать прокручиваемого родителя нужно от placeholder'а, а не от
+  // самой карточки — карточка к этому моменту уже перенесена в <body> (строкой
+  // выше) специально для того, чтобы быть поверх всего, и у неё внутри body
+  // никакого предка с классом .content больше нет.
+  st.scrollContainer = placeholder.closest('.content');
+  startProfileAutoScroll(st);
 }
 
 /* Проверяет, перекрывает ли летящая карточка какую-либо из карточек в
@@ -3969,6 +4016,7 @@ function onProfileCardPointerUp(){
   document.removeEventListener('pointercancel', onProfileCardPointerUp);
   profileDragState = null;
   if(!st) return;
+  stopProfileAutoScroll(st);
   if(!st.dragging) return; // обычный тап без реального перетаскивания — ничего перестраивать не нужно
   finishProfileCardDrag(st);
 }
