@@ -2022,7 +2022,6 @@
       <div class="topbar">
         <div class="topbar-title">Ученики <span class="topbar-subtitle" id="studentsCountLabel">0 активных</span></div>
         <input class="input" style="width:200px;padding:7px 12px" id="studentSearch" placeholder="🔍 Поиск..." oninput="renderStudents()">
-        <button class="btn btn-ghost" title="Выгрузить всю базу учеников в CSV-файл для Excel" onclick="exportAllStudentsToExcel()"><i class="fa-solid fa-file-excel"></i> Выгрузить базу в Excel</button>
         <button class="btn btn-primary" onclick="openModal('student')">Добавить</button>
       </div>
 
@@ -2033,6 +2032,7 @@
           <div class="tab" data-f="paused" onclick="setStudentFilter('paused',this)">На паузе</div>
           <div class="tab" data-f="trial" onclick="setStudentFilter('trial',this)">Пробный урок</div>
           <div class="tab" data-f="inactive" onclick="setStudentFilter('inactive',this)">Неактивные</div>
+          <div class="tab tab-report" title="Выгрузить базу учеников" onclick="openModal('exportAllChoice')"><i class="fa-solid fa-file-arrow-down"></i> Выгрузить базу</div>
         </div>
         <div class="student-grid" id="student-cards"></div>
       </div>
@@ -2696,6 +2696,114 @@ function exportAllStudentsToExcel(){
   const dateStamp = toISODate(new Date());
   downloadCSV('VoiceLoft_база_учеников_'+dateStamp+'.csv', rows);
   toast('База выгружена в Excel', 'green');
+}
+
+/* ---------- 1б) "Выгрузить базу" → PDF (та же база, но альбомная табличная страница) ---------- */
+function buildAllStudentsReportHTMLDoc(){
+  const list = allStudentsOfTeacher();
+  const dateStamp = formatRu(toISODate(new Date()));
+
+  const th = (label, align)=> '<th style="text-align:'+(align||'left')+';padding:6px 8px;font-size:10.5px;color:#94a3b8;border-bottom:2px solid #e2e8f0;white-space:nowrap">'+label+'</th>';
+  const headerRow = '<tr>'
+    + th('Имя') + th('Возраст') + th('Тип голоса') + th('Статус') + th('Телефон') + th('Telegram')
+    + th('Абонемент') + th('Долг','right') + th('Оплачено','right') + th('Уроков','right')
+    + '</tr>';
+
+  const bodyRows = list.map(s=>{
+    const sub = activeSubscriptionOf(s.id);
+    const subLabel = sub ? (Math.max(0, sub.totalLessons-sub.usedLessons)+' / '+sub.totalLessons) : '—';
+    const td = (v, align)=> '<td style="padding:6px 8px;font-size:11px;color:#0f172a;border-bottom:1px solid #eef0f3;text-align:'+(align||'left')+'">'+escapeHTML(v==null||v===''?'—':String(v))+'</td>';
+    return '<tr>'
+      + td(s.name)
+      + td(s.age!=null?s.age:'')
+      + td(s.voiceType)
+      + td(studentStatusLabel(s.status))
+      + td(s.phone)
+      + td(s.telegram)
+      + td(subLabel)
+      + td(money(studentDebt(s.id)),'right')
+      + td(money(studentTotalPaid(s.id)),'right')
+      + td(studentLessonsCount(s.id),'right')
+      + '</tr>';
+  }).join('') || '<tr><td colspan="10" style="padding:14px;text-align:center;color:#94a3b8;font-size:12px">Учеников пока нет</td></tr>';
+
+  return ''
+    +'<div style="width:1050px;background:#ffffff;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;padding:32px 36px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #6366f1;padding-bottom:14px;margin-bottom:18px">'
+        +'<div>'
+          +'<div style="font-size:20px;font-weight:800">База учеников</div>'
+          +'<div style="font-size:12px;color:#64748b;margin-top:3px">VoiceLoft CRM · сформировано '+dateStamp+' · всего учеников: '+list.length+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<table style="width:100%;border-collapse:collapse">'+headerRow+bodyRows+'</table>'
+    +'</div>';
+}
+
+async function exportAllStudentsToPDF(){
+  const list = allStudentsOfTeacher();
+  if(!list.length){ toast('Нет учеников для выгрузки', 'amber'); return; }
+  if(typeof html2canvas==='undefined' || !window.jspdf){
+    toast('Не удалось загрузить модуль PDF — проверьте интернет-соединение', 'red');
+    return;
+  }
+
+  toast('Формируем PDF…');
+
+  const holder = document.createElement('div');
+  holder.style.position = 'fixed';
+  holder.style.top = '0';
+  holder.style.left = '-10000px';
+  holder.style.zIndex = '-1';
+  holder.innerHTML = buildAllStudentsReportHTMLDoc();
+  document.body.appendChild(holder);
+
+  try{
+    const target = holder.firstElementChild;
+    const canvas = await html2canvas(target, { scale:2, backgroundColor:'#ffffff', useCORS:true });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('l','mm','a4'); // альбомная ориентация — таблица шире, чем выше
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    const imgData = canvas.toDataURL('image/png');
+
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while(heightLeft > 0){
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const dateStamp = toISODate(new Date());
+    pdf.save('VoiceLoft_база_учеников_'+dateStamp+'.pdf');
+    toast('PDF скачан', 'green');
+  }catch(err){
+    console.error('Ошибка формирования PDF', err);
+    toast('Не удалось сформировать PDF', 'red');
+  }finally{
+    document.body.removeChild(holder);
+  }
+}
+
+/* ---------- Popup "Выгрузить базу": выбор Excel или PDF ---------- */
+function buildExportAllChoiceModal(){
+  return '<div class="modal-title"><span>📄 Выгрузить базу учеников</span><button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="font-size:13px;color:var(--text3);margin-bottom:20px">Выберите формат, в котором нужно выгрузить всю базу учеников.</div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px">'
+      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportAllStudentsToExcel();closeModal()">'
+        +'<i class="fa-solid fa-file-excel" style="font-size:22px;color:#22c55e;flex-shrink:0"></i>'
+        +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать Excel</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">CSV-таблица, удобно открывать и редактировать</span></span>'
+      +'</button>'
+      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportAllStudentsToPDF();closeModal()">'
+        +'<i class="fa-solid fa-file-pdf" style="font-size:22px;color:#ef4444;flex-shrink:0"></i>'
+        +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать PDF</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">Готовая к печати табличная страница</span></span>'
+      +'</button>'
+    +'</div>';
 }
 
 /* ---------- 2) "Скачать отчёт" — подробный отчёт по одному ученику ---------- */
@@ -6965,14 +7073,15 @@ const modalBuilders = {
   deleteSubscription: buildDeleteSubscriptionModal,
   incomeGoal: buildIncomeGoalModal,
   studentDanger: buildStudentDangerModal,
-  exportChoice: buildExportChoiceModal};
+  exportChoice: buildExportChoiceModal,
+  exportAllChoice: buildExportAllChoiceModal};
 function openModal(type, ctx){
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
   if(!builder){ console.warn('Неизвестный тип модального окна:', type); return; }
   document.getElementById('modal-content').innerHTML = builder(modalCtx);
   document.getElementById('modal-content').classList.toggle('modal-danger', type==='studentDanger');
-  document.getElementById('modal-content').classList.toggle('modal-wide', type==='exportChoice');
+  document.getElementById('modal-content').classList.toggle('modal-wide', type==='exportChoice' || type==='exportAllChoice');
   document.getElementById('modal-bg').classList.remove('hidden');
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
