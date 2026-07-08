@@ -3316,10 +3316,18 @@ function drawTrendOverlay(container, values){
   if(!w || !h || !values.length) return;
   const mx = Math.max(...values, 1);
   const n = values.length;
-  const pad = h*0.14;
+  // Точка тренда должна садиться ровно на "кончик" столбика месяца (там же,
+  // где над ним появляется сумма) — а для месяцев с нулевым доходом должна
+  // быть прижата в самый низ шкалы, а не "приподнята". Раньше формула
+  // (h-pad - v/mx*(h-pad*1.6)) при v=0 давала точку на h-pad, то есть на 14%
+  // выше настоящего низа — отсюда и "подвисшие" точки на нулевых месяцах.
+  // topGap — единственный отступ сверху (тот самый, что уже сейчас даёт
+  // верный результат на месяце с максимальным доходом, напр. Июль) — линейно
+  // растягиваем шкалу между topGap (v=mx, самый верх) и h (v=0, самый низ).
+  const topGap = h*0.084;
   const pts = values.map((v,i)=>{
     const x = (i+0.5)/n*w;
-    const y = h-pad - (v/mx)*(h-pad*1.6);
+    const y = h - (v/mx)*(h-topGap);
     return [Math.round(x*10)/10, Math.round(y*10)/10];
   });
   const svgNS='http://www.w3.org/2000/svg';
