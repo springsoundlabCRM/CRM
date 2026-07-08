@@ -6044,7 +6044,19 @@ function selectStudentPicker(fieldId, studentId){
    панель создаётся и убирается динамически.
    ============================================================ */
 let _openVoiceFieldPicker = null;
-function closeVoiceFieldPicker(){
+function closeVoiceFieldPicker(e){
+  // e приходит только когда функция вызвана как обработчик window-события
+  // scroll/resize (см. openVoiceFieldPicker ниже). Раньше здесь закрывали
+  // список при ЛЮБОМ scroll-событии на странице — а колёсико мыши прокручивает
+  // и сам список внутри себя (если пунктов больше, чем помещается по высоте),
+  // и это "внутреннее" прокручивание тоже всплывает как scroll-событие в фазе
+  // перехвата на window. Из-за этого прокрутка вниз внутри списка (например,
+  // до пункта "Бас") мгновенно закрывала список, а прокрутка вверх — нет
+  // (потому что сверху скроллить было уже некуда, событие просто не возникало).
+  // Чтобы список закрывался только от прокрутки СТРАНИЦЫ/карточки вокруг него,
+  // а не от прокрутки собственного содержимого — игнорируем событие, если оно
+  // произошло внутри самого выпадающего списка.
+  if(e && e.target && e.target.closest && e.target.closest('.voice-field-dd')) return;
   document.querySelectorAll('.voice-field-dd').forEach(d=>d.remove());
   document.querySelectorAll('.dd-trigger-btn.open').forEach(b=>b.classList.remove('open'));
   _openVoiceFieldPicker = null;
