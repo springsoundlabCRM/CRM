@@ -4332,6 +4332,10 @@ function renderDetailProfile(){
 
   const voiceHeader = '<div class="detail-title">'
     +'<span class="detail-title-label">🎤 Голос</span>'
+    +'<div class="lang-toggle">'
+      +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
+      +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
+    +'</div>'
     +'</div>';
 
   // Отдельный блок с инструментами диапазона (переключатель Текущий/
@@ -4345,10 +4349,6 @@ function renderDetailProfile(){
     +'<div class="voice-tools-box">'
       +'<div class="voice-title-tools">'
         + rangeModeToggle
-        +'<div class="lang-toggle">'
-          +'<button type="button" class="lang-toggle-btn'+(lang==='ru'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'ru\')">РУС</button>'
-          +'<button type="button" class="lang-toggle-btn'+(lang==='en'?' active':'')+'" onclick="setVoiceLang(\''+s.id+'\',\'en\')">ENG</button>'
-        +'</div>'
       +'</div>'
       +'<div class="voice-tools-box-actions">'
         +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">'+saveBtnLabel+'</button>'
