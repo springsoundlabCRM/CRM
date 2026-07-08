@@ -681,6 +681,7 @@
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
   .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
   #modal-content.modal-danger{border-color:var(--red)}
+  #modal-content.modal-wide{width:540px}
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
 
   /* ---------- Пикер выбора периода (открывается по клику на дату в расписании) ---------- */
@@ -2053,7 +2054,7 @@
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
           <div class="tab" onclick="switchDetailTab(this,'finance-tab')">Финансы</div>
           <div class="tab tab-delete" onclick="openModal('studentDanger',{studentId:currentStudentId})">Удалить клиента</div>
-          <div class="tab tab-report" title="Скачать отчёт по ученику в Excel (CSV)" onclick="exportStudentReportToExcel(currentStudentId)"><i class="fa-solid fa-file-arrow-down"></i> Скачать отчёт</div>
+          <div class="tab tab-report" title="Скачать отчёт по ученику" onclick="openModal('exportChoice',{studentId:currentStudentId})"><i class="fa-solid fa-file-arrow-down"></i> Скачать отчёт</div>
           <div class="tab tab-reorder" id="profileReorderBtn" title="Настроить порядок блоков вкладки «Профиль»" onclick="toggleProfileReorderMode()"><i class="fa-solid fa-gear"></i></div>
           <button type="button" class="btn btn-primary" id="profileReorderSaveBtn" style="display:none" onclick="saveProfileReorderOrder()"><i class="fa-solid fa-check"></i> Сохранить</button>
         </div>
@@ -2270,6 +2271,10 @@
 
 <!-- Подключаем Font Awesome для иконок календаря -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Библиотеки для формирования PDF-отчёта по ученику (кнопка "Скачать отчёт" → "Скачать PDF") -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 /* ============================================================
@@ -2770,6 +2775,203 @@ function exportStudentReportToExcel(studentId){
   const dateStamp = toISODate(new Date());
   downloadCSV('Отчёт_'+safeName+'_'+dateStamp+'.csv', rows);
   toast('Отчёт скачан', 'green');
+}
+
+/* ---------- 3) "Скачать отчёт" → PDF ---------- */
+// Строим отдельный, полностью самодостаточный HTML-документ (свой белый
+// "печатный" дизайн, не зависящий от тёмной темы приложения), рендерим его
+// через html2canvas в картинку и вставляем в PDF через jsPDF — так кириллица
+// всегда отображается корректно (это те же шрифты, что показывает браузer),
+// без необходимости вручную встраивать TTF-шрифты в jsPDF. Если отчёт не
+// помещается на одну страницу A4 — автоматически разбиваем на несколько.
+function buildStudentReportHTMLDoc(s){
+  const sub = activeSubscriptionOf(s.id);
+  const skillLabels = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма'};
+  const sk = s.skills || {};
+
+  const rowHTML = (label, value)=> '<tr><td style="padding:6px 10px;color:#64748b;font-size:12px;width:180px;border-bottom:1px solid #eef0f3">'+escapeHTML(label)+'</td><td style="padding:6px 10px;font-size:13px;color:#0f172a;border-bottom:1px solid #eef0f3;font-weight:600">'+escapeHTML(value||'—')+'</td></tr>';
+
+  const lessonsRows = lessonsOfStudent(s.id).map(l=>{
+    const st = ({done:'Проведён',planned:'Запланирован',noshow:'Неявка',cancelled:'Отменён'})[l.status] || l.status || '';
+    return '<tr>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(l.date?formatRu(l.date):'')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(l.time||'')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+(l.format==='online'?'Онлайн':'Офлайн')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(st)+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3;text-align:right">'+(l.price!=null?money(l.price):'')+'</td>'
+      +'</tr>';
+  }).join('') || '<tr><td colspan="5" style="padding:8px;font-size:12px;color:#94a3b8;text-align:center">Уроков пока нет</td></tr>';
+
+  const paymentsRows = paymentsOfStudent(s.id).map(p=>{
+    return '<tr>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(p.date?formatRu(p.date):'')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3;text-align:right">'+money(p.amount)+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(p.note||'')+'</td>'
+      +'</tr>';
+  }).join('') || '<tr><td colspan="3" style="padding:8px;font-size:12px;color:#94a3b8;text-align:center">Платежей пока нет</td></tr>';
+
+  const repRows = repertoireOfStudent(s.id).map(r=>{
+    return '<tr>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(r.title||'')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(r.artist||'')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11.5px;border-bottom:1px solid #eef0f3">'+escapeHTML(r.status||'')+'</td>'
+      +'</tr>';
+  }).join('') || '<tr><td colspan="3" style="padding:8px;font-size:12px;color:#94a3b8;text-align:center">Репертуар пока пуст</td></tr>';
+
+  const skillsHTML = Object.keys(skillLabels).map(k=>{
+    const v = sk[k]!=null ? sk[k] : null;
+    const pct = v!=null ? Math.max(0,Math.min(100,v)) : 0;
+    return '<div style="margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#334155;margin-bottom:3px"><span>'+skillLabels[k]+'</span><span style="font-weight:700">'+(v!=null?v+'%':'—')+'</span></div>'
+      +'<div style="height:7px;border-radius:5px;background:#eef0f3;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#6366f1,#ec4899)"></div></div>'
+      +'</div>';
+  }).join('');
+
+  const subHTML = sub
+    ? rowHTML('Абонемент', sub.title)+rowHTML('Использовано', sub.usedLessons+' из '+sub.totalLessons)+rowHTML('Стоимость', money(sub.totalPrice))+rowHTML('Дата покупки', sub.purchaseDate?formatRu(sub.purchaseDate):'')
+    : rowHTML('Абонемент', 'Нет активного абонемента');
+
+  const dateStamp = formatRu(toISODate(new Date()));
+
+  return ''
+    +'<div style="width:760px;background:#ffffff;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;padding:36px 40px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #6366f1;padding-bottom:16px;margin-bottom:22px">'
+        +'<div>'
+          +'<div style="font-size:22px;font-weight:800">'+escapeHTML(s.name||'')+'</div>'
+          +'<div style="font-size:12px;color:#64748b;margin-top:3px">Отчёт по ученику · VoiceLoft CRM · сформирован '+dateStamp+'</div>'
+        +'</div>'
+        +'<div style="width:52px;height:52px;border-radius:14px;background:'+(s.color||'linear-gradient(135deg,#6366f1,#ec4899)')+';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px">'+escapeHTML(s.initials||'')+'</div>'
+      +'</div>'
+
+      +'<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Основная информация</div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:20px">'
+        + rowHTML('Возраст', s.age!=null?String(s.age):'')
+        + rowHTML('Дата рождения', s.birthday?formatRu(s.birthday):'')
+        + rowHTML('Тип голоса', s.voiceType)
+        + rowHTML('Статус', studentStatusLabel(s.status))
+        + rowHTML('Телефон', s.phone)
+        + rowHTML('Telegram', s.telegram)
+        + rowHTML('Цель', s.goal)
+        + rowHTML('Начало занятий', (s.studySince||s.createdAt)?formatRu(s.studySince||s.createdAt):'')
+      +'</table>'
+
+      +'<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Абонемент и финансы</div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:20px">'
+        + subHTML
+        + rowHTML('Долг', money(studentDebt(s.id)))
+        + rowHTML('Всего оплачено', money(studentTotalPaid(s.id)))
+      +'</table>'
+
+      +'<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Навыки</div>'
+      +'<div style="margin-bottom:20px">'+skillsHTML+'</div>'
+
+      +(s.notes ? '<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Заметки</div><div style="font-size:12.5px;color:#334155;background:#f8fafc;border-radius:8px;padding:10px 12px;margin-bottom:20px;white-space:pre-wrap">'+escapeHTML(s.notes)+'</div>' : '')
+      +(s.voiceNotes ? '<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Заметки о голосе</div><div style="font-size:12.5px;color:#334155;background:#f8fafc;border-radius:8px;padding:10px 12px;margin-bottom:20px;white-space:pre-wrap">'+escapeHTML(s.voiceNotes)+'</div>' : '')
+
+      +'<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">История уроков</div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:20px">'
+        +'<tr>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Дата</th>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Время</th>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Формат</th>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Статус</th>'
+          +'<th style="text-align:right;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Цена</th>'
+        +'</tr>'
+        + lessonsRows
+      +'</table>'
+
+      +'<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Платежи</div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:20px">'
+        +'<tr>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Дата</th>'
+          +'<th style="text-align:right;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Сумма</th>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Заметка</th>'
+        +'</tr>'
+        + paymentsRows
+      +'</table>'
+
+      +'<div style="font-size:13px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Репертуар</div>'
+      +'<table style="width:100%;border-collapse:collapse">'
+        +'<tr>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Песня</th>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Исполнитель</th>'
+          +'<th style="text-align:left;padding:5px 8px;font-size:11px;color:#94a3b8;border-bottom:2px solid #e2e8f0">Статус</th>'
+        +'</tr>'
+        + repRows
+      +'</table>'
+    +'</div>';
+}
+
+async function exportStudentReportToPDF(studentId){
+  const s = studentById(studentId);
+  if(!s){ toast('Ученик не найден', 'red'); return; }
+  if(typeof html2canvas==='undefined' || !window.jspdf){
+    toast('Не удалось загрузить модуль PDF — проверьте интернет-соединение', 'red');
+    return;
+  }
+
+  toast('Формируем PDF…');
+
+  // Рендерим отчёт в скрытом (но реально отрисованном — html2canvas не умеет
+  // читать display:none) контейнере далеко за пределами видимой области.
+  const holder = document.createElement('div');
+  holder.style.position = 'fixed';
+  holder.style.top = '0';
+  holder.style.left = '-10000px';
+  holder.style.zIndex = '-1';
+  holder.innerHTML = buildStudentReportHTMLDoc(s);
+  document.body.appendChild(holder);
+
+  try{
+    const target = holder.firstElementChild;
+    const canvas = await html2canvas(target, { scale:2, backgroundColor:'#ffffff', useCORS:true });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    const imgData = canvas.toDataURL('image/png');
+
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while(heightLeft > 0){
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const safeName = (s.name||'ученик').replace(/[\\/:*?"<>|]/g,'').trim() || 'ученик';
+    const dateStamp = toISODate(new Date());
+    pdf.save('Отчёт_'+safeName+'_'+dateStamp+'.pdf');
+    toast('PDF скачан', 'green');
+  }catch(err){
+    console.error('Ошибка формирования PDF', err);
+    toast('Не удалось сформировать PDF', 'red');
+  }finally{
+    document.body.removeChild(holder);
+  }
+}
+
+/* ---------- Popup "Скачать отчёт": выбор Excel или PDF ---------- */
+function buildExportChoiceModal(ctx){
+  const s = studentById(ctx.studentId);
+  const name = s ? s.name : '';
+  return '<div class="modal-title"><span>📄 Скачать отчёт'+(name?' — '+escapeHTML(name):'')+'</span><button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="font-size:13px;color:var(--text3);margin-bottom:20px">Выберите формат, в котором нужно скачать отчёт по ученику.</div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px">'
+      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportStudentReportToExcel(\''+ctx.studentId+'\');closeModal()">'
+        +'<i class="fa-solid fa-file-excel" style="font-size:22px;color:#22c55e;flex-shrink:0"></i>'
+        +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать Excel</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">CSV-таблица, удобно открывать и редактировать</span></span>'
+      +'</button>'
+      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportStudentReportToPDF(\''+ctx.studentId+'\');closeModal()">'
+        +'<i class="fa-solid fa-file-pdf" style="font-size:22px;color:#ef4444;flex-shrink:0"></i>'
+        +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать PDF</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">Готовый к печати документ</span></span>'
+      +'</button>'
+    +'</div>';
 }
 
 function studentNextLesson(studentId){
@@ -6750,13 +6952,15 @@ const modalBuilders = {
   deleteHomework: buildDeleteHomeworkModal,
   deleteSubscription: buildDeleteSubscriptionModal,
   incomeGoal: buildIncomeGoalModal,
-  studentDanger: buildStudentDangerModal};
+  studentDanger: buildStudentDangerModal,
+  exportChoice: buildExportChoiceModal};
 function openModal(type, ctx){
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
   if(!builder){ console.warn('Неизвестный тип модального окна:', type); return; }
   document.getElementById('modal-content').innerHTML = builder(modalCtx);
   document.getElementById('modal-content').classList.toggle('modal-danger', type==='studentDanger');
+  document.getElementById('modal-content').classList.toggle('modal-wide', type==='exportChoice');
   document.getElementById('modal-bg').classList.remove('hidden');
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
@@ -6780,6 +6984,7 @@ function closeModal(e){
     document.getElementById('modal-bg').classList.add('hidden');
     document.getElementById('modal-content').innerHTML='';
     document.getElementById('modal-content').classList.remove('modal-danger');
+    document.getElementById('modal-content').classList.remove('modal-wide');
     return;
   }
   const clickedCloseBtn = e.target && e.target.closest && e.target.closest('.modal-close');
@@ -6788,6 +6993,7 @@ function closeModal(e){
     document.getElementById('modal-bg').classList.add('hidden');
     document.getElementById('modal-content').innerHTML='';
     document.getElementById('modal-content').classList.remove('modal-danger');
+    document.getElementById('modal-content').classList.remove('modal-wide');
   }
 }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
