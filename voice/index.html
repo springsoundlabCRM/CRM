@@ -1504,21 +1504,40 @@
   .info-popover-row .v.up{color:var(--green)}
   .info-popover-row .v.down{color:var(--red)}
 
-  .note-popover{position:absolute;top:calc(100% + 6px);left:0;z-index:60;min-width:280px;max-width:340px;
-    background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);
-    box-shadow:0 14px 36px rgba(0,0,0,.35);padding:12px;
-    animation:notePopIn .16s cubic-bezier(.22,1,.36,1);max-height:340px;overflow-y:auto}
+  /* --- Панель выбора ноты теперь раскрывается НЕ маленьким выпадающим
+     списком под кнопкой, а на всё окно карточки "Голос" (во всю её
+     высоту и ширину) — поэтому сама карточка "Голос" становится
+     позиционируемым контейнером (position:relative), а .note-popover
+     занимает её целиком через inset:0. --- */
+  .card-voice{position:relative}
+  .note-popover{position:absolute;inset:0;z-index:60;
+    background:var(--card);border-radius:var(--r2);
+    padding:14px 16px;display:flex;flex-direction:column;min-height:0;
+    animation:notePopIn .16s cubic-bezier(.22,1,.36,1)}
   @keyframes notePopIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-  .note-pop-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:10px}
+  /* Шапка попапа: заголовок слева, крестик-закрытие справа (без выбора) */
+  .note-pop-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-shrink:0}
+  .note-pop-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+  .note-pop-close{width:26px;height:26px;flex-shrink:0;border-radius:50%;background:var(--card2);
+    border:1px solid var(--border2);color:var(--text2);font-size:13px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;padding:0}
+  .note-pop-close:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
+  /* Прокручиваемая область с октавами — сама шапка и крестик остаются
+     на месте, если список нот не помещается по высоте */
+  .note-pop-body{flex:1;min-height:0;overflow-y:auto}
   .note-oct-block{margin-bottom:10px}
   .note-oct-block:last-child{margin-bottom:0}
   .note-oct-label{font-size:10.5px;color:var(--accent);font-weight:700;margin-bottom:6px;padding-left:2px}
-  .note-btn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .note-btn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   .note-btn{background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:7px;
-    padding:7px 4px;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;font-family:var(--font);text-align:center}
+    padding:9px 4px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s;font-family:var(--font);text-align:center}
   .note-btn:hover{border-color:var(--accent);color:var(--text);background:var(--bg3)}
   .note-btn.sharp{color:var(--text3);font-size:11px}
   .note-btn.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (max-width:640px){
+    .note-btn-grid{grid-template-columns:repeat(4,1fr);gap:5px}
+    .note-btn{padding:8px 3px;font-size:12px}
+  }
 
   /* --- Градиентные бары для графиков доходов + пунктирный тренд поверх --- */
   .bar{background:var(--accent);border-radius:5px 5px 2px 2px}
@@ -4767,8 +4786,17 @@ function openNotePicker(studentId, field, btnEl){
   const pop = document.createElement('div');
   pop.className = 'note-popover';
   pop.onclick = function(e){ e.stopPropagation(); };
-  pop.innerHTML = '<div class="note-pop-title">'+(lang==='en'?'Выбор ноты (английская нотация)':'Выбор ноты (русская нотация)')+'</div>'+octBlocks;
-  btnEl.parentElement.appendChild(pop);
+  pop.innerHTML = '<div class="note-pop-head">'
+      +'<span class="note-pop-title">'+(lang==='en'?'Выбор ноты (английская нотация)':'Выбор ноты (русская нотация)')+'</span>'
+      +'<button type="button" class="note-pop-close" onclick="event.stopPropagation();closeNotePicker()" aria-label="Закрыть" title="Закрыть">✕</button>'
+    +'</div>'
+    +'<div class="note-pop-body">'+octBlocks+'</div>';
+  // Крепим панель не к маленькой обёртке поля "От"/"До", а ко всей
+  // карточке "Голос" целиком (.detail-card.card-voice) — тогда она,
+  // благодаря .note-popover{position:absolute;inset:0}, раскрывается
+  // на всё окно карточки, а не просто выпадает вниз под кнопкой.
+  const voiceCard = btnEl.closest('.detail-card') || btnEl.parentElement;
+  voiceCard.appendChild(pop);
 }
 
 function selectNote(studentId, field, o, i){
