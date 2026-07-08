@@ -183,8 +183,10 @@
     .sub-action-btn{padding:12px 9px;font-size:13px;font-weight:500}
     /* ===== Дашборд на компьютере: страница ЖЁСТКО статична и не крутится
        колесом мыши целиком. Триколонка (Сегодня/Уведомления/Дни рождения)
-       занимает всё доступное место экрана дашборда — от статов/колец
-       вверху и до самого конца страницы. Крутятся колесом мыши только сами
+       живёт в верхней части экрана дашборда, а высота самих трёх списков
+       карточек фиксирована ровно под DASH_VISIBLE_CARDS карточек (см. JS,
+       syncDashColumnHeights) — одинаковая у всех трёх колонок, чтобы их
+       нижние границы всегда совпадали. Крутятся колесом мыши только сами
        списки карточек внутри каждой из трёх колонок (когда карточек больше,
        чем помещается по высоте). ===== */
     #page-dashboard .content{display:flex;flex-direction:column;overflow:hidden;min-height:0}
@@ -196,14 +198,14 @@
        если расчёт масштаба на конкретном компьютере окажется неточным на
        пару пикселей: прокрутки не будет в любом случае. ===== */
     #page-analytics .content{overflow:hidden !important}
-    /* Вся верхняя часть больше НЕ скроллится как страница — она статична
-       и просто ужимается/растягивается под доступную высоту. Крутится
-       колесом мыши только сам список карточек "Сегодня" (и, для
-       единообразия, списки уведомлений и дней рождения). */
+    /* Высота списков карточек "Сегодня" / "Уведомления" / "Дни рождения"
+       теперь фиксированная (её в px выставляет JS, syncDashColumnHeights),
+       поэтому flex-grow здесь выключен (flex:0 0 auto) — иначе flexbox
+       растянул бы их и перебил бы заданную высоту. */
     #dashScrollArea{flex:1 1 auto;overflow:hidden;min-height:0;padding-right:4px;display:flex;flex-direction:column}
-    #dashTriColumn{flex:1 1 auto;min-height:0}
+    #dashTriColumn{min-height:0}
     #dashTriColumn>div{display:flex;flex-direction:column;min-height:0}
-    #todayLessons,#notifList,#bdayList{flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:4px}
+    #todayLessons,#notifList,#bdayList{flex:0 0 auto;min-height:0;overflow-y:auto;padding-right:4px}
   }
   .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff}
@@ -3058,6 +3060,84 @@ function renderDashboard(){
   renderNotifications();
   renderBirthdays();
   renderDashboardPulse(myStudents, active, now);
+  requestAnimationFrame(syncDashColumnHeights);
+}
+
+/* ---------- Фиксированная высота колонок "Сегодня" / "Уведомления" / "Дни
+   рождения" на дашборде (только десктоп) ----------
+   Задача: в колонке "Сегодня" всегда видно ровно DASH_VISIBLE_CARDS карточек,
+   дальше — прокрутка колесом мыши внутри самой колонки. Высоту считаем не
+   фиксированным числом пикселей, а по реальной высоте отрисованных карточек
+   урока (она берётся из живого DOM) — так это одинаково корректно работает
+   при любом масштабе шрифта/DPI и не "поплывёт", если позже поменяется
+   вёрстка самой карточки урока. Ровно ту же высоту в px проставляем и
+   колонкам "Уведомления"/"Дни рождения", чтобы их нижняя граница никогда
+   не уезжала ниже границы колонки "Сегодня" — все три всегда вровень. */
+const DASH_DESKTOP_MIN_WIDTH = 881; // совпадает с общим брейкпоинтом десктоп/мобайл в остальной вёрстке
+const DASH_VISIBLE_CARDS = 5; // сколько карточек показываем в "Сегодня" до появления внутренней прокрутки
+const DASH_CARD_GAP = 8; // совпадает с margin-bottom у .lesson-slot в CSS — запасной вариант, если на сегодня всего 1 урок
+function syncDashColumnHeights(){
+  const today = document.getElementById('todayLessons');
+  const notif = document.getElementById('notifList');
+  const bday = document.getElementById('bdayList');
+  if(!today || !notif || !bday) return;
+
+  // На мобильных версиях фиксированная высота не нужна — сбрасываем, если она
+  // вдруг осталась от предыдущей (десктопной) ширины экрана. На мобильных все
+  // карточки просто показываются целиком, страница скроллится как обычно.
+  if(window.innerWidth < DASH_DESKTOP_MIN_WIDTH){
+    today.style.height = ''; notif.style.height = ''; bday.style.height = '';
+    return;
+  }
+
+  const cards = today.querySelectorAll('.lesson-slot');
+  let h = 0;
+  if(cards.length >= DASH_VISIBLE_CARDS){
+    // Самый точный вариант: реальное расстояние от верха 1-й до низа 5-й карточки.
+    const top = cards[0].getBoundingClientRect().top;
+    const bottom = cards[DASH_VISIBLE_CARDS-1].getBoundingClientRect().bottom;
+    h = Math.round(bottom - top);
+  } else if(cards.length >= 2){
+    // Уроков сегодня меньше пяти, но хотя бы 2 — считаем по фактическому шагу
+    // между карточками (высота карточки + отступ между ними).
+    const step = cards[1].getBoundingClientRect().top - cards[0].getBoundingClientRect().top;
+    const firstH = cards[0].getBoundingClientRect().height;
+    h = Math.round(step*(DASH_VISIBLE_CARDS-1) + firstH);
+  } else if(cards.length === 1){
+    // Всего 1 урок на сегодня — берём его высоту + стандартный отступ из CSS.
+    const firstH = cards[0].getBoundingClientRect().height;
+    h = Math.round((firstH+DASH_CARD_GAP)*(DASH_VISIBLE_CARDS-1) + firstH);
+  }
+
+  if(!h){
+    // Уроков на сегодня нет вообще (пустая заглушка) — фиксированную высоту
+    // посчитать не из чего, оставляем колонки как есть (по естественной высоте).
+    today.style.height = ''; notif.style.height = ''; bday.style.height = '';
+    return;
+  }
+
+  today.style.height = h+'px';
+  notif.style.height = h+'px';
+  bday.style.height = h+'px';
+}
+
+// Пересчитываем при изменении размера окна (например, при разворачивании/сворачивании
+// окна браузера) — но только пока открыт дашборд.
+let _dashHeightResizeTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(_dashHeightResizeTimer);
+  _dashHeightResizeTimer = setTimeout(()=>{
+    if(currentPageName === 'dashboard') syncDashColumnHeights();
+  }, 120);
+});
+
+// Веб-шрифт (Inter) иногда подгружается уже ПОСЛЕ первого рендера дашборда — высота
+// текста в карточках может чуть измениться, пересчитываем высоту колонок ещё раз,
+// когда все шрифты точно готовы.
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(function(){
+    if(currentPageName === 'dashboard') syncDashColumnHeights();
+  });
 }
 
 /* Универсальный помощник: плавно "докручивает" CSS-переменную с числом (0 -> target),
