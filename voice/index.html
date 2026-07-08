@@ -181,11 +181,12 @@
     #page-dashboard .dash-actions{margin-left:auto}
     .sub-new-btn{font-size:13px;font-weight:600}
     .sub-action-btn{padding:12px 9px;font-size:13px;font-weight:500}
-    /* ===== Дашборд на компьютере: "Доходы за 6 месяцев" всегда закреплены
-       внизу экрана. Вся верхняя часть (статы/кольца/Сегодня/Уведомления/
-       Дни рождения) — статична, страница НЕ прокручивается целиком.
-       Список уроков "Сегодня" занимает всё оставшееся место колонки и
-       скроллится колесом мыши только внутри себя. ===== */
+    /* ===== Дашборд на компьютере: страница ЖЁСТКО статична и не крутится
+       колесом мыши целиком. Триколонка (Сегодня/Уведомления/Дни рождения)
+       занимает всё доступное место экрана дашборда — от статов/колец
+       вверху и до самого конца страницы. Крутятся колесом мыши только сами
+       списки карточек внутри каждой из трёх колонок (когда карточек больше,
+       чем помещается по высоте). ===== */
     #page-dashboard .content{display:flex;flex-direction:column;overflow:hidden;min-height:0}
     /* ===== Аналитика на компьютере: та же логика, что и в Дашборде — страница
        ЖЁСТКО статична и не крутится колесом мыши ни при каких обстоятельствах.
@@ -202,7 +203,6 @@
     #dashScrollArea{flex:1 1 auto;overflow:hidden;min-height:0;padding-right:4px;display:flex;flex-direction:column}
     #dashTriColumn{flex:1 1 auto;min-height:0}
     #dashTriColumn>div{display:flex;flex-direction:column;min-height:0}
-    #dashIncomeBox{flex-shrink:0;margin-top:16px}
     #todayLessons,#notifList,#bdayList{flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:4px}
   }
   .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
@@ -1910,11 +1910,6 @@
           </div>
         </div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px" id="dashIncomeBox">
-          <div class="section-head" style="margin-bottom:8px"><div class="section-title">Доходы за 6 месяцев</div><span class="tag tag-green" id="incomeYoY">—</span></div>
-          <div class="mini-chart" id="income-chart"></div>
-          <div style="display:flex;gap:4px" id="income-labels"></div>
-        </div>
       </div>
     </div>
 
@@ -3062,7 +3057,6 @@ function renderDashboard(){
 
   renderNotifications();
   renderBirthdays();
-  renderIncomeChart();
   renderDashboardPulse(myStudents, active, now);
 }
 
@@ -3253,27 +3247,6 @@ function drawTrendOverlay(container, values){
     svg.appendChild(c);
   });
   container.appendChild(svg);
-}
-
-function renderIncomeChart(){
-  const data = last6MonthsIncome();
-  const c=document.getElementById('income-chart'); const l=document.getElementById('income-labels');
-  c.innerHTML=''; l.innerHTML='';
-  const mx=Math.max(...data.map(d=>d.value),1);
-  data.forEach((d,i)=>{
-    const h=Math.round((d.value/mx)*56);
-    const col=document.createElement('div'); col.className='bar-col';
-    col.title = d.label+': '+money(d.value);
-    col.innerHTML = '<div class="bar" style="height:'+Math.max(h,2)+'px;'+(i===5?'opacity:1':'')+'"></div>';
-    c.appendChild(col);
-    const lb=document.createElement('div'); lb.style.cssText='font-size:9px;color:var(--text3);flex:1;text-align:center;margin-top:3px';
-    lb.textContent=d.label; l.appendChild(lb);
-  });
-  const first=data[0].value, last=data[5].value;
-  const yoy=document.getElementById('incomeYoY');
-  if(first>0){ const pct=Math.round((last-first)/first*100); yoy.textContent=(pct>=0?'+':'')+pct+'% за период'; yoy.className='tag '+(pct>=0?'tag-green':'tag-red'); }
-  else { yoy.textContent='—'; yoy.className='tag tag-grey'; }
-  requestAnimationFrame(()=> drawTrendOverlay(c, data.map(d=>d.value)));
 }
 
 // При показе страницы расписания инициализируем календарь
