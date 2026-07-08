@@ -2019,8 +2019,10 @@
       <div class="topbar">
         <div class="topbar-title">Ученики <span class="topbar-subtitle" id="studentsCountLabel">0 активных</span></div>
         <input class="input" style="width:200px;padding:7px 12px" id="studentSearch" placeholder="🔍 Поиск..." oninput="renderStudents()">
+        <button class="btn btn-ghost" title="Выгрузить всю базу учеников в CSV-файл для Excel" onclick="exportAllStudentsToExcel()"><i class="fa-solid fa-file-excel"></i> Выгрузить базу в Excel</button>
         <button class="btn btn-primary" onclick="openModal('student')">Добавить</button>
       </div>
+
       <div class="content">
         <div class="tab-row" id="studentFilterTabs">
           <div class="tab active" data-f="all" onclick="setStudentFilter('all',this)">Все ученики</div>
@@ -2610,6 +2612,163 @@ function studentLessonsCount(studentId){
   // Отменённые ('cancelled') уроки не считаем — они не должны идти в зачёт.
   return lessonsOfStudent(studentId).filter(l=>l.status!=='cancelled').length;
 }
+
+/* ============================================================
+   ЭКСПОРТ В EXCEL (CSV, разделитель ";", кодировка UTF-8 + BOM)
+   ============================================================
+   Excel в русской локализации при открытии .csv по умолчанию ждёт
+   разделитель "точка с запятой" (а не запятую) и корректно понимает
+   кириллицу только если в начале файла стоит BOM-маркер (\uFEFF) —
+   без него текст открывается "кракозябрами". Поэтому оба экспортёра
+   ниже используют один и тот же generic-помощник downloadCSV(). */
+
+// Экранирование одной ячейки CSV: если значение содержит разделитель ";",
+// перенос строки или кавычки — оборачиваем в кавычки и удваиваем внутренние.
+function csvCell(value){
+  let v = (value===undefined || value===null) ? '' : String(value);
+  v = v.replace(/\r?\n/g, ' ');
+  if(/[;"]/.test(v)) v = '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+
+// rows — массив массивов (первая строка — заголовки). Формирует CSV-строку
+// и запускает скачивание файла с указанным именем через невидимую ссылку <a>.
+function downloadCSV(filename, rows){
+  const csvBody = rows.map(row=> row.map(csvCell).join(';')).join('\r\n');
+  const BOM = '\uFEFF'; // спецсимвол BOM — обязателен, чтобы Excel в России не ломал кодировку
+  const blob = new Blob([BOM+csvBody], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=> URL.revokeObjectURL(url), 1000);
+}
+
+// Читаемая расшифровка статуса ученика для отчётов.
+function studentStatusLabel(status){
+  return { active:'Активный', paused:'На паузе', trial:'Пробный', inactive:'Неактивный' }[status] || (status||'');
+}
+
+/* ---------- 1) "Выгрузить базу в Excel" — вся база учеников ---------- */
+// Берёт данные из уже загруженного в память объекта DB (тот же самый объект,
+// который синхронизируется с Firebase и параллельно кэшируется в
+// localStorage, см. writeLocalCache/readLocalCache выше) — то есть экспорт
+// всегда отражает актуальное состояние, которое человек видит на экране.
+function exportAllStudentsToExcel(){
+  const list = allStudentsOfTeacher();
+  if(!list.length){ toast('Нет учеников для выгрузки', 'amber'); return; }
+
+  const headers = ['Имя','Возраст','Дата рождения','Тип голоса','Статус','Телефон','Telegram','Цель','Заметки','Дата начала занятий','Абонемент (осталось/всего)','Долг','Всего оплачено','Проведено уроков'];
+  const rows = [headers];
+
+  list.forEach(s=>{
+    const sub = activeSubscriptionOf(s.id);
+    const subLabel = sub ? (Math.max(0, sub.totalLessons-sub.usedLessons)+' / '+sub.totalLessons) : '—';
+    rows.push([
+      s.name || '',
+      s.age!=null ? s.age : '',
+      s.birthday ? formatRu(s.birthday) : '',
+      s.voiceType || '',
+      studentStatusLabel(s.status),
+      s.phone || '',
+      s.telegram || '',
+      s.goal || '',
+      s.notes || '',
+      (s.studySince||s.createdAt) ? formatRu(s.studySince||s.createdAt) : '',
+      subLabel,
+      money(studentDebt(s.id)),
+      money(studentTotalPaid(s.id)),
+      studentLessonsCount(s.id)
+    ]);
+  });
+
+  const dateStamp = toISODate(new Date());
+  downloadCSV('VoiceLoft_база_учеников_'+dateStamp+'.csv', rows);
+  toast('База выгружена в Excel', 'green');
+}
+
+/* ---------- 2) "Скачать отчёт" — подробный отчёт по одному ученику ---------- */
+// Кнопка стоит в карточке "Голос" на вкладке "Профиль" конкретного ученика.
+function exportStudentReportToExcel(studentId){
+  const s = studentById(studentId);
+  if(!s){ toast('Ученик не найден', 'red'); return; }
+
+  const rows = [];
+  rows.push(['Отчёт по ученику']);
+  rows.push(['Имя', s.name||'']);
+  rows.push(['Возраст', s.age!=null ? s.age : '']);
+  rows.push(['Дата рождения', s.birthday ? formatRu(s.birthday) : '']);
+  rows.push(['Тип голоса', s.voiceType||'']);
+  rows.push(['Статус', studentStatusLabel(s.status)]);
+  rows.push(['Телефон', s.phone||'']);
+  rows.push(['Telegram', s.telegram||'']);
+  rows.push(['Цель', s.goal||'']);
+  rows.push(['Заметки', s.notes||'']);
+  rows.push(['Заметки о голосе', s.voiceNotes||'']);
+  rows.push(['Дата начала занятий', (s.studySince||s.createdAt) ? formatRu(s.studySince||s.createdAt) : '']);
+  rows.push([]);
+
+  const sub = activeSubscriptionOf(s.id);
+  rows.push(['Абонемент']);
+  if(sub){
+    rows.push(['Название', sub.title||'']);
+    rows.push(['Использовано/всего', sub.usedLessons+' / '+sub.totalLessons]);
+    rows.push(['Стоимость', money(sub.totalPrice)]);
+    rows.push(['Дата покупки', sub.purchaseDate ? formatRu(sub.purchaseDate) : '']);
+  } else {
+    rows.push(['Нет активного абонемента']);
+  }
+  rows.push([]);
+
+  rows.push(['Навыки']);
+  const skillLabels = {breath:'Дыхание',intonation:'Интонация',rhythm:'Чувство ритма'};
+  const sk = s.skills || {};
+  Object.keys(skillLabels).forEach(k=>{
+    rows.push([skillLabels[k], sk[k]!=null ? sk[k] : '']);
+  });
+  rows.push([]);
+
+  rows.push(['Финансы']);
+  rows.push(['Долг', money(studentDebt(s.id))]);
+  rows.push(['Всего оплачено', money(studentTotalPaid(s.id))]);
+  rows.push([]);
+
+  rows.push(['История уроков']);
+  rows.push(['Дата','Время','Формат','Статус','Цена','Оплачено']);
+  lessonsOfStudent(s.id).forEach(l=>{
+    rows.push([
+      l.date ? formatRu(l.date) : '',
+      l.time||'',
+      l.format==='online' ? 'Онлайн' : 'Офлайн',
+      ({done:'Проведён',planned:'Запланирован',noshow:'Неявка',cancelled:'Отменён'})[l.status] || l.status || '',
+      l.price!=null ? money(l.price) : '',
+      l.paid!=null ? money(l.paid) : ''
+    ]);
+  });
+  rows.push([]);
+
+  rows.push(['Платежи']);
+  rows.push(['Дата','Сумма','Тип','Заметка']);
+  paymentsOfStudent(s.id).forEach(p=>{
+    rows.push([ p.date ? formatRu(p.date) : '', money(p.amount), p.type||'', p.note||'' ]);
+  });
+  rows.push([]);
+
+  rows.push(['Репертуар']);
+  rows.push(['Песня','Исполнитель','Статус']);
+  repertoireOfStudent(s.id).forEach(r=>{
+    rows.push([ r.title||'', r.artist||'', r.status||'' ]);
+  });
+
+  const safeName = (s.name||'ученик').replace(/[\\/:*?"<>|]/g,'').trim() || 'ученик';
+  const dateStamp = toISODate(new Date());
+  downloadCSV('Отчёт_'+safeName+'_'+dateStamp+'.csv', rows);
+  toast('Отчёт скачан', 'green');
+}
+
 function studentNextLesson(studentId){
   const upcoming = lessonsOfStudent(studentId).filter(l=>l.status==='planned' && l.date>=todayISO());
   upcoming.sort((a,b)=> a.date===b.date ? (a.time<b.time?-1:1) : (a.date<b.date?-1:1) );
@@ -3968,6 +4127,7 @@ function renderDetailProfile(){
 
   const voiceHeader = '<div class="detail-title">'
     +'<span class="detail-title-label">🎤 Голос</span>'
+    +'<button type="button" class="btn btn-ghost btn-sm voice-report-btn" title="Скачать отчёт по ученику в Excel (CSV)" onclick="exportStudentReportToExcel(\''+s.id+'\')"><i class="fa-solid fa-file-arrow-down"></i> Скачать отчёт</button>'
     +'</div>';
 
   // Отдельный блок с инструментами диапазона (переключатель Текущий/
