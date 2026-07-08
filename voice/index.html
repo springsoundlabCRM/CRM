@@ -5389,6 +5389,25 @@ function renderAnalytics(){
 
   renderYearChart();
   fitAnalyticsPage();
+
+  /* Веб-шрифт (Inter) иногда ещё не до конца применён в момент самого первого
+     расчёта масштаба выше — из-за подмены шрифта высота текста чуть меняется,
+     и график "Доход по месяцам" (самый нижний блок) мог оказаться недосчитан
+     и вылезти за пределы экрана. ВАЖНО: этот пересчёт регистрируем заново при
+     КАЖДОМ открытии "Аналитики" (а не один раз при старте всего приложения) —
+     иначе document.fonts.ready почти всегда успевает разрешиться ещё раньше,
+     пока человек сидит на "Дашборде", и проверка ниже никогда не сработает бы
+     для реального сценария использования. Плюс небольшая подстраховка через
+     setTimeout — на случай, если после применения шрифта что-то ещё успевает
+     чуть сдвинуться по высоте (например, анимация раскрутки колец/полосок). */
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){
+      if(currentPageName === 'analytics') fitAnalyticsPage();
+    });
+  }
+  setTimeout(function(){
+    if(currentPageName === 'analytics') fitAnalyticsPage();
+  }, 300);
 }
 
 /* ---------- Автоподгонка страницы "Аналитика" под один экран (только десктоп) ----------
@@ -5442,16 +5461,6 @@ window.addEventListener('resize', function(){
     if(currentPageName === 'analytics') fitAnalyticsPage();
   }, 120);
 });
-
-// Веб-шрифт (Inter) иногда подгружается уже ПОСЛЕ того, как страница "Аналитика" успела
-// отрендериться и посчитать масштаб — из-за подмены шрифта высота текста чуть меняется,
-// и без этой подстраховки прокрутка колёсиком могла бы на долю секунды вернуться.
-// Пересчитываем масштаб ровно один раз, когда все шрифты точно готовы.
-if(document.fonts && document.fonts.ready){
-  document.fonts.ready.then(function(){
-    if(currentPageName === 'analytics') fitAnalyticsPage();
-  });
-}
 
 function shiftYear(d){ analyticsYear += d; renderYearChart(); fitAnalyticsPage(); }
 
