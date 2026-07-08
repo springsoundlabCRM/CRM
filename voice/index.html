@@ -789,6 +789,12 @@
   .dd-placeholder{color:var(--text3)}
   .dd-caret{font-size:9px;color:var(--text3);transition:transform .15s;flex-shrink:0}
   .dd-trigger-btn.open .dd-caret{transform:rotate(180deg)}
+  /* Список "Тип голоса"/"Статус" в карточке "Голос" открывается не
+     внутри самой карточки (у неё overflow-y:auto — список бы обрезался),
+     а как position:fixed элемент в document.body, поверх всех карточек
+     и модалки карточки ученика — координаты выставляются в JS
+     (positionVoiceFieldDD) по положению кнопки-триггера. */
+  .voice-field-dd{position:fixed;z-index:150}
   @media (max-width:720px){
     .autocomplete-item{padding:10px 9px;font-size:13.5px}
     .autocomplete-dropdown{max-height:200px}
@@ -5670,6 +5676,8 @@ function closeVoiceFieldPicker(){
   document.querySelectorAll('.voice-field-dd').forEach(d=>d.remove());
   document.querySelectorAll('.dd-trigger-btn.open').forEach(b=>b.classList.remove('open'));
   _openVoiceFieldPicker = null;
+  window.removeEventListener('scroll', closeVoiceFieldPicker, true);
+  window.removeEventListener('resize', closeVoiceFieldPicker);
 }
 function openVoiceFieldPicker(studentId, field, btnEl){
   const key = studentId+':'+field;
@@ -5688,7 +5696,32 @@ function openVoiceFieldPicker(studentId, field, btnEl){
   dd.innerHTML = options.map(function(o){
     return '<div class="autocomplete-item'+(o[0]===currentVal?' active':'')+'" onmousedown="event.preventDefault();selectVoiceFieldOption(\''+studentId+'\',\''+field+'\',\''+o[0]+'\')"><span class="autocomplete-name">'+escapeHTML(o[1])+'</span></div>';
   }).join('');
-  btnEl.parentElement.appendChild(dd);
+  // Не внутрь карточки (иначе список обрежется её overflow-y:auto) —
+  // как и попап-подсказка "Прогресс диапазона" в этой же карточке,
+  // добавляем его в document.body как position:fixed элемент, который
+  // раскрывается поверх всех карточек и модалки карточки ученика,
+  // а координаты выставляем вручную по положению кнопки-триггера.
+  document.body.appendChild(dd);
+  positionVoiceFieldDD(dd, btnEl);
+  window.addEventListener('scroll', closeVoiceFieldPicker, true);
+  window.addEventListener('resize', closeVoiceFieldPicker);
+}
+function positionVoiceFieldDD(dd, btnEl){
+  const rect = btnEl.getBoundingClientRect();
+  dd.style.width = rect.width+'px';
+  let left = rect.left;
+  left = Math.max(8, Math.min(left, window.innerWidth - rect.width - 8));
+  dd.style.left = left+'px';
+  const estHeight = Math.min(230, dd.scrollHeight || 200);
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  if(spaceBelow < estHeight + 12 && spaceAbove > spaceBelow){
+    dd.style.top = 'auto';
+    dd.style.bottom = (window.innerHeight - rect.top + 6)+'px';
+  } else {
+    dd.style.bottom = 'auto';
+    dd.style.top = (rect.bottom + 6)+'px';
+  }
 }
 function selectVoiceFieldOption(studentId, field, value){
   updateStudentField(studentId, field, value);
