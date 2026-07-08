@@ -640,6 +640,8 @@
   .tab.active{color:#ffffff;border-color:transparent}
   .tab:hover:not(.active){background:transparent;border-color:#ffffff}
   .tab.tab-delete:hover{color:var(--red);border-color:var(--red)}
+  .tab.tab-report:hover{color:var(--accent);border-color:var(--accent)}
+  .tab.tab-report i{margin-right:5px}
   /* Шестерёнка "настроить порядок блоков" рядом с "Удалить клиента" —
      визуально ничем не отличается от обычных вкладок (тот же белый цвет,
      та же подсветка рамкой при наведении), просто без текста, только иконка. */
@@ -2051,6 +2053,7 @@
           <div class="tab" onclick="switchDetailTab(this,'history')">История уроков</div>
           <div class="tab" onclick="switchDetailTab(this,'finance-tab')">Финансы</div>
           <div class="tab tab-delete" onclick="openModal('studentDanger',{studentId:currentStudentId})">Удалить клиента</div>
+          <div class="tab tab-report" title="Скачать отчёт по ученику в Excel (CSV)" onclick="exportStudentReportToExcel(currentStudentId)"><i class="fa-solid fa-file-arrow-down"></i> Скачать отчёт</div>
           <div class="tab tab-reorder" id="profileReorderBtn" title="Настроить порядок блоков вкладки «Профиль»" onclick="toggleProfileReorderMode()"><i class="fa-solid fa-gear"></i></div>
           <button type="button" class="btn btn-primary" id="profileReorderSaveBtn" style="display:none" onclick="saveProfileReorderOrder()"><i class="fa-solid fa-check"></i> Сохранить</button>
         </div>
@@ -4090,8 +4093,8 @@ function renderDetailProfile(){
     +'</span>'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:9px;flex:1;justify-content:center">'
-    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">📱</span><input class="input" id="contact-phone" style="padding:6px 10px;font-size:12px;flex:0 1 140px;min-width:0" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00" onchange="saveContactField(\''+s.id+'\',\'phone\',this.value)">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'<button type="button" class="btn btn-ghost btn-sm voice-report-btn" style="margin-left:auto;white-space:nowrap" title="Скачать отчёт по ученику в Excel (CSV)" onclick="exportStudentReportToExcel(\''+s.id+'\')"><i class="fa-solid fa-file-arrow-down"></i> Скачать отчёт</button></div>'
-    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">✈️</span><input class="input" id="contact-telegram" style="padding:6px 10px;font-size:12px;color:var(--accent)" value="'+escapeHTML(s.telegram||'')+'" placeholder="@username" onchange="saveContactField(\''+s.id+'\',\'telegram\',this.value)"></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">📱</span><input class="input" id="contact-phone" style="padding:6px 10px;font-size:12px" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00" onchange="saveContactField(\''+s.id+'\',\'phone\',this.value)">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:#29a9eb;width:18px;font-size:15px;display:inline-flex;justify-content:center"><i class="fa-brands fa-telegram"></i></span><input class="input" id="contact-telegram" style="padding:6px 10px;font-size:12px;color:var(--accent)" value="'+escapeHTML(s.telegram||'')+'" placeholder="@username" onchange="saveContactField(\''+s.id+'\',\'telegram\',this.value)"></div>'
     +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">🎂</span><input type="date" class="input" id="contact-bday" style="padding:6px 10px;font-size:12px;width:auto" value="'+(s.birthday||'')+'" onchange="saveContactField(\''+s.id+'\',\'birthday\',this.value)"><span style="color:var(--text3);font-size:11px">'+(s.birthday?bdayStr:'')+'</span></div>'
     +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">📅</span><input type="date" class="input" id="contact-studysince" style="padding:6px 10px;font-size:12px;width:auto" value="'+(s.studySince||s.createdAt||'')+'" onchange="saveContactField(\''+s.id+'\',\'studySince\',this.value)"><span style="color:var(--text3);font-size:11px">Начало занятий</span></div>'
     +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">🎯</span><input class="input" id="contact-goal" style="padding:6px 10px;font-size:12px" value="'+escapeHTML(s.goal||'')+'" placeholder="Цель ученика..." onchange="saveContactField(\''+s.id+'\',\'goal\',this.value)"></div>'
