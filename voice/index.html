@@ -795,6 +795,14 @@
      и модалки карточки ученика — координаты выставляются в JS
      (positionVoiceFieldDD) по положению кнопки-триггера. */
   .voice-field-dd{position:fixed;z-index:150}
+  /* Наведение и выбор в этом списке — точно как у кнопок выбора ноты
+     в карточке "Голос" (лёгкое затемнение фона + фиолетовая обводка
+     при наведении, сплошной фиолетовый фон у выбранного пункта),
+     а не общий фиолетовый "glow"-фон, как у остальных автокомплитов. */
+  .voice-field-dd .autocomplete-item{border:1px solid transparent}
+  .voice-field-dd .autocomplete-item:hover{background:var(--bg3);border-color:var(--accent);color:var(--text)}
+  .voice-field-dd .autocomplete-item.active,
+  .voice-field-dd .autocomplete-item.active:hover{background:var(--accent);border-color:var(--accent);color:#fff}
   @media (max-width:720px){
     .autocomplete-item{padding:10px 9px;font-size:13.5px}
     .autocomplete-dropdown{max-height:200px}
