@@ -772,6 +772,23 @@
     display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;
     font-size:12px;color:var(--text3);border-top:1px solid var(--border);margin-top:2px;
   }
+  /* ===== Универсальная кнопка-триггер "красивого" выпадающего списка
+     (замена обычным <select>, у которых при наведении на пункт всегда
+     системное синее выделение браузера) — выглядит как обычное поле
+     .input, а список пунктов ниже — тот же .autocomplete-dropdown
+     с тем же фиолетовым выделением при наведении, что и выбор ученика
+     в расписании. Используется и для выбора ученика (с аватаркой),
+     и для простых списков вроде "Тип голоса"/"Статус" (без аватарки). ===== */
+  .dd-trigger-btn{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+    border-radius:8px;padding:9px 12px;font-size:13px;font-weight:400;cursor:pointer;transition:border-color .15s;
+    display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:var(--font)}
+  .dd-trigger-btn:hover{border-color:var(--accent)}
+  .dd-trigger-btn.open{border-color:var(--accent)}
+  .dd-trigger-label{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+  .dd-trigger-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dd-placeholder{color:var(--text3)}
+  .dd-caret{font-size:9px;color:var(--text3);transition:transform .15s;flex-shrink:0}
+  .dd-trigger-btn.open .dd-caret{transform:rotate(180deg)}
   @media (max-width:720px){
     .autocomplete-item{padding:10px 9px;font-size:13.5px}
     .autocomplete-dropdown{max-height:200px}
@@ -3984,14 +4001,9 @@ function renderDetailProfile(){
       +'<div class="voice-basic-row">'
         +'<div class="voice-basic-col">'
           +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Тип голоса</div>'
-          +'<select class="input" onchange="updateStudentField(\''+s.id+'\',\'voiceType\',this.value)">'
-          +'<option value="" '+(!s.voiceType?'selected':'')+'>Не указан</option>'
-          + ['Сопрано','Меццо-сопрано','Альт','Тенор','Баритон','Бас'].map(v=>'<option '+(v===s.voiceType?'selected':'')+'>'+v+'</option>').join('')
-          +'</select>'
-          +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Статус</div>'
-          +'<select class="input" onchange="updateStudentField(\''+s.id+'\',\'status\',this.value)">'
-          + [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']].map(v=>'<option value="'+v[0]+'" '+(v[0]===s.status?'selected':'')+'>'+v[1]+'</option>').join('')
-          +'</select>'
+          + voiceFieldSelectHTML(s.id,'voiceType',s.voiceType)
+          +'<div style="font-size:11px;color:var(--text3);margin:10px 0 6px">Статус</div>'
+          + voiceFieldSelectHTML(s.id,'status',s.status)
         +'</div>'
         + voiceToolsBox
       +'</div></div>';
@@ -5584,6 +5596,119 @@ function studentNameOf(id){
   return s ? s.name : '';
 }
 
+/* ============================================================
+   Универсальный "красивый" выбор ученика (аватарка слева + фиолетовое
+   выделение при наведении) — заменяет обычный <select> с одними именами
+   и системным синим выделением строки. Выглядит и ведёт себя так же,
+   как выбор ученика в расписании при планировании урока. Используется
+   в модалках "Новый абонемент", "Платёж" и "Задать ДЗ".
+   ============================================================ */
+function studentPickerHTML(fieldId, selectedId, placeholder){
+  const s = selectedId ? studentById(selectedId) : null;
+  const triggerInner = s
+    ? '<span class="dd-trigger-label"><span class="autocomplete-avatar" style="background:'+(s.color||'var(--accent)')+'">'+escapeHTML(s.initials||initialsOf(s.name))+'</span><span class="dd-trigger-name">'+escapeHTML(s.name)+'</span></span>'
+    : '<span class="dd-placeholder">'+(placeholder||'Выберите ученика')+'</span>';
+  return '<div class="autocomplete-wrap" id="'+fieldId+'-wrap">'
+    +'<input type="hidden" id="'+fieldId+'" value="'+(selectedId||'')+'">'
+    +'<button type="button" class="dd-trigger-btn" id="'+fieldId+'-trigger" onclick="event.stopPropagation();toggleStudentPicker(\''+fieldId+'\')">'
+      + triggerInner
+      +'<span class="dd-caret">▾</span>'
+    +'</button>'
+  +'</div>';
+}
+let _openStudentPickerField = null;
+function closeStudentPicker(){
+  document.querySelectorAll('.student-picker-dd').forEach(d=>d.remove());
+  document.querySelectorAll('.dd-trigger-btn.open').forEach(b=>b.classList.remove('open'));
+  _openStudentPickerField = null;
+}
+function toggleStudentPicker(fieldId){
+  if(_openStudentPickerField === fieldId){ closeStudentPicker(); return; }
+  closeStudentPicker();
+  const trigger = document.getElementById(fieldId+'-trigger');
+  const wrap = document.getElementById(fieldId+'-wrap');
+  if(!trigger || !wrap) return;
+  trigger.classList.add('open');
+  _openStudentPickerField = fieldId;
+  const all = studentsOfTeacher();
+  const dd = document.createElement('div');
+  dd.className = 'autocomplete-dropdown open student-picker-dd';
+  dd.onclick = function(e){ e.stopPropagation(); };
+  dd.innerHTML = all.length
+    ? all.map(function(s){
+        return '<div class="autocomplete-item" onmousedown="event.preventDefault();selectStudentPicker(\''+fieldId+'\',\''+s.id+'\')">'
+          +'<span class="autocomplete-avatar" style="background:'+(s.color||'var(--accent)')+'">'+escapeHTML(s.initials||initialsOf(s.name))+'</span>'
+          +'<span class="autocomplete-name">'+escapeHTML(s.name)+'</span>'
+          +'</div>';
+      }).join('')
+    : '<div class="autocomplete-empty">Учеников пока нет</div>';
+  wrap.appendChild(dd);
+}
+function selectStudentPicker(fieldId, studentId){
+  const hidden = document.getElementById(fieldId);
+  const trigger = document.getElementById(fieldId+'-trigger');
+  if(hidden) hidden.value = studentId;
+  const s = studentById(studentId);
+  if(trigger && s){
+    trigger.innerHTML = '<span class="dd-trigger-label"><span class="autocomplete-avatar" style="background:'+(s.color||'var(--accent)')+'">'+escapeHTML(s.initials||initialsOf(s.name))+'</span><span class="dd-trigger-name">'+escapeHTML(s.name)+'</span></span><span class="dd-caret">▾</span>';
+  }
+  closeStudentPicker();
+  // Побочный эффект, который раньше срабатывал по onchange у <select>
+  // ученика в модалке "Платёж" — пересчитывает список уроков с долгом.
+  if(fieldId==='f-pay-student' && typeof onPayStudentChange==='function') onPayStudentChange();
+}
+
+/* ============================================================
+   Тот же "красивый" выпадающий список (фиолетовое выделение при
+   наведении вместо системного синего), но без аватарки — для простых
+   списков вроде "Тип голоса"/"Статус" в карточке "Голос". По тому же
+   принципу, что и панель выбора ноты (openNotePicker/closeNotePicker):
+   панель создаётся и убирается динамически.
+   ============================================================ */
+let _openVoiceFieldPicker = null;
+function closeVoiceFieldPicker(){
+  document.querySelectorAll('.voice-field-dd').forEach(d=>d.remove());
+  document.querySelectorAll('.dd-trigger-btn.open').forEach(b=>b.classList.remove('open'));
+  _openVoiceFieldPicker = null;
+}
+function openVoiceFieldPicker(studentId, field, btnEl){
+  const key = studentId+':'+field;
+  if(_openVoiceFieldPicker === key){ closeVoiceFieldPicker(); return; }
+  closeVoiceFieldPicker();
+  btnEl.classList.add('open');
+  _openVoiceFieldPicker = key;
+  const options = field==='voiceType'
+    ? [['','Не указан'],['Сопрано','Сопрано'],['Меццо-сопрано','Меццо-сопрано'],['Альт','Альт'],['Тенор','Тенор'],['Баритон','Баритон'],['Бас','Бас']]
+    : [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']];
+  const s = studentById(studentId);
+  const currentVal = s ? (s[field]||'') : '';
+  const dd = document.createElement('div');
+  dd.className = 'autocomplete-dropdown open voice-field-dd';
+  dd.onclick = function(e){ e.stopPropagation(); };
+  dd.innerHTML = options.map(function(o){
+    return '<div class="autocomplete-item'+(o[0]===currentVal?' active':'')+'" onmousedown="event.preventDefault();selectVoiceFieldOption(\''+studentId+'\',\''+field+'\',\''+o[0]+'\')"><span class="autocomplete-name">'+escapeHTML(o[1])+'</span></div>';
+  }).join('');
+  btnEl.parentElement.appendChild(dd);
+}
+function selectVoiceFieldOption(studentId, field, value){
+  updateStudentField(studentId, field, value);
+  closeVoiceFieldPicker();
+  renderDetailProfile();
+}
+function voiceFieldSelectHTML(studentId, field, selectedValue, placeholder){
+  const options = field==='voiceType'
+    ? [['','Не указан'],['Сопрано','Сопрано'],['Меццо-сопрано','Меццо-сопрано'],['Альт','Альт'],['Тенор','Тенор'],['Баритон','Баритон'],['Бас','Бас']]
+    : [['active','Активный'],['paused','На паузе'],['trial','Пробный урок'],['inactive','Неактивный']];
+  const found = options.find(function(o){ return o[0]===(selectedValue||''); });
+  const label = found ? found[1] : (placeholder||'Не указан');
+  return '<div class="autocomplete-wrap">'
+    +'<button type="button" class="dd-trigger-btn" onclick="event.stopPropagation();openVoiceFieldPicker(\''+studentId+'\',\''+field+'\',this)">'
+      +'<span class="dd-trigger-name">'+escapeHTML(label)+'</span>'
+      +'<span class="dd-caret">▾</span>'
+    +'</button>'
+  +'</div>';
+}
+
 function buildStudentModal(ctx){
   return '<div class="modal-title">Новый ученик <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div class="input-row"><div class="input-group"><label class="input-label">Имя и фамилия</label><input class="input" id="f-name" placeholder="Мария Соколова"></div>'
@@ -5912,7 +6037,7 @@ function buildPaymentModal(ctx){
   const students = studentsOfTeacher();
   const studentId = ctx.studentId || (students[0] && students[0].id);
   return '<div class="modal-title">Зафиксировать платёж <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-pay-student" onchange="onPayStudentChange()">'+studentOptionsHTML(studentId)+'</select></div>'
+    +'<div class="input-group"><label class="input-label">Ученик</label>'+studentPickerHTML('f-pay-student', studentId)+'</div>'
     +'<div class="input-group"><label class="input-label">За что платёж</label><div id="f-pay-lesson-wrap"></div></div>'
     +'<div id="f-pay-sub-action"></div>'
     +'<div class="input-row"><div class="input-group"><label class="input-label">Сумма (₽)</label><input class="input" id="f-pay-amount" type="number" value="0"></div>'
@@ -5984,7 +6109,7 @@ function buildSubscriptionModal(ctx){
   const studentId = ctx.studentId || (studentsOfTeacher()[0]||{}).id;
   const savedPrice = (DB.settings && DB.settings.defaultLessonPrice) || 1000;
   return '<div class="modal-title">Новый абонемент <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-sub-student">'+studentOptionsHTML(studentId)+'</select></div>'
+    +'<div class="input-group"><label class="input-label">Ученик</label>'+studentPickerHTML('f-sub-student', studentId)+'</div>'
     +'<div class="input-group">'
       +'<label class="input-label">Количество занятий</label>'
       +'<div style="display:flex;gap:6px;margin-bottom:6px">'
@@ -6214,7 +6339,7 @@ function buildHomeworkModal(ctx){
   ctx = ctx||{};
   const studentId = ctx.studentId || (studentsOfTeacher()[0]||{}).id;
   return '<div class="modal-title">Задать домашнее задание <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div class="input-group"><label class="input-label">Ученик</label><select class="input" id="f-hw-student">'+studentOptionsHTML(studentId)+'</select></div>'
+    +'<div class="input-group"><label class="input-label">Ученик</label>'+studentPickerHTML('f-hw-student', studentId)+'</div>'
     +'<div class="input-group"><label class="input-label">Задание</label><input class="input" id="f-hw-title" placeholder="Распевки 15 мин/день"></div>'
     +'<div class="input-group"><label class="input-label">Комментарий</label><textarea class="input" id="f-hw-sub" rows="2" placeholder="Дополнительные детали..."></textarea></div>'
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveHomeworkForm()">Задать ДЗ</button>';
@@ -7321,6 +7446,14 @@ document.addEventListener('click', function(e){
   if (!isNotePopover) closeNotePicker();
   const isInfoPopover = e.target.closest && e.target.closest('.info-popover, .info-dot-btn');
   if (!isInfoPopover && typeof closeRangeInfoPopover === 'function') closeRangeInfoPopover();
+  // Клик вне "красивых" выпадающих списков (выбор ученика с аватаркой в
+  // модалках "Абонемент"/"Платёж"/"Задать ДЗ", а также "Тип голоса"/
+  // "Статус" в карточке "Голос") — закрыть их тоже.
+  const isDropdownUI = e.target.closest && e.target.closest('.dd-trigger-btn, .student-picker-dd, .voice-field-dd');
+  if (!isDropdownUI){
+    if (typeof closeStudentPicker === 'function') closeStudentPicker();
+    if (typeof closeVoiceFieldPicker === 'function') closeVoiceFieldPicker();
+  }
 });
 
 // ===== PWA: ДИНАМИЧЕСКИЙ МАНИФЕСТ =====
