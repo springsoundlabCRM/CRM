@@ -5591,8 +5591,8 @@ function renderDetailFinance(){
   ).join('') : '<div class="empty-state">Платежей пока нет</div>';
   const debtRow = debt>0 ? '<div class="finance-row" style="cursor:default;border-left:3px solid var(--red)"><div style="font-size:19px">⚠️</div><div class="finance-name"><div>Текущий долг</div><div class="finance-sub">по неоплаченным урокам</div></div><div class="finance-amount debt">−'+money(debt)+'</div></div>' : '';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)"><div class="detail-title"><span class="detail-title-label">💳 Финансы</span> <button class="btn btn-primary btn-sm" onclick="openModal(\'payment\',{studentId:\''+s.id+'\'})">Платёж</button></div>'
+    +'<div style="margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;color:var(--text3)">Всего уплачено</div><div style="font-size:16px;font-weight:600;color:var(--green)">'+money(totalPaid)+'</div></div>'
     + debtRow + rows
-    +'<div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;color:var(--text3)">Всего уплачено</div><div style="font-size:16px;font-weight:600;color:var(--green)">'+money(totalPaid)+'</div></div>'
     +'</div>';
 }
 
