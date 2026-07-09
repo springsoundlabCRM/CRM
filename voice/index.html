@@ -635,7 +635,7 @@
   /* ===== Выбор периода (месяц) в разделе "Финансы" — стрелки в шапке
      справа от кнопки "Абонемент" + попап посередине экрана для выбора
      месяца/года (использует общую систему модальных окон) ===== */
-  .fin-period{display:flex;align-items:center;gap:6px}
+  .fin-period{display:flex;align-items:center;gap:6px;margin-left:14px}
   .fin-period-nav{width:30px;height:30px;flex-shrink:0;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.15s}
   .fin-period-nav:hover{color:var(--text);border-color:var(--border2)}
   .fin-period-nav:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
@@ -2095,15 +2095,6 @@
       <div class="topbar">
         <div class="topbar-title">Финансы <span class="topbar-subtitle" id="finMonthLabel">—</span></div>
         <button class="btn btn-ghost" onclick="openModal('subscription')">Абонемент</button>
-        <div class="fin-period" id="finPeriod">
-          <button class="fin-period-nav" onclick="shiftFinanceMonth(-1)" title="Предыдущий месяц"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="fin-period-btn" id="finPeriodBtn" onclick="openFinPeriodPicker()" title="Выбрать период">
-            <i class="fa-solid fa-calendar-days"></i>
-            <span id="finPeriodLabel">—</span>
-          </button>
-          <button class="fin-period-nav" id="finPeriodNextBtn" onclick="shiftFinanceMonth(1)" title="Следующий месяц"><i class="fa-solid fa-chevron-right"></i></button>
-          <button class="fin-period-reset" id="finPeriodResetBtn" onclick="resetFinanceMonth()" title="Вернуться к текущему месяцу" style="display:none"><i class="fa-solid fa-rotate-left"></i></button>
-        </div>
         <button class="btn btn-primary" onclick="openModal('payment')">Платёж</button>
       </div>
       <div class="content">
@@ -2118,6 +2109,15 @@
           <div class="tab" data-f="paid" onclick="setFinanceFilter('paid',this)">Оплачено</div>
           <div class="tab" data-f="debt" onclick="setFinanceFilter('debt',this)">Долги</div>
           <div class="tab" data-f="subs" onclick="setFinanceFilter('subs',this)">Абонементы</div>
+          <div class="fin-period" id="finPeriod">
+            <button class="fin-period-nav" onclick="shiftFinanceMonth(-1)" title="Предыдущий месяц"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="fin-period-btn" id="finPeriodBtn" onclick="openFinPeriodPicker()" title="Выбрать период">
+              <i class="fa-solid fa-calendar-days"></i>
+              <span id="finPeriodLabel">—</span>
+            </button>
+            <button class="fin-period-nav" id="finPeriodNextBtn" onclick="shiftFinanceMonth(1)" title="Следующий месяц"><i class="fa-solid fa-chevron-right"></i></button>
+            <button class="fin-period-reset" id="finPeriodResetBtn" onclick="resetFinanceMonth()" title="Вернуться к текущему месяцу" style="display:none"><i class="fa-solid fa-rotate-left"></i></button>
+          </div>
         </div>
         <div id="finance-list"></div>
       </div>
