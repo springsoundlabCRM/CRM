@@ -636,15 +636,10 @@
      справа от кнопки "Абонемент" + попап посередине экрана для выбора
      месяца/года (использует общую систему модальных окон) ===== */
   .fin-period{display:flex;align-items:center;gap:6px;margin-left:14px}
-  .fin-period-nav{width:30px;height:30px;flex-shrink:0;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.15s}
-  .fin-period-nav:hover{color:var(--text);border-color:var(--border2)}
-  .fin-period-nav:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
   .fin-period-btn{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap}
   .fin-period-btn:hover{border-color:var(--border2)}
   .fin-period-btn.is-shifted{border-color:var(--accent);color:var(--accent)}
   .fin-period-btn i.fa-calendar-days{color:var(--accent);font-size:11px}
-  .fin-period-reset{width:30px;height:30px;flex-shrink:0;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:.15s}
-  .fin-period-reset:hover{color:var(--accent);border-color:var(--accent)}
   .fin-period-year-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px}
   .fin-period-year-nav{width:28px;height:28px;border-radius:8px;border:none;background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:.15s}
   .fin-period-year-nav:hover{background:var(--accent-glow);color:var(--accent)}
@@ -2110,13 +2105,10 @@
           <div class="tab" data-f="debt" onclick="setFinanceFilter('debt',this)">Долги</div>
           <div class="tab" data-f="subs" onclick="setFinanceFilter('subs',this)">Абонементы</div>
           <div class="fin-period" id="finPeriod">
-            <button class="fin-period-nav" onclick="shiftFinanceMonth(-1)" title="Предыдущий месяц"><i class="fa-solid fa-chevron-left"></i></button>
             <button class="fin-period-btn" id="finPeriodBtn" onclick="openFinPeriodPicker()" title="Выбрать период">
               <i class="fa-solid fa-calendar-days"></i>
               <span id="finPeriodLabel">—</span>
             </button>
-            <button class="fin-period-nav" id="finPeriodNextBtn" onclick="shiftFinanceMonth(1)" title="Следующий месяц"><i class="fa-solid fa-chevron-right"></i></button>
-            <button class="fin-period-reset" id="finPeriodResetBtn" onclick="resetFinanceMonth()" title="Вернуться к текущему месяцу" style="display:none"><i class="fa-solid fa-rotate-left"></i></button>
           </div>
         </div>
         <div id="finance-list"></div>
@@ -5690,21 +5682,6 @@ async function saveContactField(studentId, field, value){
 /* ============================================================
    ФИНАНСЫ (страница)
    ============================================================ */
-// Переключение просматриваемого месяца в разделе "Финансы" стрелками ‹ ›.
-// Вперёд дальше текущего месяца уходить нельзя — будущих платежей ещё нет.
-function shiftFinanceMonth(delta){
-  if(delta>0 && financeMonthOffset>=0) return;
-  financeMonthOffset += delta;
-  renderFinances();
-}
-
-// Клик по кнопке "Сбросить" рядом с выбором периода — быстрый возврат к текущему месяцу.
-function resetFinanceMonth(){
-  if(financeMonthOffset===0) return;
-  financeMonthOffset = 0;
-  renderFinances();
-}
-
 // Год, который сейчас пролистывается внутри попапа выбора месяца.
 // Может отличаться от года выбранного периода, пока пользователь листает
 // стрелками года внутри самого попапа — выбор фиксируется только
@@ -5769,22 +5746,6 @@ function setFinanceFilter(f, el){
   renderFinances();
 }
 
-// Переключение просматриваемого месяца в разделе "Финансы" (стрелки ‹ ›
-// в шапке). Вперёд дальше текущего месяца уходить нельзя — будущих
-// платежей ещё не существует.
-function shiftFinanceMonth(delta){
-  if(delta>0 && financeMonthOffset>=0) return;
-  financeMonthOffset += delta;
-  renderFinances();
-}
-
-// Клик по самой кнопке с названием месяца — быстрый возврат к текущему.
-function resetFinanceMonth(){
-  if(financeMonthOffset===0) return;
-  financeMonthOffset = 0;
-  renderFinances();
-}
-
 function renderFinances(){
   const today = new Date();
   const now = new Date(today.getFullYear(), today.getMonth()+financeMonthOffset, 1);
@@ -5792,10 +5753,6 @@ function renderFinances(){
   document.getElementById('finMonthLabel').textContent = periodLabel;
   const finPeriodLabel = document.getElementById('finPeriodLabel');
   if(finPeriodLabel) finPeriodLabel.textContent = periodLabel;
-  const finPeriodNextBtn = document.getElementById('finPeriodNextBtn');
-  if(finPeriodNextBtn) finPeriodNextBtn.disabled = financeMonthOffset>=0;
-  const finPeriodResetBtn = document.getElementById('finPeriodResetBtn');
-  if(finPeriodResetBtn) finPeriodResetBtn.style.display = financeMonthOffset!==0 ? '' : 'none';
   const finPeriodBtn = document.getElementById('finPeriodBtn');
   if(finPeriodBtn) finPeriodBtn.classList.toggle('is-shifted', financeMonthOffset!==0);
 
