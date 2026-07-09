@@ -43,7 +43,7 @@
   }
   body.light-theme{
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
-    --border:#dddde8;--border2:#c8c8d8;--text:#1e1e2a;--text2:#5a5a72;--text3:#9090a8;
+    --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
     --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
     --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-glow:rgba(5,150,105,0.35);
     --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-glow:rgba(217,119,6,0.35);
@@ -486,8 +486,8 @@
   .carryover-badge{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);color:var(--text2);border:1px solid var(--border2);font-size:9px;padding:2px 6px;border-radius:6px;margin-left:6px}
   .detail-panel{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .detail-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
-  .detail-title{font-size:12px;font-weight:600;color:#ffffff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-  .detail-title-label{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;border-radius:7px;padding:4px 10px;color:#ffffff}
+  .detail-title{font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+  .detail-title-label{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;border-radius:7px;padding:4px 10px;color:var(--text)}
   .detail-title-label.danger{background:var(--red-bg);border-color:var(--red);color:var(--red)}
   /* Размеры карточки "Абонемент" (вкладка Профиль) по умолчанию — как было
      раньше. На десктопе (см. media (min-width:881px) ниже, рядом с
@@ -635,8 +635,8 @@
   /* ===== Выбор периода (месяц) в разделе "Финансы" — стрелки в шапке
      справа от кнопки "Абонемент" + попап посередине экрана для выбора
      месяца/года (использует общую систему модальных окон) ===== */
-  .fin-period-btn{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:7px;background:var(--card2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap;box-sizing:border-box;border:1px solid rgba(255,255,255,.22)}
-  .fin-period-btn:hover{border-color:#fff}
+  .fin-period-btn{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:7px;background:var(--card2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap;box-sizing:border-box;border:1px solid var(--border2)}
+  .fin-period-btn:hover{border-color:var(--accent)}
   .fin-period-btn.is-shifted{border-color:var(--accent);color:var(--accent)}
   .fin-period-btn i.fa-calendar-days{color:var(--accent);font-size:11px}
   .fin-period-year-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px}
@@ -654,9 +654,9 @@
   .tab-slider{position:absolute;top:3px;bottom:3px;left:0;border-radius:7px;background:var(--accent-glow);
     border:1px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.3);z-index:0;pointer-events:none;opacity:0;
     transition:transform .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),opacity .15s}
-  .tab{position:relative;z-index:1;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:#ffffff;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.22)}
-  .tab.active{color:#ffffff;border-color:transparent}
-  .tab:hover:not(.active){background:transparent;border-color:#ffffff}
+  .tab{position:relative;z-index:1;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text);transition:background .15s,border-color .15s,color .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid var(--border2)}
+  .tab.active{color:var(--text);border-color:transparent}
+  .tab:hover:not(.active){background:transparent;border-color:var(--accent)}
   .tab.tab-delete:hover{color:var(--red);border-color:var(--red)}
   .tab.tab-report:hover{color:var(--accent);border-color:var(--accent)}
   .tab.tab-report i{margin-right:5px}
@@ -865,7 +865,7 @@
   .bday-days{font-size:10px;color:var(--pink);font-weight:600;margin-left:auto;white-space:nowrap}
   .sub-progress-wrap{margin-top:6px}
   .swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
-  .swatch.active{border-color:#fff}
+  .swatch.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--accent)}
   .color-row{display:flex;gap:8px;flex-wrap:wrap}
   @media (max-width:1100px){
     .stat-grid{grid-template-columns:repeat(2,1fr)}
@@ -1825,7 +1825,7 @@
       <div style="text-align:center;margin-top:10px">
         <a href="javascript:void(0)" onclick="toggleAuthDiagnostics()" style="color:var(--text3);font-size:11px;text-decoration:underline" id="authDiagToggle">Показать диагностику</a>
       </div>
-      <pre id="authDiagBox" style="display:none;margin-top:8px;padding:10px;border-radius:8px;background:rgba(255,255,255,.04);color:var(--text3);font-size:10.5px;line-height:1.5;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow:auto"></pre>
+      <pre id="authDiagBox" style="display:none;margin-top:8px;padding:10px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);font-size:10.5px;line-height:1.5;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow:auto"></pre>
     </div>
 
     <!-- Обычная форма входа/регистрации — показывается только когда
@@ -3894,7 +3894,7 @@ function drawTrendOverlay(container, values){
   const poly=document.createElementNS(svgNS,'polyline');
   poly.setAttribute('points', pts.map(p=>p.join(',')).join(' '));
   poly.setAttribute('fill','none');
-  poly.setAttribute('stroke','rgba(255,255,255,.65)');
+  poly.setAttribute('stroke', document.body.classList.contains('light-theme') ? 'rgba(30,30,42,.55)' : 'rgba(255,255,255,.65)');
   poly.setAttribute('stroke-width','1.5');
   poly.setAttribute('stroke-dasharray','1,4');
   poly.setAttribute('stroke-linecap','round');
