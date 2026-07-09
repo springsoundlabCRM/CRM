@@ -632,27 +632,26 @@
   .note-text{font-size:13.5px;color:var(--text2);line-height:1.6}
   .tab-row{display:flex;gap:2px;background:transparent;border-radius:9px;padding:3px;margin-bottom:20px;flex-wrap:wrap;position:relative}
   .tab-row.scrolly{overflow-x:auto;flex-wrap:nowrap}
-  /* ===== Выбор периода (месяц) в разделе "Финансы" — стрелки + стилизованный
-     выпадающий выбор месяца/года, показывается под строкой фильтров ===== */
-  .fin-period{display:flex;align-items:center;gap:6px;margin:0 0 18px;position:relative;flex-wrap:wrap}
+  /* ===== Выбор периода (месяц) в разделе "Финансы" — стрелки в шапке
+     справа от кнопки "Абонемент" + попап посередине экрана для выбора
+     месяца/года (использует общую систему модальных окон) ===== */
+  .fin-period{display:flex;align-items:center;gap:6px}
   .fin-period-nav{width:30px;height:30px;flex-shrink:0;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.15s}
   .fin-period-nav:hover{color:var(--text);border-color:var(--border2)}
   .fin-period-nav:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
-  .fin-period-btn{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+  .fin-period-btn{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap}
   .fin-period-btn:hover{border-color:var(--border2)}
   .fin-period-btn.is-shifted{border-color:var(--accent);color:var(--accent)}
   .fin-period-btn i.fa-calendar-days{color:var(--accent);font-size:11px}
-  .fin-period-caret{font-size:9px;color:var(--text3);transition:transform .2s}
-  .fin-period-btn.is-open .fin-period-caret{transform:rotate(180deg)}
   .fin-period-reset{width:30px;height:30px;flex-shrink:0;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:.15s}
   .fin-period-reset:hover{color:var(--accent);border-color:var(--accent)}
-  .fin-period-dropdown{position:absolute;top:calc(100% + 8px);left:0;z-index:40;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);box-shadow:0 12px 32px rgba(0,0,0,.35);padding:14px;width:260px}
-  .fin-period-year-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
-  .fin-period-year-nav{width:26px;height:26px;border-radius:7px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:.15s}
+  .fin-period-year-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px}
+  .fin-period-year-nav{width:28px;height:28px;border-radius:8px;border:none;background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:.15s}
   .fin-period-year-nav:hover{background:var(--accent-glow);color:var(--accent)}
-  .fin-period-year{font-size:14.5px;font-weight:700;min-width:70px;text-align:center}
-  .fin-period-months{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-  .fin-period-month{padding:9px 4px;border-radius:8px;border:1px solid transparent;background:var(--card2);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:.15s}
+  .fin-period-year-nav:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+  .fin-period-year{font-size:16px;font-weight:700;min-width:80px;text-align:center}
+  .fin-period-months{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .fin-period-month{padding:12px 4px;border-radius:9px;border:1px solid transparent;background:var(--card2);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;text-align:center;transition:.15s}
   .fin-period-month:hover{border-color:var(--border2);color:var(--text)}
   .fin-period-month.is-future{opacity:.35;cursor:not-allowed;pointer-events:none}
   .fin-period-month.is-today{border-color:var(--border2)}
@@ -2096,6 +2095,15 @@
       <div class="topbar">
         <div class="topbar-title">Финансы <span class="topbar-subtitle" id="finMonthLabel">—</span></div>
         <button class="btn btn-ghost" onclick="openModal('subscription')">Абонемент</button>
+        <div class="fin-period" id="finPeriod">
+          <button class="fin-period-nav" onclick="shiftFinanceMonth(-1)" title="Предыдущий месяц"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="fin-period-btn" id="finPeriodBtn" onclick="openFinPeriodPicker()" title="Выбрать период">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span id="finPeriodLabel">—</span>
+          </button>
+          <button class="fin-period-nav" id="finPeriodNextBtn" onclick="shiftFinanceMonth(1)" title="Следующий месяц"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="fin-period-reset" id="finPeriodResetBtn" onclick="resetFinanceMonth()" title="Вернуться к текущему месяцу" style="display:none"><i class="fa-solid fa-rotate-left"></i></button>
+        </div>
         <button class="btn btn-primary" onclick="openModal('payment')">Платёж</button>
       </div>
       <div class="content">
@@ -2110,24 +2118,6 @@
           <div class="tab" data-f="paid" onclick="setFinanceFilter('paid',this)">Оплачено</div>
           <div class="tab" data-f="debt" onclick="setFinanceFilter('debt',this)">Долги</div>
           <div class="tab" data-f="subs" onclick="setFinanceFilter('subs',this)">Абонементы</div>
-        </div>
-        <div class="fin-period" id="finPeriod">
-          <button class="fin-period-nav" onclick="shiftFinanceMonth(-1)" title="Предыдущий месяц"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="fin-period-btn" id="finPeriodBtn" onclick="toggleFinPeriodDropdown(event)">
-            <i class="fa-solid fa-calendar-days"></i>
-            <span id="finPeriodLabel">—</span>
-            <i class="fa-solid fa-chevron-down fin-period-caret"></i>
-          </button>
-          <button class="fin-period-nav" id="finPeriodNextBtn" onclick="shiftFinanceMonth(1)" title="Следующий месяц"><i class="fa-solid fa-chevron-right"></i></button>
-          <button class="fin-period-reset" id="finPeriodResetBtn" onclick="resetFinanceMonth()" title="Вернуться к текущему месяцу" style="display:none"><i class="fa-solid fa-rotate-left"></i></button>
-          <div class="fin-period-dropdown hidden" id="finPeriodDropdown">
-            <div class="fin-period-year-row">
-              <button class="fin-period-year-nav" onclick="finPeriodShiftYear(-1,event)"><i class="fa-solid fa-chevron-left"></i></button>
-              <div class="fin-period-year" id="finPeriodYearLabel">—</div>
-              <button class="fin-period-year-nav" onclick="finPeriodShiftYear(1,event)"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
-            <div class="fin-period-months" id="finPeriodMonths"></div>
-          </div>
         </div>
         <div id="finance-list"></div>
       </div>
@@ -5715,35 +5705,19 @@ function resetFinanceMonth(){
   renderFinances();
 }
 
-// Год, который сейчас пролистывается внутри выпадающего выбора месяца.
+// Год, который сейчас пролистывается внутри попапа выбора месяца.
 // Может отличаться от года выбранного периода, пока пользователь листает
-// стрелками года внутри самого выпадающего меню — выбор фиксируется только
+// стрелками года внутри самого попапа — выбор фиксируется только
 // кликом по конкретному месяцу.
 let finPeriodPickerYear = null;
 
-function toggleFinPeriodDropdown(ev){
-  if(ev) ev.stopPropagation();
-  const dd = document.getElementById('finPeriodDropdown');
-  const btn = document.getElementById('finPeriodBtn');
-  if(!dd) return;
-  const willOpen = dd.classList.contains('hidden');
-  if(willOpen){
-    const today = new Date();
-    const shown = new Date(today.getFullYear(), today.getMonth()+financeMonthOffset, 1);
-    finPeriodPickerYear = shown.getFullYear();
-    renderFinPeriodMonths();
-    dd.classList.remove('hidden');
-    if(btn) btn.classList.add('is-open');
-  } else {
-    closeFinPeriodDropdown();
-  }
-}
-
-function closeFinPeriodDropdown(){
-  const dd = document.getElementById('finPeriodDropdown');
-  const btn = document.getElementById('finPeriodBtn');
-  if(dd) dd.classList.add('hidden');
-  if(btn) btn.classList.remove('is-open');
+// Открывает попап выбора периода (месяц/год) посередине экрана —
+// использует общую систему модальных окон приложения.
+function openFinPeriodPicker(){
+  const today = new Date();
+  const shown = new Date(today.getFullYear(), today.getMonth()+financeMonthOffset, 1);
+  finPeriodPickerYear = shown.getFullYear();
+  openModal('financePeriod');
 }
 
 function finPeriodShiftYear(delta, ev){
@@ -5757,11 +5731,14 @@ function finPeriodShiftYear(delta, ev){
 
 function renderFinPeriodMonths(){
   const yearLbl = document.getElementById('finPeriodYearLabel');
+  const yearNextBtn = document.getElementById('finPeriodYearNextBtn');
   const box = document.getElementById('finPeriodMonths');
   if(!box) return;
   const today = new Date();
   const shown = new Date(today.getFullYear(), today.getMonth()+financeMonthOffset, 1);
+  if(finPeriodPickerYear===null) finPeriodPickerYear = shown.getFullYear();
   if(yearLbl) yearLbl.textContent = finPeriodPickerYear;
+  if(yearNextBtn) yearNextBtn.disabled = finPeriodPickerYear>=today.getFullYear();
   box.innerHTML = MNSh.map((label,i)=>{
     const isFuture = finPeriodPickerYear>today.getFullYear() || (finPeriodPickerYear===today.getFullYear() && i>today.getMonth());
     const isSelected = finPeriodPickerYear===shown.getFullYear() && i===shown.getMonth();
@@ -5770,27 +5747,19 @@ function renderFinPeriodMonths(){
     if(isFuture) cls += ' is-future';
     if(isToday && !isSelected) cls += ' is-today';
     if(isSelected) cls += ' is-selected';
-    return '<div class="'+cls+'" onclick="selectFinPeriodMonth('+i+',event)">'+label+'</div>';
+    return '<div class="'+cls+'" onclick="selectFinPeriodMonth('+i+')">'+label+'</div>';
   }).join('');
 }
 
-function selectFinPeriodMonth(monthIndex, ev){
-  if(ev) ev.stopPropagation();
+function selectFinPeriodMonth(monthIndex){
   const today = new Date();
   const year = finPeriodPickerYear===null ? today.getFullYear() : finPeriodPickerYear;
   let offset = (year - today.getFullYear())*12 + (monthIndex - today.getMonth());
   if(offset>0) offset=0;
   financeMonthOffset = offset;
-  closeFinPeriodDropdown();
+  closeModal();
   renderFinances();
 }
-
-// Закрываем выпадающий выбор периода при клике вне его — вешаем один раз.
-document.addEventListener('click', function(ev){
-  const wrap = document.getElementById('finPeriod');
-  if(!wrap) return;
-  if(!wrap.contains(ev.target)) closeFinPeriodDropdown();
-});
 
 function setFinanceFilter(f, el){
   financeFilter=f;
@@ -5829,8 +5798,6 @@ function renderFinances(){
   if(finPeriodResetBtn) finPeriodResetBtn.style.display = financeMonthOffset!==0 ? '' : 'none';
   const finPeriodBtn = document.getElementById('finPeriodBtn');
   if(finPeriodBtn) finPeriodBtn.classList.toggle('is-shifted', financeMonthOffset!==0);
-  const finPeriodDropdown = document.getElementById('finPeriodDropdown');
-  if(finPeriodDropdown && !finPeriodDropdown.classList.contains('hidden')) renderFinPeriodMonths();
 
   const myStudentIds = new Set(studentsOfTeacher().map(s=>s.id));
   const {paid} = monthIncome(now.getFullYear(), now.getMonth());
@@ -7111,6 +7078,18 @@ function buildCalPickerModal(){
     + '<div class="cal-picker-days" id="calPickerDays"></div>';
 }
 
+// Попап выбора периода (месяц/год) для раздела "Финансы" — открывается
+// по клику на кнопку с текущим месяцем в шапке, посередине экрана.
+function buildFinancePeriodModal(){
+  return '<div class="modal-title"><span><i class="fa-solid fa-calendar-days"></i> Выбрать период</span><button class="modal-close" onclick="closeModal()">×</button></div>'
+    + '<div class="fin-period-year-row">'
+    +   '<button class="fin-period-year-nav" onclick="finPeriodShiftYear(-1,event)"><i class="fa-solid fa-chevron-left"></i></button>'
+    +   '<div class="fin-period-year" id="finPeriodYearLabel">—</div>'
+    +   '<button class="fin-period-year-nav" id="finPeriodYearNextBtn" onclick="finPeriodShiftYear(1,event)"><i class="fa-solid fa-chevron-right"></i></button>'
+    + '</div>'
+    + '<div class="fin-period-months" id="finPeriodMonths"></div>';
+}
+
 function calPickerShiftMonth(delta) {
   calPickerMonthDate = new Date(calPickerMonthDate.getFullYear(), calPickerMonthDate.getMonth() + delta, 1);
   renderCalPickerCalendar();
@@ -7235,6 +7214,7 @@ const modalBuilders = {
   repertoire: buildRepertoireModal,
   monthInfo: buildMonthInfoModal,
   calPicker: buildCalPickerModal,
+  financePeriod: buildFinancePeriodModal,
   deleteLesson: buildDeleteLessonModal,
   deleteLessonConfirm: buildDeleteLessonConfirmModal,
   deleteHomework: buildDeleteHomeworkModal,
@@ -7254,6 +7234,7 @@ function openModal(type, ctx){
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
   if(type==='calPicker') renderCalPickerCalendar();
+  if(type==='financePeriod') renderFinPeriodMonths();
 }
 // Флаг: было ли нажатие мыши (mousedown) именно на фоне модалки,
 // а не начато внутри окна (например, при выделении текста мышкой).
