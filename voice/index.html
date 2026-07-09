@@ -635,9 +635,8 @@
   /* ===== Выбор периода (месяц) в разделе "Финансы" — стрелки в шапке
      справа от кнопки "Абонемент" + попап посередине экрана для выбора
      месяца/года (использует общую систему модальных окон) ===== */
-  .fin-period{display:flex;align-items:center}
-  .fin-period-btn{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap;box-sizing:border-box}
-  .fin-period-btn:hover{border-color:var(--border2)}
+  .fin-period-btn{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:7px;background:var(--card2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap;box-sizing:border-box;border:1px solid rgba(255,255,255,.22)}
+  .fin-period-btn:hover{border-color:#fff}
   .fin-period-btn.is-shifted{border-color:var(--accent);color:var(--accent)}
   .fin-period-btn i.fa-calendar-days{color:var(--accent);font-size:11px}
   .fin-period-year-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px}
@@ -1104,6 +1103,7 @@
     .tab-row{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
     .tab-row::-webkit-scrollbar{display:none}
     .tab{padding:6px 12px;font-size:11.5px}
+    .fin-period-btn{padding:6px 12px;font-size:11.5px}
 
     /* Расписание / неделя (вид "по дням" вне календаря) — горизонтальный скролл */
     .schedule-grid{overflow-x:auto;grid-template-columns:repeat(7,minmax(140px,1fr))}
@@ -2104,12 +2104,10 @@
           <div class="tab" data-f="paid" onclick="setFinanceFilter('paid',this)">Оплачено</div>
           <div class="tab" data-f="debt" onclick="setFinanceFilter('debt',this)">Долги</div>
           <div class="tab" data-f="subs" onclick="setFinanceFilter('subs',this)">Абонементы</div>
-          <div class="fin-period" id="finPeriod">
-            <button class="fin-period-btn" id="finPeriodBtn" onclick="openFinPeriodPicker()" title="Выбрать период">
-              <i class="fa-solid fa-calendar-days"></i>
-              <span id="finPeriodLabel">—</span>
-            </button>
-          </div>
+          <button class="fin-period-btn" id="finPeriodBtn" onclick="openFinPeriodPicker()" title="Выбрать период">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span id="finPeriodLabel">—</span>
+          </button>
         </div>
         <div id="finance-list"></div>
       </div>
