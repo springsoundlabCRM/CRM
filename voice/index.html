@@ -158,7 +158,9 @@
     white-space:nowrap;
   }
   .tb-btn:hover{color:var(--text);border-color:var(--border2)}
+  .tb-btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
   button.tb-btn{font-family:inherit}
+  #finMonthLabelBtn.is-shifted{border-color:var(--accent);color:var(--accent)}
   /* Зум-контролы расписания: на десктопе слева, видны по умолчанию */
   .zoom-controls-top{display:flex;gap:4px;margin-right:8px}
   /* Навигация по неделям + дата + сброс: на десктопе справа, видна по умолчанию */
@@ -2069,7 +2071,14 @@
     <!-- FINANCES -->
     <div id="page-finances" class="hidden">
       <div class="topbar">
-        <div class="topbar-title">Финансы <span class="topbar-subtitle" id="finMonthLabel">—</span></div>
+        <div class="topbar-title">Финансы</div>
+        <div class="cal-week-nav" style="display:flex;align-items:center;gap:6px">
+          <button class="tb-btn" id="finMonthPrevBtn" onclick="shiftFinanceMonth(-1)" title="Предыдущий месяц"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="tb-btn cal-period-btn" id="finMonthLabelBtn" onclick="resetFinanceMonth()" title="Вернуться к текущему месяцу">
+            <i class="fa-solid fa-calendar-days"></i> <span id="finMonthLabel">—</span>
+          </button>
+          <button class="tb-btn" id="finMonthNextBtn" onclick="shiftFinanceMonth(1)" title="Следующий месяц"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
         <button class="btn btn-ghost" onclick="openModal('subscription')">Абонемент</button>
         <button class="btn btn-primary" onclick="openModal('payment')">Платёж</button>
       </div>
@@ -2558,6 +2567,7 @@ let currentStudentId = null;
 let currentPageName = 'dashboard';
 let studentFilter = 'all';
 let financeFilter = 'all';
+let financeMonthOffset = 0; // 0 = текущий месяц, -1 = предыдущий, +1 = следующий и т.д.
 let scheduleWeekStart = startOfWeek(new Date());
 let analyticsYear = new Date().getFullYear();
 
@@ -4136,7 +4146,7 @@ function showPage(name){
   if(name==='dashboard') renderDashboard();
   if(name==='schedule') { showSchedule(); adaptScheduleTopbar(); }
   if(name==='students') renderStudents();
-  if(name==='finances') renderFinances();
+  if(name==='finances'){ financeMonthOffset=0; renderFinances(); }
   if(name==='homework') renderHomework();
   if(name==='analytics') renderAnalytics();
   if(name==='settings') renderSettingsPage();
@@ -5664,9 +5674,30 @@ function setFinanceFilter(f, el){
   renderFinances();
 }
 
+// Переключение просматриваемого месяца в разделе "Финансы" (стрелки ‹ ›
+// в шапке). Вперёд дальше текущего месяца уходить нельзя — будущих
+// платежей ещё не существует.
+function shiftFinanceMonth(delta){
+  if(delta>0 && financeMonthOffset>=0) return;
+  financeMonthOffset += delta;
+  renderFinances();
+}
+
+// Клик по самой кнопке с названием месяца — быстрый возврат к текущему.
+function resetFinanceMonth(){
+  if(financeMonthOffset===0) return;
+  financeMonthOffset = 0;
+  renderFinances();
+}
+
 function renderFinances(){
-  const now = new Date();
+  const today = new Date();
+  const now = new Date(today.getFullYear(), today.getMonth()+financeMonthOffset, 1);
   document.getElementById('finMonthLabel').textContent = MN[now.getMonth()]+' '+now.getFullYear();
+  const finMonthNextBtn = document.getElementById('finMonthNextBtn');
+  if(finMonthNextBtn) finMonthNextBtn.disabled = financeMonthOffset>=0;
+  const finMonthLabelBtn = document.getElementById('finMonthLabelBtn');
+  if(finMonthLabelBtn) finMonthLabelBtn.classList.toggle('is-shifted', financeMonthOffset!==0);
 
   const myStudentIds = new Set(studentsOfTeacher().map(s=>s.id));
   const {paid} = monthIncome(now.getFullYear(), now.getMonth());
@@ -5733,7 +5764,11 @@ function renderFinances(){
   else if(financeFilter==='debt') monthRows = monthRows.filter(l=>lessonDebt(l)>0);
 
   let finalRows = monthRows.slice();
-  if(financeFilter==='all' || financeFilter==='debt'){
+  // Переносы долгов из прошлых месяцев показываем только когда смотрим
+  // на актуальный текущий месяц — иначе при просмотре, например, марта
+  // туда же подмешивались бы долги за январь-февраль, хотя они уже
+  // показаны в своих собственных месяцах.
+  if((financeFilter==='all' || financeFilter==='debt') && financeMonthOffset===0){
     const ids = new Set(finalRows.map(l=>l.id));
     carry.forEach(l=>{ if(!ids.has(l.id)) finalRows.push(Object.assign({_carry:true}, l)); });
   }
