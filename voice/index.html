@@ -2239,6 +2239,25 @@
           </div>
         </div>
 
+        <div class="settings-section">
+          <div class="settings-section-title">Резервные копии</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Скачать резервную копию</div>
+              <div class="settings-row-sub">Сохранит всех учеников, оплаты, расписание и задания в один файл на ваш компьютер. Рекомендуем делать это раз в неделю.</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="exportBackupJSON()">⬇️ Скачать копию</button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Восстановить из файла</div>
+              <div class="settings-row-sub">Загрузит данные из ранее скачанного файла резервной копии. Текущие данные будут полностью заменены — используйте только если что-то пропало.</div>
+            </div>
+            <label class="btn btn-ghost btn-sm" for="restoreBackupFile" style="cursor:pointer">📤 Восстановить</label>
+            <input type="file" id="restoreBackupFile" accept="application/json" style="display:none" onchange="restoreBackupFromFile(event)">
+          </div>
+        </div>
+
         <div class="settings-section" id="quickMenuSettingsSection" style="display:none">
           <div class="settings-section-title">Мобильное меню</div>
           <div class="settings-row">
@@ -2432,6 +2451,88 @@ async function saveDB(){
   // "застрять" навсегда — следующее сохранение всё равно должно пойти.
   __saveQueue = run.catch(()=>{});
   return run;
+}
+
+/* ---------- Резервное копирование (скачать/восстановить всё в один файл) ----------
+   Формат файла нарочно простой и человекочитаемый: это JSON-снимок объекта DB
+   (те же данные, что и так хранятся в Firestore в поле payload) плюс немного
+   служебной информации (дата создания, версия), чтобы при восстановлении можно
+   было проверить, что файл действительно похож на резервную копию, а не
+   случайный левый файл. Этот же формат в будущем используется как формат
+   миграции при переезде с Firebase на другой бэкенд — экспортируем отсюда,
+   импортируем уже в новую систему. */
+function exportBackupJSON(){
+  try{
+    const snapshot = {
+      __type: 'voiceloft-backup',
+      __version: 1,
+      exportedAt: new Date().toISOString(),
+      teacherUid: currentUid || null,
+      data: DB
+    };
+    const json = JSON.stringify(snapshot, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const dateStamp = new Date().toISOString().slice(0,10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'VoiceLoft_бэкап_'+dateStamp+'.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('✅ Резервная копия скачана','green');
+  }catch(e){
+    console.error('Не удалось создать резервную копию', e);
+    toast('⚠️ Не удалось создать резервную копию','red');
+  }
+}
+
+async function restoreBackupFromFile(event){
+  const file = event.target.files && event.target.files[0];
+  event.target.value = ''; // сбрасываем input, чтобы можно было выбрать тот же файл повторно
+  if(!file) return;
+
+  let parsed;
+  try{
+    const text = await file.text();
+    parsed = JSON.parse(text);
+  }catch(e){
+    toast('⚠️ Файл повреждён или это не резервная копия','red');
+    return;
+  }
+
+  // Поддерживаем как "правильный" файл (созданный кнопкой "Скачать копию"),
+  // так и на всякий случай сырой объект DB — если человек случайно сохранил
+  // не тот файл, а внутри всё равно похоже на данные CRM.
+  const incoming = (parsed && parsed.__type === 'voiceloft-backup') ? parsed.data : parsed;
+
+  if(!incoming || typeof incoming !== 'object'){
+    toast('⚠️ Это не похоже на файл резервной копии','red');
+    return;
+  }
+
+  const dateLabel = (parsed && parsed.exportedAt) ? new Date(parsed.exportedAt).toLocaleString('ru-RU') : 'неизвестна';
+  const sure = confirm(
+    'Восстановить данные из этого файла?\n\n'+
+    'Дата резервной копии: '+dateLabel+'\n\n'+
+    'ВНИМАНИЕ: все текущие данные (ученики, оплаты, расписание, задания) будут '+
+    'полностью заменены содержимым файла. Это действие нельзя отменить.\n\n'+
+    'Если сомневаетесь — сначала нажмите "Скачать копию", чтобы сохранить текущее '+
+    'состояние на всякий случай, и только потом восстанавливайте.'
+  );
+  if(!sure) return;
+
+  try{
+    DB = incoming;
+    writeLocalCache();
+    await saveDB();
+    toast('✅ Данные восстановлены, перезагружаю страницу…','green');
+    setTimeout(()=>location.reload(), 1200);
+  }catch(e){
+    console.error('Не удалось восстановить данные', e);
+    toast('⚠️ Не удалось восстановить данные','red');
+  }
 }
 // Раньше здесь было окно-предупреждение браузера "Обновить страницу? Изменения
 // могут не сохраниться" (beforeunload + preventDefault), которое выскакивало
