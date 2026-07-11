@@ -2571,8 +2571,6 @@ function daysUntilBirthday(bday){
 }
 function escapeHTML(s){ if(s===undefined||s===null) return ''; return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function initialsOf(name){ if(!name) return '??'; const parts=name.trim().split(/\s+/); return ((parts[0]||'')[0]||'')+((parts[1]||'')[0]||''); }
-function digitsOnly(phone){ return (phone||'').replace(/\D/g,''); }
-
 function toast(msg, color){
   const host=document.getElementById('toastHost');
   if(!host) return;
@@ -2591,25 +2589,25 @@ function toast(msg, color){
 // только пустой профиль преподавателя, без тестовых учеников/уроков.
 function seedEmptyTeacher(){
   const teacherId = uid('t');
-  DB.teachers.push({ id:teacherId, name:'', role:'', initials:'', avatar:GRADIENTS[0], phone:'' });
+  DB.teachers.push({ id:teacherId, name:'', role:'', initials:'', avatar:GRADIENTS[0] });
   DB.currentTeacherId = teacherId;
 }
 
 function seedDB(){
   const teacherId = uid('t');
-  DB.teachers.push({ id:teacherId, name:'Анна Ковалёва', role:'Преподаватель эстрады', initials:'АК', avatar:'linear-gradient(135deg,#a78bfa,#ec4899)', phone:'' });
+  DB.teachers.push({ id:teacherId, name:'Анна Ковалёва', role:'Преподаватель эстрады', initials:'АК', avatar:'linear-gradient(135deg,#a78bfa,#ec4899)' });
   DB.currentTeacherId = teacherId;
 
   const today = new Date();
   const iso = (offsetDays)=> toISODate(addDays(today, offsetDays));
 
   const sData = [
-    {name:'Мария Соколова', age:26, voiceType:'Меццо-сопрано', phone:'+7 916 123-45-67', telegram:'@maria_vokalist', goal:'Хочет петь на свадьбах и корпоративах. Интересуется эстрадой и соулом.', notes:'Зажим в шее. Стесняется записей. Хорошо работает при похвале.', status:'active', color:GRADIENTS[0], bdayOffset:18, skills:{breath:75,intonation:82,mix:45,range:68,stage:55}},
-    {name:'Артём Васильев', age:19, voiceType:'Тенор', phone:'+7 925 222-11-33', telegram:'@artem_v', goal:'Хочет выступать на школьных концертах.', notes:'Энергичный, быстро учится.', status:'active', color:GRADIENTS[1], bdayOffset:46, skills:{breath:60,intonation:70,mix:50,range:78,stage:62}},
-    {name:'Кира Новикова', age:23, voiceType:'Сопрано', phone:'+7 903 555-77-21', telegram:'@kira_n', goal:'Поёт для себя, мечтает о профессиональной карьере.', notes:'Сейчас снижена мотивация — не сдаёт ДЗ.', status:'active', color:GRADIENTS[2], bdayOffset:5, skills:{breath:70,intonation:74,mix:40,range:66,stage:58}},
-    {name:'Дмитрий Попов', age:31, voiceType:'Баритон', phone:'+7 999 888-44-12', telegram:'@dpopov', goal:'Поёт в любительской рок-группе.', notes:'Пропустил несколько уроков — нужно поговорить.', status:'active', color:GRADIENTS[3], bdayOffset:120, skills:{breath:50,intonation:55,mix:30,range:48,stage:40}},
-    {name:'Ольга Романова', age:28, voiceType:'Сопрано', phone:'+7 911 333-22-44', telegram:'@olya_sing', goal:'Готовится к конкурсу вокалистов.', notes:'Очень дисциплинированная.', status:'active', color:GRADIENTS[4], bdayOffset:240, skills:{breath:88,intonation:90,mix:60,range:80,stage:75}},
-    {name:'Иван Смирнов', age:22, voiceType:'Баритон', phone:'+7 967 111-99-55', telegram:'@ivan_smir', goal:'Только начал заниматься, пробует голос.', notes:'Новичок, нужно больше дыхательных упражнений.', status:'trial', color:GRADIENTS[5], bdayOffset:300, skills:{breath:35,intonation:40,mix:20,range:30,stage:25}},
+    {name:'Мария Соколова', age:26, voiceType:'Меццо-сопрано', email:'maria.sokolova@example.com', telegram:'@maria_vokalist', goal:'Хочет петь на свадьбах и корпоративах. Интересуется эстрадой и соулом.', notes:'Зажим в шее. Стесняется записей. Хорошо работает при похвале.', status:'active', color:GRADIENTS[0], bdayOffset:18, skills:{breath:75,intonation:82,mix:45,range:68,stage:55}},
+    {name:'Артём Васильев', age:19, voiceType:'Тенор', email:'artem.vasilyev@example.com', telegram:'@artem_v', goal:'Хочет выступать на школьных концертах.', notes:'Энергичный, быстро учится.', status:'active', color:GRADIENTS[1], bdayOffset:46, skills:{breath:60,intonation:70,mix:50,range:78,stage:62}},
+    {name:'Кира Новикова', age:23, voiceType:'Сопрано', email:'kira.novikova@example.com', telegram:'@kira_n', goal:'Поёт для себя, мечтает о профессиональной карьере.', notes:'Сейчас снижена мотивация — не сдаёт ДЗ.', status:'active', color:GRADIENTS[2], bdayOffset:5, skills:{breath:70,intonation:74,mix:40,range:66,stage:58}},
+    {name:'Дмитрий Попов', age:31, voiceType:'Баритон', email:'dmitry.popov@example.com', telegram:'@dpopov', goal:'Поёт в любительской рок-группе.', notes:'Пропустил несколько уроков — нужно поговорить.', status:'active', color:GRADIENTS[3], bdayOffset:120, skills:{breath:50,intonation:55,mix:30,range:48,stage:40}},
+    {name:'Ольга Романова', age:28, voiceType:'Сопрано', email:'olga.romanova@example.com', telegram:'@olya_sing', goal:'Готовится к конкурсу вокалистов.', notes:'Очень дисциплинированная.', status:'active', color:GRADIENTS[4], bdayOffset:240, skills:{breath:88,intonation:90,mix:60,range:80,stage:75}},
+    {name:'Иван Смирнов', age:22, voiceType:'Баритон', email:'ivan.smirnov@example.com', telegram:'@ivan_smir', goal:'Только начал заниматься, пробует голос.', notes:'Новичок, нужно больше дыхательных упражнений.', status:'trial', color:GRADIENTS[5], bdayOffset:300, skills:{breath:35,intonation:40,mix:20,range:30,stage:25}},
   ];
 
   const subTitles = ['Абонемент 4 урока','Абонемент 8 уроков'];
@@ -2618,7 +2616,7 @@ function seedDB(){
     const bday = toISODate(addDays(today, s.bdayOffset));
     DB.students.push({
       id: studentId, teacherId, name:s.name, age:s.age, birthday:bday, voiceType:s.voiceType,
-      phone:s.phone, telegram:s.telegram, goal:s.goal, notes:s.notes, status:s.status,
+      email:s.email, telegram:s.telegram, goal:s.goal, notes:s.notes, status:s.status,
       color:s.color, initials:initialsOf(s.name), createdAt: iso(-240+i*10), skills:s.skills
     });
 
@@ -2795,7 +2793,7 @@ function exportAllStudentsToExcel(){
   const list = allStudentsOfTeacher();
   if(!list.length){ toast('Нет учеников для выгрузки', 'amber'); return; }
 
-  const headers = ['Имя','Возраст','Дата рождения','Тип голоса','Статус','Телефон','Telegram','Цель','Заметки','Дата начала занятий','Абонемент (осталось/всего)','Долг','Всего оплачено','Проведено уроков'];
+  const headers = ['Имя','Возраст','Дата рождения','Тип голоса','Статус','Email','Telegram','Цель','Заметки','Дата начала занятий','Абонемент (осталось/всего)','Долг','Всего оплачено','Проведено уроков'];
   const rows = [headers];
 
   list.forEach(s=>{
@@ -2807,7 +2805,7 @@ function exportAllStudentsToExcel(){
       s.birthday ? formatRu(s.birthday) : '',
       s.voiceType || '',
       studentStatusLabel(s.status),
-      s.phone || '',
+      s.email || '',
       s.telegram || '',
       s.goal || '',
       s.notes || '',
@@ -2831,7 +2829,7 @@ function buildAllStudentsReportHTMLDoc(){
 
   const th = (label, align)=> '<th style="text-align:'+(align||'left')+';padding:6px 8px;font-size:10.5px;color:#94a3b8;border-bottom:2px solid #e2e8f0;white-space:nowrap">'+label+'</th>';
   const headerRow = '<tr>'
-    + th('Имя') + th('Возраст') + th('Тип голоса') + th('Статус') + th('Телефон') + th('Telegram')
+    + th('Имя') + th('Возраст') + th('Тип голоса') + th('Статус') + th('Email') + th('Telegram')
     + th('Абонемент') + th('Долг','right') + th('Оплачено','right') + th('Уроков','right')
     + '</tr>';
 
@@ -2844,7 +2842,7 @@ function buildAllStudentsReportHTMLDoc(){
       + td(s.age!=null?s.age:'')
       + td(s.voiceType)
       + td(studentStatusLabel(s.status))
-      + td(s.phone)
+      + td(s.email)
       + td(s.telegram)
       + td(subLabel)
       + td(money(studentDebt(s.id)),'right')
@@ -2945,7 +2943,7 @@ function exportStudentReportToExcel(studentId){
   rows.push(['Дата рождения', s.birthday ? formatRu(s.birthday) : '']);
   rows.push(['Тип голоса', s.voiceType||'']);
   rows.push(['Статус', studentStatusLabel(s.status)]);
-  rows.push(['Телефон', s.phone||'']);
+  rows.push(['Email', s.email||'']);
   rows.push(['Telegram', s.telegram||'']);
   rows.push(['Цель', s.goal||'']);
   rows.push(['Заметки', s.notes||'']);
@@ -3083,7 +3081,7 @@ function buildStudentReportHTMLDoc(s){
         + rowHTML('Дата рождения', s.birthday?formatRu(s.birthday):'')
         + rowHTML('Тип голоса', s.voiceType)
         + rowHTML('Статус', studentStatusLabel(s.status))
-        + rowHTML('Телефон', s.phone)
+        + rowHTML('Email', s.email)
         + rowHTML('Telegram', s.telegram)
         + rowHTML('Цель', s.goal)
         + rowHTML('Начало занятий', (s.studySince||s.createdAt)?formatRu(s.studySince||s.createdAt):'')
@@ -3643,12 +3641,11 @@ function lessonCardHTML(l, opts){
   opts=opts||{};
   const s=studentById(l.studentId);
   if(!s) return '';
-  const wa = s.phone ? '<button class="wa-icon-btn" title="Напомнить в WhatsApp" onclick="event.stopPropagation();sendWhatsAppForLesson(\''+l.id+'\')">📲</button>' : '';
   const del = '<button class="wa-icon-btn" style="background:var(--red-bg);color:var(--red)" title="Удалить урок" onclick="event.stopPropagation();deleteLesson(\''+l.id+'\')"><i class="fa-solid fa-trash"></i></button>';
   const dateBit = opts.showDate ? (weekdayName(l.date)+' '+formatRuShort(l.date)+' · ') : '';
   return '<div class="lesson-slot '+statusColorClass(l)+'" data-id="'+l.id+'" onclick="openStudent(studentById(\''+l.studentId+'\'))">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">'
-    +'<div><div class="lesson-time">'+dateBit+l.time+' · '+l.duration+' мин</div><div class="lesson-name">'+escapeHTML(s.name)+'</div></div><span style="display:flex;gap:4px">'+wa+del+'</span>'
+    +'<div><div class="lesson-time">'+dateBit+l.time+' · '+l.duration+' мин</div><div class="lesson-name">'+escapeHTML(s.name)+'</div></div><span style="display:flex;gap:4px">'+del+'</span>'
     +'</div>'
     +'<div style="margin-top:4px">'+formatTagHTML(l)+paymentTagHTML(l)+'</div>'
     +attendRowHTML(l)
@@ -4529,7 +4526,7 @@ function renderDetailProfile(){
     +'</span>'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:9px;flex:1;justify-content:center">'
-    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">📱</span><input class="input" id="contact-phone" style="padding:6px 10px;font-size:12px" value="'+escapeHTML(s.phone||'')+'" placeholder="+7 900 000-00-00" onchange="saveContactField(\''+s.id+'\',\'phone\',this.value)">'+(s.phone?'<button class="wa-icon-btn" title="Написать в WhatsApp" onclick="sendWhatsAppForStudent(\''+s.id+'\')">📲</button>':'')+'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">✉️</span><input class="input" id="contact-email" type="email" style="padding:6px 10px;font-size:12px" value="'+escapeHTML(s.email||'')+'" placeholder="student@example.com" onchange="saveContactField(\''+s.id+'\',\'email\',this.value)"></div>'
     +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:#29a9eb;width:18px;font-size:15px;display:inline-flex;justify-content:center"><i class="fa-brands fa-telegram"></i></span><input class="input" id="contact-telegram" style="padding:6px 10px;font-size:12px;color:var(--accent)" value="'+escapeHTML(s.telegram||'')+'" placeholder="@username" onchange="saveContactField(\''+s.id+'\',\'telegram\',this.value)"></div>'
     +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">🎂</span><input type="date" class="input" id="contact-bday" style="padding:6px 10px;font-size:12px;width:auto" value="'+(s.birthday||'')+'" onchange="saveContactField(\''+s.id+'\',\'birthday\',this.value)"><span style="color:var(--text3);font-size:11px">'+(s.birthday?bdayStr:'')+'</span></div>'
     +'<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:var(--text3);width:18px;font-size:13px">📅</span><input type="date" class="input" id="contact-studysince" style="padding:6px 10px;font-size:12px;width:auto" value="'+(s.studySince||s.createdAt||'')+'" onchange="saveContactField(\''+s.id+'\',\'studySince\',this.value)"><span style="color:var(--text3);font-size:11px">Начало занятий</span></div>'
@@ -5768,7 +5765,7 @@ function updateStudentField(studentId, field, value){
    отдельной кнопки "Сохранить" для этой карточки больше нет. */
 async function saveContactField(studentId, field, value){
   const s = studentById(studentId); if(!s) return;
-  if(field==='phone' || field==='telegram' || field==='goal'){
+  if(field==='email' || field==='telegram' || field==='goal'){
     value = (value||'').trim();
   } else if(field==='birthday' || field==='studySince'){
     value = value || null;
@@ -6430,7 +6427,7 @@ function buildStudentModal(ctx){
   return '<div class="modal-title">Новый ученик <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div class="input-row"><div class="input-group"><label class="input-label">Имя и фамилия</label><input class="input" id="f-name" placeholder="Мария Соколова"></div>'
     +'<div class="input-group"><label class="input-label">Возраст</label><input class="input" id="f-age" type="number" placeholder="25"></div></div>'
-    +'<div class="input-row"><div class="input-group"><label class="input-label">Телефон</label><input class="input" id="f-phone" placeholder="+7 900 000-00-00"></div>'
+    +'<div class="input-row"><div class="input-group"><label class="input-label">Email</label><input class="input" id="f-email" type="email" placeholder="student@example.com"></div>'
     +'<div class="input-group"><label class="input-label">Telegram</label><input class="input" id="f-tg" placeholder="@username"></div></div>'
     +'<div class="input-group"><label class="input-label">Дата рождения</label><input class="input" id="f-bday" type="date"></div>'
     +'<div class="input-group"><label class="input-label">Цель</label><textarea class="input" id="f-goal" rows="2" placeholder="Пою для себя / хочу выступать..."></textarea></div>'
@@ -6444,7 +6441,7 @@ async function saveStudentForm(){
   DB.students.push({
     id, teacherId: DB.currentTeacherId, name, age: Number(document.getElementById('f-age').value)||null,
     birthday: document.getElementById('f-bday').value||null, voiceType: '',
-    phone: document.getElementById('f-phone').value.trim(), telegram: document.getElementById('f-tg').value.trim(),
+    email: document.getElementById('f-email').value.trim(), telegram: document.getElementById('f-tg').value.trim(),
     goal: document.getElementById('f-goal').value.trim(), notes:'', status: 'trial',
     color, initials: initialsOf(name), createdAt: todayISO(), skills:{breath:'yellow',intonation:'yellow',rhythm:'yellow'}
   });
@@ -6658,7 +6655,7 @@ function resolveOrCreateStudentByName(name){
   DB.students.push({
     id, teacherId: DB.currentTeacherId, name, age: null,
     birthday: null, voiceType: '',
-    phone: '', telegram: '',
+    email: '', telegram: '',
     goal: '', notes: '', status: 'trial',
     color, initials: initialsOf(name), createdAt: todayISO(), skills:{breath:'yellow',intonation:'yellow',rhythm:'yellow'}
   });
@@ -7387,38 +7384,6 @@ function finalizeDeleteLesson(lessonId, chargeSubscription){
   closeModal();
   toast(chargeSubscription ? 'Урок списан с абонемента ✓' : 'Урок удалён, кредит возвращён на абонемент ✓');
   refreshAllVisible();
-}
-
-/* ============================================================
-   WHATSAPP — НАПОМИНАНИЕ
-   ============================================================ */
-function buildWaLink(phone, text){
-  const digits = digitsOnly(phone);
-  if(!digits) return null;
-  const normalized = digits.length===10 ? '7'+digits : digits;
-  return 'https://wa.me/'+normalized+'?text='+encodeURIComponent(text);
-}
-function sendWhatsAppForLesson(lessonId){
-  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
-  const s = studentById(l.studentId); if(!s){ return; }
-  if(!s.phone){ toast('У ученика не указан телефон','red'); return; }
-  const firstName = s.name.split(' ')[0];
-  const text = 'Здравствуйте, '+firstName+'! 🎤 Напоминаю об уроке вокала '+formatRu(l.date)+' в '+l.time+'. До встречи!';
-  const link = buildWaLink(s.phone, text);
-  if(!link){ toast('Не удалось определить номер телефона','red'); return; }
-  window.open(link, '_blank');
-}
-function sendWhatsAppForStudent(studentId){
-  const s = studentById(studentId); if(!s) return;
-  if(!s.phone){ toast('У ученика не указан телефон','red'); return; }
-  const next = studentNextLesson(studentId);
-  const firstName = s.name.split(' ')[0];
-  let text;
-  if(next) text = 'Здравствуйте, '+firstName+'! 🎤 Напоминаю об уроке вокала '+formatRu(next.date)+' в '+next.time+'. До встречи!';
-  else text = 'Здравствуйте, '+firstName+'! 🎤 Это Ваш педагог по вокалу из VoiceLoft.';
-  const link = buildWaLink(s.phone, text);
-  if(!link){ toast('Не удалось определить номер телефона','red'); return; }
-  window.open(link, '_blank');
 }
 
 /* ============================================================
