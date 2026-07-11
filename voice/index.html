@@ -5115,35 +5115,34 @@ function beginProfileCardDrag(st){
    обратно на каждую проверку. */
 function checkProfileCardSwap(st){
   const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
+  // ИСПРАВЛЕНО: раньше решение "менять местами или нет" принималось по проценту
+  // перекрытия площадей (50% от меньшей из двух карточек). При заметно разных
+  // размерах карточек (а на телефоне, где высота карточки зависит от её
+  // содержимого, это обычная ситуация) этот процент дёргался туда-сюда от
+  // малейшего дрожания пальца прямо на границе 50%, из-за чего карточка могла
+  // "перемаргивать" — сначала меняться местами, а через мгновение возвращаться
+  // обратно. Теперь вместо процента используется простое и предсказуемое
+  // правило, как в большинстве приложений со списками: карточки меняются
+  // местами, как только ЦЕНТР летящей карточки заходит внутрь границ соседней
+  // карточки — и остаются в заблокированном состоянии, пока центр не выйдет из
+  // неё целиком. Никакой "серой зоны" на границе больше нет — либо центр
+  // внутри, либо снаружи, поэтому дребезга не возникает в принципе.
   const dragRect = st.card.getBoundingClientRect();
-  const dragArea = (dragRect.right-dragRect.left)*(dragRect.bottom-dragRect.top);
+  const cx = dragRect.left + dragRect.width/2;
+  const cy = dragRect.top + dragRect.height/2;
   const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
   for(const sib of siblings){
     const r = sib.getBoundingClientRect();
-    const overlapW = Math.min(dragRect.right,r.right) - Math.max(dragRect.left,r.left);
-    const overlapH = Math.min(dragRect.bottom,r.bottom) - Math.max(dragRect.top,r.top);
     const key = sib.dataset.cardKey;
-    if(overlapW<=0 || overlapH<=0){
-      if(key === st.lockedSiblingKey) st.lockedSiblingKey = null; // разошлись полностью — точно разблокировано
+    const inside = cx>=r.left && cx<=r.right && cy>=r.top && cy<=r.bottom;
+    if(!inside){
+      if(key === st.lockedSiblingKey) st.lockedSiblingKey = null; // центр вышел за пределы соседа — точно разблокировано
       continue;
     }
-    const sibArea = (r.right-r.left)*(r.bottom-r.top);
-    if(sibArea<=0 || dragArea<=0) continue;
-    // Порог считаем от МЕНЬШЕЙ из двух площадей (тянущаяся карточка / сосед) —
-    // иначе при заметно разной высоте карточек маленькая карточка, наведённая
-    // на гораздо более крупного соседа, никогда не набирала бы нужные 50% от
-    // его площади, и свап просто не срабатывал бы.
-    const minArea = Math.min(sibArea, dragArea);
-    const ratio = (overlapW*overlapH)/minArea;
-    if(key === st.lockedSiblingKey){
-      if(ratio < 0.3) st.lockedSiblingKey = null; // достаточно отдалились — можно снова менять местами с этим же соседом
-      continue; // пока не отдалились — этот сосед временно не участвует в проверке
-    }
-    if(ratio >= 0.5){
-      swapPlaceholderWithSibling(st.placeholder, sib);
-      st.lockedSiblingKey = key;
-      break;
-    }
+    if(key === st.lockedSiblingKey) continue; // мы уже заняли место этого соседа — ждём, пока центр его покинет
+    swapPlaceholderWithSibling(st.placeholder, sib);
+    st.lockedSiblingKey = key;
+    break;
   }
 }
 
@@ -5416,26 +5415,29 @@ function createCardReorder(opts){
 
   function checkSwap(st){
     const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
+    // ИСПРАВЛЕНО: раньше свап решался по проценту перекрытия площадей (50% от
+    // меньшей из двух карточек) — в "Аналитике" карточки одного ряда нередко
+    // сильно отличаются по высоте (например, "Средний уровень навыков" против
+    // "Требуют внимания"), и на границе этих 50% решение начинало дёргаться
+    // туда-сюда от малейшего сдвига пальца: карточка меняется местами и тут же
+    // "перемаргивает" обратно. Теперь вместо процента используется простое и
+    // предсказуемое правило: карточки меняются местами, как только ЦЕНТР
+    // летящей карточки заходит внутрь границ соседней карточки, и остаются
+    // заблокированными, пока центр не выйдет из неё целиком — без "серой зоны"
+    // на границе дребезжать уже нечему.
     const dragRect = st.card.getBoundingClientRect();
-    const dragArea = (dragRect.right-dragRect.left)*(dragRect.bottom-dragRect.top);
+    const cx = dragRect.left + dragRect.width/2;
+    const cy = dragRect.top + dragRect.height/2;
     const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
     for(const sib of siblings){
       const r = sib.getBoundingClientRect();
-      const overlapW = Math.min(dragRect.right,r.right)-Math.max(dragRect.left,r.left);
-      const overlapH = Math.min(dragRect.bottom,r.bottom)-Math.max(dragRect.top,r.top);
       const key = sib.dataset.cardKey;
-      if(overlapW<=0||overlapH<=0){ if(key===st.lockedSiblingKey) st.lockedSiblingKey=null; continue; }
-      const sibArea=(r.right-r.left)*(r.bottom-r.top);
-      if(sibArea<=0 || dragArea<=0) continue;
-      // Порог считаем от МЕНЬШЕЙ из двух площадей (тянущаяся карточка / сосед),
-      // а не только от площади соседа — иначе при заметно разной высоте карточек
-      // (например, в "Аналитике" после переключения на один столбец) маленькая
-      // карточка, наведённая на гораздо более крупного соседа, никогда не
-      // набирала бы нужные 50% от его площади, и свап просто не срабатывал.
-      const minArea = Math.min(sibArea, dragArea);
-      const ratio=(overlapW*overlapH)/minArea;
-      if(key===st.lockedSiblingKey){ if(ratio<0.3) st.lockedSiblingKey=null; continue; }
-      if(ratio>=0.5){ swapPlaceholder(st.placeholder, sib); st.lockedSiblingKey=key; break; }
+      const inside = cx>=r.left && cx<=r.right && cy>=r.top && cy<=r.bottom;
+      if(!inside){ if(key===st.lockedSiblingKey) st.lockedSiblingKey=null; continue; }
+      if(key===st.lockedSiblingKey) continue;
+      swapPlaceholder(st.placeholder, sib);
+      st.lockedSiblingKey=key;
+      break;
     }
   }
 
@@ -5495,48 +5497,93 @@ function createCardReorder(opts){
   return { enter, cancelExit, save, applyVisuals, isOn:()=>mode };
 }
 
-// Два независимых экземпляра — по одному на каждый ряд карточек аналитики.
-// Карточки можно перетаскивать только внутри своего ряда (так же, как на
-// телефоне вкладка "Профиль" превращается в один столбец из своих 6 карточек).
-const analyticsRow1 = createCardReorder({
+// ИСПРАВЛЕНО: раньше на каждый ряд карточек аналитики (".an-row-3") заводился
+// отдельный, независимый экземпляр перетаскивания — карточку можно было
+// поменять местами только с соседями из ТОГО ЖЕ ряда, а между рядами
+// перетащить было нельзя вообще (например, "Средний уровень навыков",
+// будучи первой карточкой второго ряда, физически не могла "уйти выше" — там
+// начинался уже чужой, не связанный с ней ряд/движок). Человеку это
+// выглядело как баг: карточка не заменяет ничего "наверху". Теперь на время
+// режима перестановки оба ряда временно объединяются в один общий список
+// (см. combineAnalyticsRows/splitAnalyticsRows ниже) — все 6 карточек
+// перетаскиваются одним общим движком, свободно в любом порядке, точно так
+// же, как 6 карточек вкладки "Профиль". После сохранения/отмены список снова
+// аккуратно разбивается обратно на два физических ряда по 3 карточки — так
+// раскладка на экране (в обычном режиме) остаётся прежней: первая карточка
+// каждого ряда по-прежнему растягивается на всю ширину на мобильных (см.
+// CSS-правило ".an-row-3 .an-card:first-child").
+const ANALYTICS_ALL_CARD_KEYS = ['funnel','retention','leader','skills','attention','summary'];
+
+/* Временно переносит все карточки второго ряда в конец первого — на время
+   перестановки они физически становятся одним списком из 6 карточек. */
+function combineAnalyticsRows(){
+  const row1 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="1"]');
+  const row2 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="2"]');
+  if(!row1 || !row2) return;
+  Array.from(row2.children).forEach(c=>{ if(c.dataset && c.dataset.cardKey) row1.appendChild(c); });
+  row2.style.display = 'none'; // опустел на время перестановки — прячем, чтобы не оставлять пустой промежуток
+}
+
+/* Обратное действие: возвращает первые 3 карточки (по итоговому порядку) в
+   первый ряд, оставшиеся 3 — во второй. Вызывается и при сохранении, и при
+   отмене перестановки, чтобы разметка снова стала двумя нормальными рядами. */
+function splitAnalyticsRows(){
+  const row1 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="1"]');
+  const row2 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="2"]');
+  if(!row1 || !row2) return;
+  const cards = Array.from(row1.children).filter(c=>c.dataset && c.dataset.cardKey);
+  cards.slice(3).forEach(c=>row2.appendChild(c));
+  row2.style.display = '';
+}
+
+const analyticsReorderEngine = createCardReorder({
   getGrid: ()=>document.querySelector('#page-analytics .an-row-3[data-reorder-row="1"]'),
-  getStorageKey: ()=>'analyticsRow1Order'
-});
-const analyticsRow2 = createCardReorder({
-  getGrid: ()=>document.querySelector('#page-analytics .an-row-3[data-reorder-row="2"]'),
-  getStorageKey: ()=>'analyticsRow2Order'
+  getStorageKey: ()=>'analyticsCardOrder'
 });
 
-function analyticsReorderIsOn(){ return analyticsRow1.isOn() || analyticsRow2.isOn(); }
-function toggleAnalyticsReorderMode(){ analyticsRow1.enter(); analyticsRow2.enter(); }
-function cancelAnalyticsReorderMode(){ analyticsRow1.cancelExit(); analyticsRow2.cancelExit(); }
+function analyticsReorderIsOn(){ return analyticsReorderEngine.isOn(); }
+function toggleAnalyticsReorderMode(){
+  combineAnalyticsRows();
+  analyticsReorderEngine.enter();
+}
+function cancelAnalyticsReorderMode(){
+  analyticsReorderEngine.cancelExit();
+  splitAnalyticsRows();
+}
 function saveAnalyticsReorderMode(){
-  analyticsRow1.save();
-  analyticsRow2.save();
+  analyticsReorderEngine.save();
+  splitAnalyticsRows();
   toast('Порядок блоков сохранён ✓');
 }
 
-/* Расставляет карточки каждого ряда аналитики в порядке, сохранённом в
-   DB.settings (analyticsRow1Order/analyticsRow2Order) — вызывается в начале
-   renderAnalytics(), поэтому применяется при каждом открытии раздела.
-   Сами карточки (их DOM-узлы с id вроде "funnelCard") не пересоздаются —
-   просто физически переставляются местами внутри своего ряда, так что все
-   getElementById-ссылки на их содержимое продолжают работать как обычно. */
+/* Расставляет все 6 карточек аналитики в порядке, сохранённом в
+   DB.settings.analyticsCardOrder — вызывается в начале renderAnalytics(),
+   поэтому применяется при каждом открытии раздела. Первые 3 карточки итогового
+   порядка достаются первому ряду, оставшиеся 3 — второму (см. splitAnalyticsRows).
+   Сами карточки (их DOM-узлы с id вроде "funnelCard") не пересоздаются — просто
+   физически переставляются, так что все getElementById-ссылки на их содержимое
+   продолжают работать как обычно.
+   Для совместимости со старыми сохранениями (раньше был раздельный порядок по
+   рядам — analyticsRow1Order/analyticsRow2Order) при отсутствии нового ключа
+   порядок собирается из старых двух, если они есть. */
 function applyAnalyticsCardOrder(){
-  const rows = [
-    { sel:'#page-analytics .an-row-3[data-reorder-row="1"]', key:'analyticsRow1Order', keys:['funnel','retention','leader'] },
-    { sel:'#page-analytics .an-row-3[data-reorder-row="2"]', key:'analyticsRow2Order', keys:['skills','attention','summary'] }
-  ];
+  const row1 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="1"]');
+  const row2 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="2"]');
+  if(!row1 || !row2) return;
   DB.settings = DB.settings || {};
-  rows.forEach(r=>{
-    const grid = document.querySelector(r.sel);
-    if(!grid) return;
-    let order = Array.isArray(DB.settings[r.key]) ? DB.settings[r.key].filter(k=>r.keys.includes(k)) : [];
-    r.keys.forEach(k=>{ if(!order.includes(k)) order.push(k); });
-    const byKey = {};
-    Array.from(grid.children).forEach(c=>{ if(c.dataset && c.dataset.cardKey) byKey[c.dataset.cardKey]=c; });
-    order.forEach(k=>{ const el=byKey[k]; if(el) grid.appendChild(el); });
-  });
+  let order = Array.isArray(DB.settings.analyticsCardOrder)
+    ? DB.settings.analyticsCardOrder.filter(k=>ANALYTICS_ALL_CARD_KEYS.includes(k))
+    : null;
+  if(!order){
+    const r1 = Array.isArray(DB.settings.analyticsRow1Order) ? DB.settings.analyticsRow1Order.filter(k=>['funnel','retention','leader'].includes(k)) : [];
+    const r2 = Array.isArray(DB.settings.analyticsRow2Order) ? DB.settings.analyticsRow2Order.filter(k=>['skills','attention','summary'].includes(k)) : [];
+    order = r1.concat(r2);
+  }
+  ANALYTICS_ALL_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
+  const byKey = {};
+  Array.from(row1.children).concat(Array.from(row2.children)).forEach(c=>{ if(c.dataset && c.dataset.cardKey) byKey[c.dataset.cardKey]=c; });
+  order.slice(0,3).forEach(k=>{ const el=byKey[k]; if(el) row1.appendChild(el); });
+  order.slice(3).forEach(k=>{ const el=byKey[k]; if(el) row2.appendChild(el); });
 }
 
 /* ============================================================
