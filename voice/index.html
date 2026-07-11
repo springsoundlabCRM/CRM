@@ -1372,7 +1372,6 @@
      поля выбора диапазона (выпадающие "нотные" панели) и
      карточка-кольцо прогресса диапазона
      ============================================================ */
-  .voice-title-tools{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
   @media (max-width:640px){
     .card-voice .detail-title{flex-wrap:wrap;row-gap:8px}
   }
@@ -1381,8 +1380,6 @@
     padding:5px 10px;border-radius:6px;cursor:pointer;transition:all .15s;text-transform:none}
   .lang-toggle-btn:hover{color:var(--text)}
   .lang-toggle-btn.active{background:var(--accent);color:#fff}
-  .voice-save-btn{padding:6px 13px;font-size:11px;font-weight:600}
-  .voice-save-btn.is-dirty{box-shadow:0 0 0 3px var(--accent-glow)}
 
   .range-fields-row{display:grid;grid-template-columns:1fr 22px 1fr;column-gap:8px;align-items:center;margin-bottom:10px;position:relative}
   .range-field{position:relative;min-width:0}
@@ -1551,15 +1548,6 @@
     .range-ring-center b{font-size:20px}
   }
 
-  /* --- Переключатель "Текущий / Желаемый" диапазон — стоит слева от
-     переключателя языка РУС/ENG в шапке карточки "Голос" --- */
-  .range-mode-toggle{display:inline-flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px}
-  .range-mode-btn{border:none;background:transparent;color:var(--text3);font-size:11px;font-weight:700;letter-spacing:.2px;
-    padding:5px 11px;border-radius:6px;cursor:pointer;transition:all .15s;text-transform:none;font-family:var(--font)}
-  .range-mode-btn:hover{color:var(--text)}
-  .range-mode-btn.active.mode-current{background:var(--accent);color:#fff}
-  .range-mode-btn.active.mode-desired{background:var(--blue);color:#fff}
-
   /* --- Левая колонка ("Тип голоса" + "Статус", друг под другом) и
      окошко "Настройки" справа стоят в одной строке сетки
      и растягиваются на одинаковую высоту (align-items:stretch) — то
@@ -1578,13 +1566,23 @@
      высоту. --- */
   .voice-tools-wrap{grid-column:3;min-width:0;display:flex;flex-direction:column}
   .voice-tools-label{font-size:11px;color:var(--text3);margin-bottom:6px}
+  /* Окошко "Настройки": все четыре кнопки (Текущий/Желаемый сверху,
+     Сохранить/Сброс снизу) — сеткой 2×2, растянутой на весь размер окошка,
+     без переноса в столбик даже в этом небольшом прямоугольном окне. */
   .voice-tools-box{flex:1;min-width:0;background:var(--card2);border:1px solid var(--border);
-    border-radius:var(--r2);padding:7px 12px;display:flex;flex-direction:column;justify-content:center;gap:6px}
-  .voice-tools-box .voice-title-tools{flex-wrap:wrap;row-gap:6px}
-  .voice-tools-box-actions{display:flex;gap:8px}
-  .voice-tools-box-actions .btn{flex:0 0 auto;padding:6px 12px;font-size:11px;white-space:nowrap}
-  .voice-reset-btn{background:var(--card);border:1px solid var(--border2);color:var(--text2)}
-  .voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
+    border-radius:var(--r2);padding:8px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px}
+  .voice-tool-btn{border:1px solid var(--border);background:var(--bg3);color:var(--text3);font-size:11px;font-weight:700;
+    letter-spacing:.2px;border-radius:7px;cursor:pointer;transition:all .15s;font-family:var(--font);
+    display:flex;align-items:center;justify-content:center;padding:0 4px;min-width:0;min-height:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .voice-tool-btn:hover{color:var(--text);border-color:var(--accent)}
+  .voice-tool-btn.mode-current.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .voice-tool-btn.mode-desired.active{background:var(--blue);border-color:var(--blue);color:#fff}
+  .voice-tool-btn.voice-save-btn{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .voice-tool-btn.voice-save-btn:hover{filter:brightness(1.08)}
+  .voice-tool-btn.voice-save-btn.is-dirty{box-shadow:0 0 0 3px var(--accent-glow)}
+  .voice-tool-btn.voice-reset-btn{background:var(--card);border-color:var(--border2);color:var(--text2);font-weight:600}
+  .voice-tool-btn.voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   @media (max-width:640px){
     .voice-basic-row{grid-template-columns:1fr}
     .voice-basic-col{grid-column:1}
@@ -4725,12 +4723,6 @@ function renderDetailProfile(){
   const editToNote   = mode==='desired' ? s.desiredToNote   : s.rangeToNote;
   const fromLabel = formatNote(editFromNote, lang);
   const toLabel = formatNote(editToNote, lang);
-  const saveBtnLabel = mode==='desired' ? 'Сохранить цель' : 'Сохранить';
-
-  const rangeModeToggle = '<div class="range-mode-toggle">'
-      +'<button type="button" class="range-mode-btn mode-current'+(mode==='current'?' active':'')+'" onclick="setVoiceRangeMode(\''+s.id+'\',\'current\')">Текущий</button>'
-      +'<button type="button" class="range-mode-btn mode-desired'+(mode==='desired'?' active':'')+'" onclick="setVoiceRangeMode(\''+s.id+'\',\'desired\')">Желаемый</button>'
-    +'</div>';
 
   const voiceHeader = '<div class="detail-title">'
     +'<span class="detail-title-label">🎤 Голос</span>'
@@ -4740,22 +4732,26 @@ function renderDetailProfile(){
     +'</div>'
     +'</div>';
 
-  // Отдельный блок с инструментами диапазона (переключатель Текущий/
-  // Желаемый, язык нотации, кнопки "Сохранить" и "Сброс") — раньше стоял
-  // в шапке карточки "Голос", теперь вынесен в собственное окошко рядом
-  // с полями "Тип голоса"/"Статус". Подпись "Настройки" стоит СНАРУЖИ
-  // окошка, тем же шрифтом/стилем, что и подписи "Тип голоса"/"Статус"
-  // слева (а не капслоком внутри окошка, как было раньше).
+  // Окошко "Настройки" — раньше стоял в шапке карточки "Голос", теперь
+  // вынесен в собственное окошко рядом с полями "Тип голоса"/"Статус".
+  // Подпись "Настройки" стоит СНАРУЖИ окошка, тем же шрифтом/стилем, что и
+  // подписи "Тип голоса"/"Статус" слева (а не капслоком внутри окошка, как
+  // было раньше).
+  // Все четыре кнопки (Текущий/Желаемый сверху, Сохранить/Сброс снизу)
+  // разложены как единая сетка 2×2 внутри окошка (см. .voice-tools-box) —
+  // одинаковые по размеру, растянутые каждая на свою ячейку, чтобы
+  // аккуратно помещаться в это небольшое прямоугольное окно целиком, без
+  // переноса кнопок в столбик. Подпись кнопки "Сохранить" теперь одна и та
+  // же в обоих режимах (раньше в режиме "Желаемый" было "Сохранить цель") —
+  // само название режима над кнопками (активная подсветка "Текущий"/
+  // "Желаемый") и так однозначно показывает, что именно сохранится.
   const voiceToolsBox = '<div class="voice-tools-wrap">'
     +'<div class="voice-tools-label">Настройки</div>'
     +'<div class="voice-tools-box">'
-      +'<div class="voice-title-tools">'
-        + rangeModeToggle
-      +'</div>'
-      +'<div class="voice-tools-box-actions">'
-        +'<button type="button" class="btn btn-primary voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">'+saveBtnLabel+'</button>'
-        +'<button type="button" class="btn btn-ghost voice-reset-btn" onclick="resetVoiceRangeProgress(\''+s.id+'\')" title="Сбросить прогресс диапазона (оба кольца)">Сброс</button>'
-      +'</div>'
+      +'<button type="button" class="voice-tool-btn mode-current'+(mode==='current'?' active':'')+'" onclick="setVoiceRangeMode(\''+s.id+'\',\'current\')">Текущий</button>'
+      +'<button type="button" class="voice-tool-btn mode-desired'+(mode==='desired'?' active':'')+'" onclick="setVoiceRangeMode(\''+s.id+'\',\'desired\')">Желаемый</button>'
+      +'<button type="button" class="voice-tool-btn voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">Сохранить</button>'
+      +'<button type="button" class="voice-tool-btn voice-reset-btn" onclick="resetVoiceRangeProgress(\''+s.id+'\')" title="Сбросить прогресс диапазона (оба кольца)">Сброс</button>'
     +'</div>'
   +'</div>';
 
