@@ -1839,8 +1839,8 @@
       </div>
       <div id="authTrialBanner" class="lesson-sub-banner" style="display:none;margin-bottom:12px">🎁 <span id="authTrialBannerText"></span></div>
       <div style="margin-bottom:12px">
-        <label class="input-label">Номер телефона</label>
-        <input class="input" id="authPhone" placeholder="+7 900 123-45-67" autocomplete="tel">
+        <label class="input-label">Email</label>
+        <input class="input" id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
       </div>
       <div style="margin-bottom:6px">
         <label class="input-label">Пароль</label>
@@ -7536,9 +7536,7 @@ function doLogout(){
 }
 
 /* ============================================================
-   Вход / регистрация по номеру телефона (через Firebase Auth)
-   Номер телефона хранится как служебный email под капотом —
-   пользователь его никогда не видит и не вводит.
+   Вход / регистрация по email (через Firebase Auth)
    ============================================================ */
 let authMode = 'login'; // 'login' | 'register'
 
@@ -7563,7 +7561,7 @@ function retryAuthConnection(){
 }
 
 // Осознанный выход из аккаунта с экрана "не удалось подключиться" —
-// на случай, если человек хочет войти под другим номером телефона.
+// на случай, если человек хочет войти под другим email.
 function logoutFromAuthScreen(){
   window.__fb.signOut(window.__fb.auth);
 }
@@ -7578,7 +7576,7 @@ function toggleAuthDiagnostics(){
 }
 
 // Собирает техническую информацию о текущем состоянии входа — без пароля
-// и без полного номера телефона — чтобы при повторении ошибки можно было
+// и без полного email — чтобы при повторении ошибки можно было
 // прислать скриншот этого блока и сразу понять причину, а не гадать.
 async function collectAuthDiagnostics(lastError){
   const lines = [];
@@ -7639,15 +7637,13 @@ async function hardResetAuthState(){
   location.reload();
 }
 
-function normalizePhone(raw){
-  let digits = (raw||'').replace(/\D/g,'');
-  if(digits.length === 11 && digits[0] === '8') digits = '7'+digits.slice(1);
-  if(digits.length === 10) digits = '7'+digits; // ввели без кода страны
-  return digits; // итог: 11 цифр, начинается на 7
-}
+// Простая, но достаточная проверка формата email (без похода в сеть) —
+// окончательную валидацию (существует ли такой адрес, не занят ли он)
+// в любом случае делает сам Firebase Auth при вызове createUser/signIn.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function phoneToFakeEmail(normalized){
-  return normalized + '@voiceloft.internal';
+function normalizeEmail(raw){
+  return (raw||'').trim().toLowerCase();
 }
 
 function toggleAuthMode(){
@@ -7681,23 +7677,22 @@ function withAuthTimeout(promise, ms){
 async function handleAuthSubmit(){
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
-  const phoneRaw = document.getElementById('authPhone').value.trim();
+  const emailRaw = document.getElementById('authEmail').value;
   const pass = document.getElementById('authPass').value;
-  const normalized = normalizePhone(phoneRaw);
+  const email = normalizeEmail(emailRaw);
 
-  if(normalized.length !== 11){ errEl.textContent = 'Введите корректный номер телефона'; return; }
+  if(!EMAIL_RE.test(email)){ errEl.textContent = 'Введите корректный email'; return; }
   if(!pass || pass.length < 6){ errEl.textContent = 'Пароль должен быть не короче 6 символов'; return; }
 
   const btn = document.getElementById('authSubmitBtn');
   btn.disabled = true;
-  const fakeEmail = phoneToFakeEmail(normalized);
 
   try{
     if(authMode === 'register'){
       const name = document.getElementById('authName').value.trim();
       if(!name){ errEl.textContent = 'Введите имя'; btn.disabled = false; return; }
       const cred = await withAuthTimeout(
-        window.__fb.createUserWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 15000
+        window.__fb.createUserWithEmailAndPassword(window.__fb.auth, email, pass), 15000
       );
       // Фиксируем начало пробного периода СРАЗУ при регистрации — один
       // документ на аккаунт, создаётся один раз (правила Firestore не дают
@@ -7707,7 +7702,7 @@ async function handleAuthSubmit(){
       try{
         const now = Date.now();
         await window.__fb.setDoc(window.__fb.doc(window.__fb.db, 'users', cred.user.uid), {
-          phone: normalized,
+          email: email,
           subscriptionStatus: 'trial',
           trialStartedAt: now,
           trialEndsAt: now + TRIAL_DAYS*24*60*60*1000
@@ -7723,7 +7718,7 @@ async function handleAuthSubmit(){
       window.__pendingRegisterName = name;
     } else {
       await withAuthTimeout(
-        window.__fb.signInWithEmailAndPassword(window.__fb.auth, fakeEmail, pass), 15000
+        window.__fb.signInWithEmailAndPassword(window.__fb.auth, email, pass), 15000
       );
     }
     // Сразу после РЕАЛЬНОГО, только что состоявшегося входа/регистрации
@@ -7741,12 +7736,12 @@ async function handleAuthSubmit(){
   }catch(e){
     console.error(e);
     const map = {
-      'auth/invalid-credential':'Неверный номер телефона или пароль',
+      'auth/invalid-credential':'Неверный email или пароль',
       'auth/wrong-password':'Неверный пароль',
-      'auth/user-not-found':'Аккаунт с этим номером не найден',
-      'auth/email-already-in-use':'Этот номер уже зарегистрирован',
+      'auth/user-not-found':'Аккаунт с этим email не найден',
+      'auth/email-already-in-use':'Этот email уже зарегистрирован',
       'auth/weak-password':'Пароль слишком простой (минимум 6 символов)',
-      'auth/invalid-email':'Некорректный номер телефона',
+      'auth/invalid-email':'Некорректный email',
       'auth/network-request-failed':'Нет связи с сервером. Проверьте интернет (на мобильном иногда помогает включить/выключить Wi-Fi или VPN) и попробуйте снова',
       'auth/client-timeout':'Сервер долго не отвечает. Проверьте интернет-соединение и попробуйте ещё раз',
       'auth/too-many-requests':'Слишком много попыток входа подряд. Подождите немного и попробуйте снова'
