@@ -930,35 +930,26 @@
   }
   .hamburger-btn:active{background:var(--card2)!important}
 
-  /* ---------- Кнопка "Настройки" (FAB), фиксированная в правом нижнем углу ----------
-     Только для мобильных устройств (см. медиа-запрос ≤880px ниже). Всегда на одном и
-     том же месте, её нельзя подвинуть/заменить. Работает не как ссылка на общий раздел
-     "Настройки" из левого меню, а как настройка ТЕКУЩЕГО открытого раздела (см.
-     onSettingsFabClick в JS) — например, в "Аналитике" включает перестановку карточек. */
-  .settings-fab{
-    display:none;position:fixed;right:14px;
-    bottom:calc(var(--bottom-nav-h) + 14px + env(safe-area-inset-bottom,0px));
-    z-index:70;width:46px;height:46px;border-radius:50%;
-    background:var(--bg3);color:var(--text2);border:1px solid var(--border2);
-    box-shadow:0 6px 16px rgba(0,0,0,.28);
-    align-items:center;justify-content:center;font-size:18px;cursor:pointer;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .settings-fab:active{transform:scale(.94);background:var(--card2)}
-  /* Кнопка больше не меняет цвет/иконку при включении режима редактирования —
-     вместо этого сверху опускается settings-edit-bar (см. ниже) с кнопками
-     "Отмена"/"Сохранить". Пока идёт редактирование, кнопка просто чуть
-     притушена и неактивна для повторных нажатий (см. onSettingsFabClick). */
-  .settings-fab.on{opacity:.45;pointer-events:none}
+  /* ---------- Кнопка "Настройки" отдельным плавающим кружком в правом
+     нижнем углу БОЛЬШЕ НЕ ИСПОЛЬЗУЕТСЯ — она визуально накладывалась на
+     пункт "Настройки" в нижнем быстром меню (bottom-nav), из-за чего в
+     одном и том же углу экрана оказывались две кнопки почти друг на друге.
+     Вместо неё за настройку ТЕКУЩЕГО открытого раздела (например,
+     перестановку карточек в "Аналитике") теперь отвечает обычный,
+     стандартный пункт "Настройки" в нижнем быстром меню — см. bnItemClick
+     и trySectionSettingsAction() в JS. Он остаётся ровно тем же самым
+     элементом интерфейса, просто на страницах с настройкой раздела у него
+     другое действие, отличное от пункта "Настройки" в боковом выезжающем
+     меню (тот всегда ведёт в общий раздел настроек аккаунта). */
 
   /* ---------- Верхняя шторка настройки раздела (settings-edit-bar) ----------
      Появляется сверху при включении режима редактирования текущего раздела
-     через кнопку "Настройки" (settings-fab) — единый паттерн для ЛЮБОГО
-     раздела с настройкой (перестановка карточек аналитики, блоков профиля
-     и т.д. в будущем). Всегда содержит текст-подсказку и две кнопки:
-     "Отмена" (откатывает несохранённые изменения) и "Сохранить". Визуально
-     сделана как qm-edit-bar (шторка настройки быстрого меню) — тот же
-     принцип оформления. */
+     через стандартную кнопку "Настройки" нижнего быстрого меню — единый
+     паттерн для ЛЮБОГО раздела с настройкой (перестановка карточек
+     аналитики, блоков профиля и т.д. в будущем). Всегда содержит текст-
+     подсказку и две кнопки: "Отмена" (откатывает несохранённые изменения)
+     и "Сохранить". Визуально сделана как qm-edit-bar (шторка настройки
+     быстрого меню) — тот же принцип оформления. */
   .settings-edit-bar{
     display:none;position:fixed;left:0;right:0;top:0;z-index:75;
     background:var(--accent);border-bottom:1px solid rgba(167,139,250,.3);
@@ -990,6 +981,11 @@
   }
   .bn-item .bn-icon{font-size:18px;line-height:1}
   .bn-item.active{color:var(--accent)}
+  /* Пункт "Настройки" нижнего меню подсвечивается так же, как активный
+     раздел, пока включён режим настройки текущей страницы (перестановка
+     карточек и т.п.) — это единственный визуальный признак "идёт
+     редактирование", вместо прежней отдельной перекрашиваемой кнопки. */
+  .bn-item.settings-editing{color:var(--accent)}
   .bn-item .bn-dot{
     position:absolute;top:2px;right:18%;width:7px;height:7px;border-radius:50%;
     background:var(--red);border:1.5px solid var(--bg2);
@@ -1054,10 +1050,9 @@
     }
     .sidebar.mobile-open{transform:translateX(0)}
     .hamburger-btn{display:flex!important}
-    .settings-fab{display:flex}
     /* Шестерёнка и "Сохранить" во вкладке "Профиль" ученика теперь заменены
-       кнопкой "Настройки" в правом нижнем углу — но только на мобильных,
-       на компьютере они остаются на прежнем месте без изменений. */
+       стандартной кнопкой "Настройки" в нижнем быстром меню — но только
+       на мобильных, на компьютере они остаются на прежнем месте без изменений. */
     #profileReorderBtn,#profileReorderSaveBtn{display:none!important}
     .content{padding:16px}
     #page-student-detail .content{padding-bottom:0}
@@ -2430,15 +2425,6 @@
       </div>
     </div>
   </main>
-
-  <!-- Кнопка "Настройки" текущего раздела (только мобильные) — зафиксирована в
-       правом нижнем углу, её нельзя подвинуть или заменить. В отличие от пункта
-       "Настройки" в левом меню (там — настройки аккаунта/аватарки), эта кнопка
-       открывает настройки ИМЕННО того раздела, в котором сейчас находится
-       человек (см. onSettingsFabClick в JS). -->
-  <button type="button" class="settings-fab" id="settingsFab" onclick="onSettingsFabClick()" title="Настройки раздела">
-    <i class="fa-solid fa-gear" id="settingsFabIcon"></i>
-  </button>
 </div>
 
 <!-- НИЖНЕЕ "БЫСТРОЕ МЕНЮ" (только мобильные, настраиваемое) -->
@@ -4392,7 +4378,7 @@ function switchDetailTab(el, tab){
   document.getElementById('dtab-'+tab).classList.remove('hidden');
   updateProfileReorderBtnVisibility();
   saveNavState();
-  updateSettingsFabState();
+  updateSectionSettingsIndicator();
 }
 
 function showPage(name){
@@ -4426,7 +4412,7 @@ function showPage(name){
   if(contentEl) contentEl.scrollTop = 0;
   saveNavState();
   updateAllTabSliders();
-  if(typeof updateSettingsFabState === 'function') updateSettingsFabState();
+  if(typeof updateSectionSettingsIndicator === 'function') updateSectionSettingsIndicator();
 }
 
 /* ============================================================
@@ -4525,6 +4511,13 @@ function renderBottomNav(){
 function bnItemClick(e, key){
   if(quickMenuEditMode) return;
   if(!key) { enterQuickMenuEditMode(); return; }
+  // Пункт "Настройки" нижнего меню — в отличие от одноимённого пункта
+  // в боковом выезжающем меню (тот всегда ведёт в общие настройки
+  // аккаунта) — сначала пытается включить настройку ИМЕННО того раздела,
+  // где сейчас находится человек (например, перестановку карточек в
+  // "Аналитике"). Если для текущего раздела такой настройки нет —
+  // ведёт себя как обычный пункт меню и открывает страницу "Настройки".
+  if(key === 'settings' && trySectionSettingsAction()) return;
   showPage(key);
 }
 
@@ -5513,55 +5506,57 @@ function applyAnalyticsCardOrder(){
 }
 
 /* ============================================================
-   КНОПКА "НАСТРОЙКИ" В ПРАВОМ НИЖНЕМ УГЛУ (только мобильные)
+   ПУНКТ "НАСТРОЙКИ" НИЖНЕГО БЫСТРОГО МЕНЮ — НАСТРОЙКА ТЕКУЩЕГО РАЗДЕЛА
    ------------------------------------------------------------
-   В отличие от пункта "Настройки" в левом меню (аккаунт/аватарка), эта
-   кнопка всегда привязана к тому разделу, где сейчас находится человек:
-   дашборд, расписание, ученики и т.д. Первый тап включает настройку
-   текущего раздела (например, перестановку карточек), повторный тап —
-   сохраняет и выключает. Кнопка всегда на одном месте — её нельзя
-   подвинуть или заменить на другой раздел.
+   В отличие от одноимённого пункта в левом выезжающем меню (там —
+   переход в общие настройки аккаунта), этот, нижний пункт "Настройки"
+   всегда привязан к тому разделу, где сейчас находится человек: дашборд,
+   расписание, ученики и т.д. Первый тап включает настройку текущего
+   раздела (например, перестановку карточек) и опускает сверху шторку с
+   кнопками "Отмена"/"Сохранить" (см. showSettingsEditBar ниже) — именно
+   ими закрывается режим редактирования, повторный тап по самому пункту
+   меню, пока режим активен, ничего не делает. Никакой отдельной кнопки
+   для этого больше нет — специально, чтобы не накладывать один элемент
+   интерфейса на другой в правом нижнем углу.
    ============================================================ */
-function onSettingsFabClick(){
+function trySectionSettingsAction(){
   if(currentPageName === 'analytics'){
-    if(analyticsReorderIsOn()) return; // режим уже включён — шторка сверху уже открыта, повторный тап по кнопке ничего не делает
+    if(analyticsReorderIsOn()) return true; // режим уже включён — шторка сверху уже открыта, повторный тап ничего не делает
     toggleAnalyticsReorderMode();
     showSettingsEditBar(
       'Настройка порядка карточек — перетащите их и нажмите «Сохранить»',
-      function(){ saveAnalyticsReorderMode(); },
-      function(){ cancelAnalyticsReorderMode(); }
+      function(){ saveAnalyticsReorderMode(); updateSectionSettingsIndicator(); },
+      function(){ cancelAnalyticsReorderMode(); updateSectionSettingsIndicator(); }
     );
-    updateSettingsFabState();
-    return;
+    updateSectionSettingsIndicator();
+    return true;
   }
   if(currentPageName === 'student-detail' && currentDetailTab === 'profile'){
-    if(profileReorderMode) return; // режим уже включён — шторка сверху уже открыта
+    if(profileReorderMode) return true; // режим уже включён — шторка сверху уже открыта
     toggleProfileReorderMode();
     showSettingsEditBar(
       'Настройка порядка блоков — перетащите их и нажмите «Сохранить»',
-      function(){ saveProfileReorderOrder(); updateSettingsFabState(); },
-      function(){ toggleProfileReorderMode(); updateSettingsFabState(); }
+      function(){ saveProfileReorderOrder(); updateSectionSettingsIndicator(); },
+      function(){ toggleProfileReorderMode(); updateSectionSettingsIndicator(); }
     );
-    updateSettingsFabState();
-    return;
+    updateSectionSettingsIndicator();
+    return true;
   }
-  // Для остальных разделов настройка через эту кнопку пока не реализована.
-  toast('Настройки этого раздела скоро появятся');
+  // Для остальных разделов настройка не реализована — пункт меню ведёт
+  // себя как обычно (переход на страницу "Настройки"), см. bnItemClick.
+  return false;
 }
 
-/* Кнопка "Настройки" больше не перекрашивается и не меняет иконку — она
-   всегда остаётся обычной (см. .settings-fab в CSS). Пока активен режим
-   редактирования текущего раздела, кнопка лишь слегка притушена и
-   недоступна для повторного нажатия (см. .settings-fab.on) — открыть и
-   закрыть режим теперь можно только через шторку settings-edit-bar сверху
-   (кнопки "Отмена"/"Сохранить"). */
-function updateSettingsFabState(){
-  const fab = document.getElementById('settingsFab');
-  if(!fab) return;
-  const onAnalytics = currentPageName === 'analytics' && analyticsReorderIsOn();
+/* Подсвечивает пункт "Настройки" нижнего меню акцентным цветом, пока
+   активен режим редактирования текущего раздела — единственный визуальный
+   признак того, что режим включён (кнопка при этом остаётся на своём
+   обычном месте, ничего поверх неё не появляется). */
+function updateSectionSettingsIndicator(){
+  const item = document.querySelector('.bn-item[data-page="settings"]');
+  if(!item) return;
+  const onAnalytics = currentPageName === 'analytics' && typeof analyticsReorderIsOn==='function' && analyticsReorderIsOn();
   const onProfileTab = currentPageName === 'student-detail' && currentDetailTab === 'profile' && profileReorderMode;
-  const active = onAnalytics || onProfileTab;
-  fab.classList.toggle('on', active);
+  item.classList.toggle('settings-editing', onAnalytics || onProfileTab);
 }
 
 /* ============================================================
@@ -5569,10 +5564,11 @@ function updateSettingsFabState(){
    ------------------------------------------------------------
    Единая, переиспользуемая для ЛЮБОГО раздела шторка, которая опускается
    сверху экрана, пока включён режим редактирования текущего раздела
-   (запущенный кнопкой "Настройки" в правом нижнем углу). Содержит текст-
-   подсказку и две кнопки — "Отмена" (откатывает несохранённые изменения) и
-   "Сохранить". Сделана по образцу шторки настройки быстрого меню
-   (qm-edit-bar), просто с добавленной кнопкой "Отмена".
+   (запущенный стандартным пунктом "Настройки" нижнего быстрого меню).
+   Содержит текст-подсказку и две кнопки — "Отмена" (откатывает
+   несохранённые изменения) и "Сохранить". Сделана по образцу шторки
+   настройки быстрого меню (qm-edit-bar), просто с добавленной кнопкой
+   "Отмена".
    ============================================================ */
 function showSettingsEditBar(text, onSave, onCancel){
   let bar = document.getElementById('settingsEditBar');
