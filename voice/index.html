@@ -79,8 +79,6 @@
   .logo-text{font-size:15px;font-weight:600;letter-spacing:-0.3px}
   .logo-sub{font-size:10px;color:var(--text3);margin-top:1px}
   .nav{padding:12px 10px;flex:1;overflow-y:auto}
-  .nav-section{margin-bottom:18px}
-  .nav-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:0 10px;margin-bottom:6px}
   .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:2px}
   .nav-item:hover{background:var(--bg3);color:var(--text)}
   .nav-item.active{background:var(--accent-glow);color:var(--accent)}
@@ -1999,25 +1997,13 @@
       </div>
     </div>
     <nav class="nav">
-      <div class="nav-section">
-        <div class="nav-label">Главное</div>
-        <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">🏠</span> Дашборд</div>
-        <div class="nav-item" data-page="schedule" onclick="showPage('schedule')"><span class="icon">📅</span> Расписание</div>
-        <div class="nav-item" data-page="students" onclick="showPage('students')"><span class="icon">🎓</span> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">Учёт</div>
-        <div class="nav-item" data-page="finances" onclick="showPage('finances')"><span class="icon">💰</span> Финансы</div>
-        <div class="nav-item" data-page="homework" onclick="showPage('homework')"><span class="icon">📝</span> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">Аналитика</div>
-        <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><span class="icon">📊</span> Аналитика</div>
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">Аккаунт</div>
-        <div class="nav-item" data-page="settings" onclick="showPage('settings')"><span class="icon">⚙️</span> Настройки</div>
-      </div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">🏠</span> Дашборд</div>
+      <div class="nav-item" data-page="schedule" onclick="showPage('schedule')"><span class="icon">📅</span> Расписание</div>
+      <div class="nav-item" data-page="students" onclick="showPage('students')"><span class="icon">🎓</span> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
+      <div class="nav-item" data-page="finances" onclick="showPage('finances')"><span class="icon">💰</span> Финансы</div>
+      <div class="nav-item" data-page="homework" onclick="showPage('homework')"><span class="icon">📝</span> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
+      <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><span class="icon">📊</span> Аналитика</div>
+      <div class="nav-item" data-page="settings" onclick="showPage('settings')"><span class="icon">⚙️</span> Настройки</div>
     </nav>
     <div class="sidebar-footer">
       <div class="sb-user-block" onclick="doLogout()" title="Выйти из аккаунта">
@@ -8028,11 +8014,15 @@ function renderTrialBanner(){
   if(!window.__trialDaysLeft) return;
   const sidebar = document.querySelector('.sidebar');
   if(!sidebar) return;
+  const footer = sidebar.querySelector('.sidebar-footer');
+  if(!footer) return;
   const el = document.createElement('div');
   el.id = 'trialBanner';
-  el.style.cssText = 'margin:10px 14px;padding:9px 10px;border-radius:9px;background:var(--green-bg);border:1px solid rgba(52,211,153,.35);color:var(--green);font-size:11.5px;font-weight:600;text-align:center;line-height:1.4';
+  el.style.cssText = 'margin:0 12px 8px;padding:9px 10px;border-radius:9px;background:var(--green-bg);border:1px solid rgba(52,211,153,.35);color:var(--green);font-size:11.5px;font-weight:600;text-align:center;line-height:1.4';
   el.textContent = '🎁 Пробный период: осталось '+window.__trialDaysLeft+' '+pluralDays(window.__trialDaysLeft);
-  sidebar.insertBefore(el, sidebar.querySelector('.logo').nextSibling);
+  // Вставляем сразу над sidebar-footer (там, где имя, роль и аватарка преподавателя) —
+  // и на десктопе, и на мобильной версии, т.к. используется один и тот же элемент .sidebar
+  sidebar.insertBefore(el, footer);
 }
 function pluralDays(n){
   const mod10=n%10, mod100=n%100;
