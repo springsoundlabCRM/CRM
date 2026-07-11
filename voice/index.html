@@ -5116,6 +5116,7 @@ function beginProfileCardDrag(st){
 function checkProfileCardSwap(st){
   const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
   const dragRect = st.card.getBoundingClientRect();
+  const dragArea = (dragRect.right-dragRect.left)*(dragRect.bottom-dragRect.top);
   const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
   for(const sib of siblings){
     const r = sib.getBoundingClientRect();
@@ -5127,8 +5128,13 @@ function checkProfileCardSwap(st){
       continue;
     }
     const sibArea = (r.right-r.left)*(r.bottom-r.top);
-    if(sibArea<=0) continue;
-    const ratio = (overlapW*overlapH)/sibArea;
+    if(sibArea<=0 || dragArea<=0) continue;
+    // Порог считаем от МЕНЬШЕЙ из двух площадей (тянущаяся карточка / сосед) —
+    // иначе при заметно разной высоте карточек маленькая карточка, наведённая
+    // на гораздо более крупного соседа, никогда не набирала бы нужные 50% от
+    // его площади, и свап просто не срабатывал бы.
+    const minArea = Math.min(sibArea, dragArea);
+    const ratio = (overlapW*overlapH)/minArea;
     if(key === st.lockedSiblingKey){
       if(ratio < 0.3) st.lockedSiblingKey = null; // достаточно отдалились — можно снова менять местами с этим же соседом
       continue; // пока не отдалились — этот сосед временно не участвует в проверке
@@ -5411,6 +5417,7 @@ function createCardReorder(opts){
   function checkSwap(st){
     const grid = st.placeholder && st.placeholder.parentNode; if(!grid) return;
     const dragRect = st.card.getBoundingClientRect();
+    const dragArea = (dragRect.right-dragRect.left)*(dragRect.bottom-dragRect.top);
     const siblings = Array.from(grid.children).filter(c=>c!==st.placeholder && c.dataset && c.dataset.cardKey);
     for(const sib of siblings){
       const r = sib.getBoundingClientRect();
@@ -5419,8 +5426,14 @@ function createCardReorder(opts){
       const key = sib.dataset.cardKey;
       if(overlapW<=0||overlapH<=0){ if(key===st.lockedSiblingKey) st.lockedSiblingKey=null; continue; }
       const sibArea=(r.right-r.left)*(r.bottom-r.top);
-      if(sibArea<=0) continue;
-      const ratio=(overlapW*overlapH)/sibArea;
+      if(sibArea<=0 || dragArea<=0) continue;
+      // Порог считаем от МЕНЬШЕЙ из двух площадей (тянущаяся карточка / сосед),
+      // а не только от площади соседа — иначе при заметно разной высоте карточек
+      // (например, в "Аналитике" после переключения на один столбец) маленькая
+      // карточка, наведённая на гораздо более крупного соседа, никогда не
+      // набирала бы нужные 50% от его площади, и свап просто не срабатывал.
+      const minArea = Math.min(sibArea, dragArea);
+      const ratio=(overlapW*overlapH)/minArea;
       if(key===st.lockedSiblingKey){ if(ratio<0.3) st.lockedSiblingKey=null; continue; }
       if(ratio>=0.5){ swapPlaceholder(st.placeholder, sib); st.lockedSiblingKey=key; break; }
     }
