@@ -939,14 +939,40 @@
     display:none;position:fixed;right:14px;
     bottom:calc(var(--bottom-nav-h) + 14px + env(safe-area-inset-bottom,0px));
     z-index:70;width:46px;height:46px;border-radius:50%;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));
-    color:#fff;border:none;box-shadow:0 6px 16px rgba(124,58,237,.45);
+    background:var(--bg3);color:var(--text2);border:1px solid var(--border2);
+    box-shadow:0 6px 16px rgba(0,0,0,.28);
     align-items:center;justify-content:center;font-size:18px;cursor:pointer;
     -webkit-tap-highlight-color:transparent;
   }
-  .settings-fab:active{transform:scale(.94)}
-  /* Режим редактирования включён — кнопка зеленеет, как бы говоря "нажми, чтобы сохранить" */
-  .settings-fab.on{background:linear-gradient(135deg,var(--green),#0ea472);box-shadow:0 6px 16px rgba(52,211,153,.5)}
+  .settings-fab:active{transform:scale(.94);background:var(--card2)}
+  /* Кнопка больше не меняет цвет/иконку при включении режима редактирования —
+     вместо этого сверху опускается settings-edit-bar (см. ниже) с кнопками
+     "Отмена"/"Сохранить". Пока идёт редактирование, кнопка просто чуть
+     притушена и неактивна для повторных нажатий (см. onSettingsFabClick). */
+  .settings-fab.on{opacity:.45;pointer-events:none}
+
+  /* ---------- Верхняя шторка настройки раздела (settings-edit-bar) ----------
+     Появляется сверху при включении режима редактирования текущего раздела
+     через кнопку "Настройки" (settings-fab) — единый паттерн для ЛЮБОГО
+     раздела с настройкой (перестановка карточек аналитики, блоков профиля
+     и т.д. в будущем). Всегда содержит текст-подсказку и две кнопки:
+     "Отмена" (откатывает несохранённые изменения) и "Сохранить". Визуально
+     сделана как qm-edit-bar (шторка настройки быстрого меню) — тот же
+     принцип оформления. */
+  .settings-edit-bar{
+    display:none;position:fixed;left:0;right:0;top:0;z-index:75;
+    background:var(--accent);border-bottom:1px solid rgba(167,139,250,.3);
+    color:#fff;font-size:11.5px;font-weight:500;padding:10px 12px;
+    padding-top:calc(10px + env(safe-area-inset-top));
+    align-items:center;justify-content:space-between;gap:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.25);
+  }
+  .settings-edit-bar-text{flex:1;min-width:0}
+  .settings-edit-bar-actions{display:flex;gap:8px;flex-shrink:0}
+  .settings-edit-bar .btn{flex-shrink:0;padding:6px 12px;font-size:12px}
+  .settings-edit-bar .btn-cancel{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3)}
+  .settings-edit-bar .btn-cancel:active{background:rgba(255,255,255,.26)}
+  .settings-edit-bar .btn-primary{background:#fff;color:var(--accent2)}
 
   /* ---------- Нижняя навигация (моб.) ---------- */
   .bottom-nav{
@@ -1174,6 +1200,7 @@
     /* Нижняя навигация включается */
     .bottom-nav{display:flex}
     .qm-edit-bar.show{display:flex}
+    .settings-edit-bar.show{display:flex}
     #quickMenuSettingsSection{display:block!important}
     .sidebar-footer{padding-bottom:14px}
     .toast{bottom:calc(72px + env(safe-area-inset-bottom));right:12px;left:12px;justify-content:center;text-align:center}
@@ -4350,7 +4377,7 @@ function renderStudentDetailAll(){
 function updateProfileReorderBtnVisibility(){
   const gearBtn = document.getElementById('profileReorderBtn');
   const onProfile = currentDetailTab === 'profile';
-  if(profileReorderMode && !onProfile) toggleProfileReorderMode();
+  if(profileReorderMode && !onProfile){ toggleProfileReorderMode(); hideSettingsEditBar(); }
   if(gearBtn) gearBtn.classList.toggle('hidden', !onProfile);
 }
 
@@ -4376,6 +4403,7 @@ function showPage(name){
   // updateProfileReorderBtnVisibility выше).
   if(currentPageName === 'analytics' && name !== 'analytics' && typeof analyticsReorderIsOn === 'function' && analyticsReorderIsOn()){
     cancelAnalyticsReorderMode();
+    if(typeof hideSettingsEditBar === 'function') hideSettingsEditBar();
   }
   currentPageName = name;
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
@@ -5496,14 +5524,24 @@ function applyAnalyticsCardOrder(){
    ============================================================ */
 function onSettingsFabClick(){
   if(currentPageName === 'analytics'){
-    if(analyticsReorderIsOn()) saveAnalyticsReorderMode();
-    else toggleAnalyticsReorderMode();
+    if(analyticsReorderIsOn()) return; // режим уже включён — шторка сверху уже открыта, повторный тап по кнопке ничего не делает
+    toggleAnalyticsReorderMode();
+    showSettingsEditBar(
+      'Настройка порядка карточек — перетащите их и нажмите «Сохранить»',
+      function(){ saveAnalyticsReorderMode(); },
+      function(){ cancelAnalyticsReorderMode(); }
+    );
     updateSettingsFabState();
     return;
   }
   if(currentPageName === 'student-detail' && currentDetailTab === 'profile'){
-    if(profileReorderMode) saveProfileReorderOrder();
-    else toggleProfileReorderMode();
+    if(profileReorderMode) return; // режим уже включён — шторка сверху уже открыта
+    toggleProfileReorderMode();
+    showSettingsEditBar(
+      'Настройка порядка блоков — перетащите их и нажмите «Сохранить»',
+      function(){ saveProfileReorderOrder(); updateSettingsFabState(); },
+      function(){ toggleProfileReorderMode(); updateSettingsFabState(); }
+    );
     updateSettingsFabState();
     return;
   }
@@ -5511,18 +5549,57 @@ function onSettingsFabClick(){
   toast('Настройки этого раздела скоро появятся');
 }
 
-/* Подсвечивает кнопку зелёным и меняет иконку на "галочку", пока активен
-   режим редактирования (перестановки карточек) текущего раздела — чтобы
-   было понятно, что повторный тап по кнопке сохранит изменения. */
+/* Кнопка "Настройки" больше не перекрашивается и не меняет иконку — она
+   всегда остаётся обычной (см. .settings-fab в CSS). Пока активен режим
+   редактирования текущего раздела, кнопка лишь слегка притушена и
+   недоступна для повторного нажатия (см. .settings-fab.on) — открыть и
+   закрыть режим теперь можно только через шторку settings-edit-bar сверху
+   (кнопки "Отмена"/"Сохранить"). */
 function updateSettingsFabState(){
   const fab = document.getElementById('settingsFab');
   if(!fab) return;
-  const icon = document.getElementById('settingsFabIcon');
   const onAnalytics = currentPageName === 'analytics' && analyticsReorderIsOn();
   const onProfileTab = currentPageName === 'student-detail' && currentDetailTab === 'profile' && profileReorderMode;
   const active = onAnalytics || onProfileTab;
   fab.classList.toggle('on', active);
-  if(icon) icon.className = active ? 'fa-solid fa-check' : 'fa-solid fa-gear';
+}
+
+/* ============================================================
+   ВЕРХНЯЯ ШТОРКА "НАСТРОЙКА РАЗДЕЛА" (settings-edit-bar)
+   ------------------------------------------------------------
+   Единая, переиспользуемая для ЛЮБОГО раздела шторка, которая опускается
+   сверху экрана, пока включён режим редактирования текущего раздела
+   (запущенный кнопкой "Настройки" в правом нижнем углу). Содержит текст-
+   подсказку и две кнопки — "Отмена" (откатывает несохранённые изменения) и
+   "Сохранить". Сделана по образцу шторки настройки быстрого меню
+   (qm-edit-bar), просто с добавленной кнопкой "Отмена".
+   ============================================================ */
+function showSettingsEditBar(text, onSave, onCancel){
+  let bar = document.getElementById('settingsEditBar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'settingsEditBar';
+    bar.className = 'settings-edit-bar';
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = '<span class="settings-edit-bar-text">✎ '+text+'</span>'
+    + '<div class="settings-edit-bar-actions">'
+    + '<button type="button" class="btn btn-sm btn-cancel" id="settingsEditCancelBtn">Отмена</button>'
+    + '<button type="button" class="btn btn-primary btn-sm" id="settingsEditSaveBtn">Сохранить</button>'
+    + '</div>';
+  document.getElementById('settingsEditCancelBtn').onclick = function(){
+    hideSettingsEditBar();
+    if(typeof onCancel === 'function') onCancel();
+  };
+  document.getElementById('settingsEditSaveBtn').onclick = function(){
+    hideSettingsEditBar();
+    if(typeof onSave === 'function') onSave();
+  };
+  bar.classList.add('show');
+}
+function hideSettingsEditBar(){
+  const bar = document.getElementById('settingsEditBar');
+  if(bar) bar.classList.remove('show');
 }
 
 /* ============================================================
