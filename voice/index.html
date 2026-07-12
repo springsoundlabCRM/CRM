@@ -2837,6 +2837,14 @@ let analyticsYear = new Date().getFullYear();
 let dashboardMonthKey = null;
 
 function getCurrentTeacher(){ return DB.teachers.find(t=>t.id===DB.currentTeacherId) || DB.teachers[0]; }
+// Защита от повреждённых данных: в поле avatarUrl должен лежать либо
+// data-URL загруженной картинки, либо обычная http(s) ссылка. Раньше в
+// коде была ошибка сборки строки, из-за которой у части аккаунтов в это
+// поле буквально записался текст "'+t.avatarUrl+'" вместо настоящей
+// ссылки — браузер честно пытался загрузить файл с таким именем и падал
+// с 404. Сама ошибка сборки строки исправлена, но старые испорченные
+// значения могли остаться сохранёнными в базе — эта проверка отсекает их.
+function isValidAvatarUrl(u){ return typeof u==='string' && (u.indexOf('data:image')===0 || u.indexOf('http://')===0 || u.indexOf('https://')===0); }
 // Неактивные ученики ("статус: Неактивный") нигде в приложении не должны
 // всплывать — ни в дашборде, ни в финансах, ни в выпадающих списках при
 // планировании урока/платежа. Поэтому "ученики преподавателя" по умолчанию
@@ -3805,6 +3813,12 @@ function lessonCardHTML(l, opts){
 function renderSidebar(){
   const t = getCurrentTeacher();
   const av = document.getElementById('sbAvatar');
+  if(t.avatarUrl && !isValidAvatarUrl(t.avatarUrl)){
+    // Испорченное значение из прошлой версии — чистим один раз и сохраняем,
+    // чтобы больше не пытаться грузить несуществующий файл.
+    delete t.avatarUrl;
+    saveDB();
+  }
   if(t.avatarUrl){
     av.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
     av.style.background = 'none';
@@ -8146,6 +8160,7 @@ function renderSettingsPage(){
   document.getElementById('settingsRoleInput').value = t.role || '';
   // Аватар превью
   const prev = document.getElementById('settingsAvPreview');
+  if(t.avatarUrl && !isValidAvatarUrl(t.avatarUrl)) delete t.avatarUrl;
   if(t.avatarUrl){
     prev.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
     prev.style.background = 'none';
@@ -8198,6 +8213,7 @@ function saveProfileSettings(){
   renderSidebar();
   // обновить превью
   const prev = document.getElementById('settingsAvPreview');
+  if(t.avatarUrl && !isValidAvatarUrl(t.avatarUrl)) delete t.avatarUrl;
   if(t.avatarUrl){
     prev.innerHTML = '<img src="'+t.avatarUrl+'" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
     prev.style.background = 'none';
