@@ -543,11 +543,10 @@
      Именно это ощущалось как "дёрганье" при клике на кнопки внутри карточки
      (пилюли статуса, корзина). Оставляем только подсветку тенью, без сдвига. */
   .hw-card:hover{box-shadow:0 10px 24px rgba(0,0,0,.16)}
-  /* Тонкая обводка карточки перекрашивается в цвет выбранного статуса —
-     только рамка, без подсветки/заливки фона карточки. */
-  .hw-card.hw-card-status-todo{border-color:var(--red)}
-  .hw-card.hw-card-status-progress{border-color:var(--amber)}
-  .hw-card.hw-card-status-done{border-color:var(--green)}
+  /* Обводка и фон карточки не красятся в цвет статуса — выбранный статус
+     виден по подсветке самой кнопки-пилюли (.hw-status-pill.active).
+     Карточка всегда остаётся с обычным нейтральным фоном/рамкой,
+     независимо от статуса. */
   .hw-card-student{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-shrink:0}
   .hw-card-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:#fff;flex-shrink:0}
   .hw-card-name{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -6373,7 +6372,6 @@ function renderDetailHomework(){
     '<div class="hw-card hw-card-status-'+h.status+'">'
       +'<div class="hw-card-student"><div class="hw-card-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="hw-card-name">'+escapeHTML(s.name)+'</div></div>'
       +'<div class="hw-card-body">'
-        +'<div class="hw-card-label">📝 Задание <span class="hw-card-label-hint">✎ нажмите, чтобы изменить</span></div>'
         +'<div class="hw-card-title" contenteditable="true" spellcheck="false" title="Нажмите, чтобы отредактировать" oninput="keepCaretInView(this)" onblur="updateHomeworkField(\''+h.id+'\',\'title\',this.innerText)">'+escapeHTML(h.title)+'</div>'
         +'<div class="hw-card-sub" contenteditable="true" spellcheck="false" title="Комментарий (необязательно)" oninput="keepCaretInView(this)" onblur="updateHomeworkField(\''+h.id+'\',\'sub\',this.innerText)">'+escapeHTML(h.sub||'')+'</div>'
       +'</div>'
