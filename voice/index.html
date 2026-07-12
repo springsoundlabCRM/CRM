@@ -915,14 +915,14 @@
   .settings-edit-bar{
     display:none;position:fixed;left:0;right:0;top:0;z-index:75;
     background:var(--accent);border-bottom:1px solid rgba(167,139,250,.3);
-    color:#fff;font-size:11.5px;font-weight:500;padding:10px 12px;
-    padding-top:calc(10px + env(safe-area-inset-top));
+    color:#fff;font-size:11.5px;font-weight:500;padding:6px 12px;
+    padding-top:calc(6px + env(safe-area-inset-top));
     align-items:center;justify-content:space-between;gap:10px;
     box-shadow:0 2px 10px rgba(0,0,0,.25);
   }
-  .settings-edit-bar-text{flex:1;min-width:0}
+  .settings-edit-bar-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .settings-edit-bar-actions{display:flex;gap:8px;flex-shrink:0}
-  .settings-edit-bar .btn{flex-shrink:0;padding:6px 12px;font-size:12px}
+  .settings-edit-bar .btn{flex-shrink:0;padding:4px 10px;font-size:11.5px}
   .settings-edit-bar .btn-cancel{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3)}
   .settings-edit-bar .btn-cancel:active{background:rgba(255,255,255,.26)}
   .settings-edit-bar .btn-primary{background:#fff;color:var(--accent2)}
@@ -1249,66 +1249,6 @@
   .kpi-ring-card.goal-card{cursor:pointer}
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
-
-  /* ---------- Настройка блока "Показатели" на дашборде — ТОЛЬКО
-     мобильная версия. Включается стандартной кнопкой "Настройки" нижнего
-     меню (как и перестановка карточек в "Аналитике"/"Профиле"), а не
-     отдельной кнопкой на странице. Редактируемый на дашборде — ТОЛЬКО
-     блок с тремя кольцами (посещаемость/ДЗ/активные); остальные блоки
-     дашборда (верхние 4 прямоугольника, "Сегодня", "Уведомления", "Дни
-     рождения") в этом режиме никак не выделяются и не редактируются.
-     Блок с кольцами подсвечивается той же фиолетовой рамкой + тенью, что
-     и карточки в режиме перестановки на вкладке "Профиль" (см.
-     .profile-grid.reorder-mode > .detail-card) — единый стиль по всей
-     CRM. Подсказка "Компактный вариант" при входе в режим настройки
-     показывается СРАЗУ и ЗАКРЕПЛЕНА на экране (position:fixed, привязана
-     к верхней шторке "Настройки раздела", а не к самому блоку) — поэтому
-     не скачет по экрану при прокрутке дашборда. На компьютерной версии
-     (>880px) вся эта логика визуально не работает — правила ниже
-     намеренно закрыты в @media(max-width:880px). ---------- */
-  .dash-ring-hint{display:none;position:fixed;left:12px;right:12px;z-index:74;
-    top:calc(54px + env(safe-area-inset-top));
-    background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);
-    box-shadow:0 10px 28px rgba(0,0,0,.35);padding:12px 14px;
-    animation:notePopIn .16s cubic-bezier(.22,1,.36,1)}
-  .dash-ring-hint.show{display:block}
-  .dash-ring-hint-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;
-    font-weight:700;margin-bottom:9px}
-  .dash-ring-hint-row{display:flex;align-items:center;justify-content:space-between;gap:10px;
-    font-size:12.5px;color:var(--text2)}
-  .dash-toggle{position:relative;width:36px;height:21px;border-radius:99px;background:var(--card2);
-    border:1px solid var(--border2);cursor:pointer;flex-shrink:0;transition:background .15s}
-  .dash-toggle::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
-    background:var(--text3);transition:transform .15s,background .15s}
-  .dash-toggle.on{background:var(--accent);border-color:var(--accent)}
-  .dash-toggle.on::after{transform:translateX(15px);background:#fff}
-  /* Всплывающая подсказка-расшифровка показателя при клике на кольцо в
-     компактном виде (вне режима настройки) — плавающая у самого кольца,
-     это отдельная, простая штука, а не "закреплённая" подсказка выше. */
-  .dash-ring-tip{position:fixed;z-index:150;width:210px;background:var(--card);border:1px solid var(--border2);
-    border-radius:var(--r2);box-shadow:0 14px 36px rgba(0,0,0,.35);padding:11px 13px;font-size:12px;
-    line-height:1.45;color:var(--text2);animation:notePopIn .16s cubic-bezier(.22,1,.36,1)}
-  @media(max-width:880px){
-    .dash-edit-mode #dashRingsBlock{border-radius:var(--r2);box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 2px var(--accent)}
-    /* Компактный вариант блока с тремя кольцами: одна узкая полоска,
-       кольца в ряд — РАЗМЕР И ВИД КОЛЕЦ ТЕ ЖЕ, что и в обычном режиме на
-       мобильных (наследуются от .goal-card-left .kpi-ring и т.д. чуть
-       выше), меняется только раскладка карточки (вертикальный стек
-       вместо кольца+подписи слева и статистики справа) и убирается
-       правая колонка со статистикой, чтобы всё поместилось в один ряд.
-       Работает только на мобильных — на десктопе класс kpi-ring-compact
-       ни на что не влияет. */
-    .kpi-ring-grid.kpi-ring-compact{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
-      background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 10px;margin-bottom:16px}
-    .kpi-ring-grid.kpi-ring-compact .kpi-ring-card{display:flex;flex-direction:column;align-items:center;
-      text-align:center;gap:8px;padding:0;border:none;background:transparent;flex:1;min-width:0;cursor:pointer}
-    .kpi-ring-grid.kpi-ring-compact .kpi-ring-card:hover{border:none}
-    .kpi-ring-grid.kpi-ring-compact .goal-card-left{flex-direction:column;padding-right:0;gap:8px}
-    .kpi-ring-grid.kpi-ring-compact .kpi-ring-info{text-align:center}
-    .kpi-ring-grid.kpi-ring-compact .kpi-ring-title{margin-bottom:0}
-    .kpi-ring-grid.kpi-ring-compact .kpi-ring-sub{display:none}
-    .kpi-ring-grid.kpi-ring-compact .kpi-ring-extra{display:none}
-  }
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
@@ -2148,22 +2088,22 @@
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card blue"><div class="stat-label">Новых учеников за месяц</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за месяц</div></div>
         </div>
-        <div class="kpi-ring-grid" id="dashRingsBlock">
-          <div class="kpi-ring-card split-card" id="ringAttendanceCard" onclick="onDashRingClick(event,'attendance')">
+        <div class="kpi-ring-grid">
+          <div class="kpi-ring-card split-card" id="ringAttendanceCard">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
               <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
             </div>
             <div class="kpi-ring-extra" id="ringAttendanceExtra"></div>
           </div>
-          <div class="kpi-ring-card split-card" id="ringHomeworkCard" onclick="onDashRingClick(event,'homework')">
+          <div class="kpi-ring-card split-card" id="ringHomeworkCard">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringHomework"><span class="kpi-ring-val" id="ringHomeworkVal">—</span></div>
               <div class="kpi-ring-info"><div class="kpi-ring-title">Выполнение ДЗ</div><div class="kpi-ring-sub" id="ringHomeworkSub">за 30 дней</div></div>
             </div>
             <div class="kpi-ring-extra" id="ringHomeworkExtra"></div>
           </div>
-          <div class="kpi-ring-card split-card" id="ringActiveCard" onclick="onDashRingClick(event,'active')">
+          <div class="kpi-ring-card split-card" id="ringActiveCard">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
               <div class="kpi-ring-info"><div class="kpi-ring-title">Активные ученики</div><div class="kpi-ring-sub" id="ringActiveSub">от общего числа</div></div>
@@ -2608,9 +2548,6 @@ async function loadDB(prefetchedSnap){
   // в модалке 'Запланировать урок'" и "цена пробного урока по умолчанию".
   if(DB.settings.defaultLessonModalPrice === undefined){ DB.settings.defaultLessonModalPrice = null; needsSave = true; }
   if(DB.settings.defaultTrialPrice === undefined){ DB.settings.defaultTrialPrice = null; needsSave = true; }
-  // Компактный вариант блока с тремя кольцами на дашборде (настраивается
-  // через кнопку "Настройка" под дашбордом) — по умолчанию выключен.
-  if(DB.settings.dashRingsCompact === undefined){ DB.settings.dashRingsCompact = false; needsSave = true; }
   // Раньше здесь был безусловный await saveDB() — то есть КАЖДЫЙ запуск
   // приложения делал лишнюю запись в Firestore сразу после чтения, даже
   // если ничего не изменилось. Это удваивало время до отрисовки интерфейса
@@ -3900,7 +3837,6 @@ function renderSidebar(){
    DASHBOARD
    ============================================================ */
 function renderDashboard(){
-  applyDashRingsCompact();
   const now=new Date();
   // Запоминаем, на какой месяц сейчас пересчитан дашборд — используется
   // в checkDashboardMonthRollover(), чтобы отследить наступление нового
@@ -4106,137 +4042,6 @@ function setRing(el, pct, colorVar, glowVar){
   if(card){ card.style.setProperty('--ring-color', colorVar); }
   animateNumProp(el, '--ring-pct', pct);
   return pct;
-}
-
-/* ==========================================================================
-   НАСТРОЙКА БЛОКА "ПОКАЗАТЕЛИ" НА ДАШБОРДЕ — только мобильная версия
-   Включается СТАНДАРТНОЙ кнопкой "Настройки" нижнего меню (той же самой,
-   что запускает перестановку карточек в "Аналитике" и на вкладке
-   "Профиль") — см. trySectionSettingsAction(). Редактируемый на
-   дашборде — ТОЛЬКО блок с тремя кольцами (посещаемость/ДЗ/активные), он
-   подсвечивается фиолетовой рамкой; остальные блоки дашборда (верхние 4
-   прямоугольника, "Сегодня", "Уведомления", "Дни рождения") в режиме
-   настройки никак не выделяются и не редактируются. Сразу при входе в
-   режим настройки, ЗАКРЕПЛЁННО на экране (не привязана к прокрутке
-   самого блока — see .dash-ring-hint), показывается подсказка с
-   переключателем "Компактный вариант": три кольца выстраиваются в один
-   ряд с короткой подписью снизу, а тройная колонка "Сегодня /
-   Уведомления / Дни рождения" естественным образом поднимается выше за
-   счёт освободившейся высоты. Настройка сохраняется в DB.settings и
-   переживает перезагрузку. Вне режима редактирования клик по кольцу в
-   компактном виде показывает отдельную всплывающую подсказку с
-   расшифровкой показателя. Вся визуальная часть (рамка, компактный вид)
-   закрыта в CSS медиа-запросом max-width:880px — на компьютерной версии
-   эта настройка не действует, даже если сохранена. ========================== */
-let dashEditMode = false;
-let dashCompactBeforeEdit = false;
-
-function enterDashboardEditMode(){
-  dashEditMode = true;
-  dashCompactBeforeEdit = !!(DB.settings && DB.settings.dashRingsCompact);
-  const area = document.getElementById('dashScrollArea');
-  if(area) area.classList.add('dash-edit-mode');
-  showDashRingHint();
-}
-function exitDashboardEditMode(){
-  dashEditMode = false;
-  const area = document.getElementById('dashScrollArea');
-  if(area) area.classList.remove('dash-edit-mode');
-  hideDashRingHint();
-  closeDashRingTip();
-}
-function saveDashboardEditMode(){
-  saveDB();
-  exitDashboardEditMode();
-}
-function cancelDashboardEditMode(){
-  DB.settings = DB.settings || {};
-  DB.settings.dashRingsCompact = dashCompactBeforeEdit;
-  applyDashRingsCompact();
-  exitDashboardEditMode();
-}
-
-/* Закреплённая подсказка "Компактный вариант" — создаётся один раз,
-   position:fixed относительно ЭКРАНА (а не относительно блока с
-   кольцами), поэтому не гуляет при прокрутке дашборда. Показывается
-   сразу при входе в режим настройки и остаётся на месте, пока режим не
-   закрыт кнопкой "Сохранить"/"Отмена" в верхней шторке. */
-function showDashRingHint(){
-  let hint = document.getElementById('dashRingHint');
-  if(!hint){
-    hint = document.createElement('div');
-    hint.id = 'dashRingHint';
-    hint.className = 'dash-ring-hint';
-    document.body.appendChild(hint);
-  }
-  renderDashRingHint(hint);
-  hint.classList.add('show');
-}
-function hideDashRingHint(){
-  const hint = document.getElementById('dashRingHint');
-  if(hint) hint.classList.remove('show');
-}
-function renderDashRingHint(hint){
-  const isCompact = !!(DB.settings && DB.settings.dashRingsCompact);
-  hint.innerHTML =
-    '<div class="dash-ring-hint-title">Блок «Показатели»</div>'
-    +'<div class="dash-ring-hint-row">'
-      +'<span>Компактный вариант</span>'
-      +'<span class="dash-toggle'+(isCompact?' on':'')+'" onclick="setDashRingsCompact(!('+isCompact+'))"></span>'
-    +'</div>';
-}
-
-function setDashRingsCompact(val){
-  DB.settings = DB.settings || {};
-  DB.settings.dashRingsCompact = !!val;
-  applyDashRingsCompact();
-  const hint = document.getElementById('dashRingHint');
-  if(hint) renderDashRingHint(hint);
-}
-
-function applyDashRingsCompact(){
-  const grid = document.getElementById('dashRingsBlock');
-  if(!grid) return;
-  const compact = !!(DB.settings && DB.settings.dashRingsCompact);
-  grid.classList.toggle('kpi-ring-compact', compact);
-}
-
-/* В компактном виде (и вне режима настройки) клик по кольцу показывает
-   короткую всплывающую подсказку — что означает показатель. Это
-   отдельная, простая плавающая подсказка у самого кольца — в отличие от
-   закреплённой .dash-ring-hint, ей не нужна фиксация на экране, потому
-   что вне режима настройки страница не имеет смысла листать одновременно
-   с открытой подсказкой (она закрывается по клику вовне). */
-const DASH_RING_TOOLTIPS = {
-  attendance: 'Доля проведённых уроков от всех запланированных в этом месяце (без учёта отменённых).',
-  homework: 'Доля заданий со статусом «Сдано» среди всех, выданных за последние 30 дней.',
-  active: 'Сколько учеников сейчас в статусе «Активный» от общего числа учеников в базе.'
-};
-function onDashRingClick(e, key){
-  if(dashEditMode) return; // в режиме настройки клик по кольцу ничего не делает
-  const grid = document.getElementById('dashRingsBlock');
-  if(!grid || !grid.classList.contains('kpi-ring-compact')) return; // подсказка — только в компактном виде
-  e.stopPropagation();
-  closeDashRingTip();
-  const tip = document.createElement('div');
-  tip.className = 'dash-ring-tip';
-  tip.innerHTML = DASH_RING_TOOLTIPS[key];
-  document.body.appendChild(tip);
-  const r = e.currentTarget.getBoundingClientRect();
-  const top = Math.min(r.bottom + 8, window.innerHeight - 90);
-  let left = Math.max(10, Math.min(r.left, window.innerWidth - 220));
-  tip.style.top = top+'px';
-  tip.style.left = left+'px';
-  setTimeout(()=>{ document.addEventListener('click', closeDashRingTipOnce); }, 0);
-}
-function closeDashRingTip(){
-  const existing = document.querySelector('.dash-ring-tip');
-  if(existing) existing.remove();
-}
-function closeDashRingTipOnce(ev){
-  if(ev.target.closest('.dash-ring-tip')) return;
-  closeDashRingTip();
-  document.removeEventListener('click', closeDashRingTipOnce);
 }
 
 /* Три «пульс»-кольца дашборда: посещаемость, собираемость оплат, доля активных учеников */
@@ -4675,12 +4480,6 @@ function showPage(name){
   // updateProfileReorderBtnVisibility выше).
   if(currentPageName === 'analytics' && name !== 'analytics' && typeof analyticsReorderIsOn === 'function' && analyticsReorderIsOn()){
     cancelAnalyticsReorderMode();
-    if(typeof hideSettingsEditBar === 'function') hideSettingsEditBar();
-  }
-  // То же самое для режима настройки блоков дашборда (компактный вид
-  // показателей) — уходя со страницы, откатываем несохранённое.
-  if(currentPageName === 'dashboard' && name !== 'dashboard' && typeof dashEditMode !== 'undefined' && dashEditMode){
-    cancelDashboardEditMode();
     if(typeof hideSettingsEditBar === 'function') hideSettingsEditBar();
   }
   currentPageName = name;
@@ -5876,7 +5675,7 @@ function trySectionSettingsAction(){
     if(analyticsReorderIsOn()) return true; // режим уже включён — шторка сверху уже открыта, повторный тап ничего не делает
     toggleAnalyticsReorderMode();
     showSettingsEditBar(
-      'Настройка порядка карточек — перетащите их и нажмите «Сохранить»',
+      'Настройка порядка карточек',
       function(){ saveAnalyticsReorderMode(); updateSectionSettingsIndicator(); },
       function(){ cancelAnalyticsReorderMode(); updateSectionSettingsIndicator(); }
     );
@@ -5887,20 +5686,9 @@ function trySectionSettingsAction(){
     if(profileReorderMode) return true; // режим уже включён — шторка сверху уже открыта
     toggleProfileReorderMode();
     showSettingsEditBar(
-      'Настройка порядка блоков — перетащите их и нажмите «Сохранить»',
+      'Настройка порядка блоков',
       function(){ saveProfileReorderOrder(); updateSectionSettingsIndicator(); },
       function(){ toggleProfileReorderMode(); updateSectionSettingsIndicator(); }
-    );
-    updateSectionSettingsIndicator();
-    return true;
-  }
-  if(currentPageName === 'dashboard'){
-    if(dashEditMode) return true; // режим уже включён — шторка сверху уже открыта
-    enterDashboardEditMode();
-    showSettingsEditBar(
-      'Настройка блоков дашборда — нажмите на блок с показателями, чтобы включить компактный вид',
-      function(){ saveDashboardEditMode(); updateSectionSettingsIndicator(); },
-      function(){ cancelDashboardEditMode(); updateSectionSettingsIndicator(); }
     );
     updateSectionSettingsIndicator();
     return true;
@@ -5921,8 +5709,7 @@ function updateSectionSettingsIndicator(){
   if(!item) return;
   const onAnalytics = currentPageName === 'analytics' && typeof analyticsReorderIsOn==='function' && analyticsReorderIsOn();
   const onProfileTab = currentPageName === 'student-detail' && currentDetailTab === 'profile' && profileReorderMode;
-  const onDashboard = currentPageName === 'dashboard' && dashEditMode;
-  item.classList.toggle('settings-editing', onAnalytics || onProfileTab || onDashboard);
+  item.classList.toggle('settings-editing', onAnalytics || onProfileTab);
 }
 
 /* ============================================================
