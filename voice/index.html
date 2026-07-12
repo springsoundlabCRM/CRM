@@ -6551,9 +6551,10 @@ function renderFinances(){
   const host = document.getElementById('finance-list');
 
   // Все записи (абонементы, их покупка/пополнение, платежи за уроки, переносы
-  // долгов) собираются в один список и сортируются вместе по дате — самое
-  // новое всегда сверху. Раньше активные абонементы выводились отдельным
-  // блоком без сортировки, из-за чего порядок казался случайным.
+  // долгов) собираются в один список и сортируются вместе по дате и времени —
+  // самое новое/позднее всегда сверху (в пределах одного дня урок в 20:00
+  // будет выше урока в 13:00). Раньше сортировка учитывала только дату без
+  // времени, поэтому записи одного дня перемешивались в случайном порядке.
   const items = [];
 
   // Активные абонементы — показываем в "Все" и "Абонементы"
@@ -6562,7 +6563,7 @@ function renderFinances(){
       const s = studentById(su.studentId); if(!s) return;
       const left = su.totalLessons-su.usedLessons;
       const pct = Math.round(su.usedLessons/su.totalLessons*100);
-      items.push({date: su.purchaseDate || '', html:
+      items.push({key: (su.purchaseDate || '')+'T00:00', html:
         '<div class="finance-row" onclick="openStudent(studentById(\''+s.id+'\'))"><div style="font-size:20px">🎫</div>'
         +'<div class="finance-name"><div>'+escapeHTML(s.name)+' — '+escapeHTML(su.title)+'</div>'
         +'<div class="finance-sub">'+su.usedLessons+'/'+su.totalLessons+' уроков использовано · осталось '+left+'</div>'
@@ -6580,10 +6581,10 @@ function renderFinances(){
     subPayments.forEach(p=>{
       const s = studentById(p.studentId); if(!s) return;
       const lbl = p.type==='subscription_purchase' ? 'Покупка абонемента' : 'Пополнение абонемента';
-      items.push({date: p.date, html:
+      items.push({key: (p.date||'')+'T00:00', html:
         '<div class="finance-row is-paid" onclick="openStudent(studentById(\''+s.id+'\'))"><div style="font-size:20px">💸</div><div class="finance-name"><div>'+escapeHTML(s.name)+'</div><div class="finance-sub">'+lbl+' · '+formatRu(p.date)+'</div></div><div class="finance-amount paid">+'+money(p.amount)+'</div></div>'});
     });
-    items.sort((a,b)=> a.date<b.date?1:-1);
+    items.sort((a,b)=> a.key<b.key?1:-1);
     host.innerHTML = items.map(it=>it.html).join('') || '<div class="empty-state">Абонементов пока нет</div>';
     return;
   }
@@ -6616,7 +6617,7 @@ function renderFinances(){
     const amountCls = debt>0 ? (l.paid>0?'partial':'debt') : 'paid';
     const amountText = debt>0 ? (l.paid>0 ? '−'+money(debt)+' (частично)' : '−'+money(debt)) : '+'+money(l.paid);
     const carryBadge = l._carry ? '<span class="carryover-badge">↺ Перенос</span>' : '';
-    items.push({date: l.date, html:
+    items.push({key: (l.date||'')+'T'+(l.time||'00:00'), html:
       '<div class="finance-row '+rowCls+'" onclick="openModal(\'payment\',{studentId:\''+s.id+'\',lessonId:\''+l.id+'\'})">'
       +'<div style="font-size:20px">'+(debt>0?'⚠️':'💸')+'</div>'
       +'<div class="finance-name"><div>'+escapeHTML(s.name)+carryBadge+'</div><div class="finance-sub">Урок '+formatRuShort(l.date)+' · '+l.time+'</div></div>'
@@ -6627,7 +6628,7 @@ function renderFinances(){
     host.innerHTML = '<div class="empty-state">Нет записей за выбранный период</div>';
     return;
   }
-  items.sort((a,b)=> a.date<b.date?1:-1);
+  items.sort((a,b)=> a.key<b.key?1:-1);
   host.innerHTML = items.map(it=>it.html).join('');
 }
 
