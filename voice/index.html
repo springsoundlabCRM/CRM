@@ -660,12 +660,17 @@
   .year-chart{height:150px;display:flex;align-items:flex-end;gap:6px;margin:12px 0 6px}
   .year-chart .bar{background:var(--accent)}
   .year-chart .bar.cur{background:var(--green)}
-  .song-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+  /* Карточка песни в "Репертуаре" (внутри карточки ученика) — по высоте
+     должна совпадать с карточками "Истории уроков" (.lesson-note) и
+     "Финансов" (#dtab-finance-tab .finance-row): тот же приём — одинаковый
+     padding и одинаковая минимальная высота (см. подробный комментарий
+     выше, у .finance-row). */
+  .song-item{display:flex;align-items:center;gap:10px;padding:16px 14px;background:var(--bg3);border-radius:8px;margin-bottom:10px;cursor:pointer;transition:all .15s;min-height:75px;box-sizing:border-box}
   .song-item:hover{background:var(--card2)}
   .song-num{font-size:11px;color:var(--text3);width:18px}
   .song-info{flex:1;min-width:0}
-  .song-title{font-size:12px;font-weight:500}
-  .song-artist{font-size:11px;color:var(--text3)}
+  .song-title{font-size:13.5px;font-weight:500}
+  .song-artist{font-size:12.5px;color:var(--text3)}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
   .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
   #modal-content.modal-danger{border-color:var(--red)}
