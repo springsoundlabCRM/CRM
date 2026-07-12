@@ -3890,7 +3890,17 @@ function renderDashboard(){
     dUpcomingSub.textContent = 'нет уроков';
   }
 
-  const todayLessons = lessonsOfTeacher().filter(l=>l.date===todayISO()).sort((a,b)=>a.time<b.time?-1:1);
+  // Список уроков "Сегодня": ближайшие по времени от текущего момента — сверху.
+  // Уроки, время которых уже прошло, опускаются вниз списка (а не остаются
+  // строго по возрастанию времени с начала суток) — так teacher всегда видит
+  // "что дальше" в самом верху блока, а не уже отработанное утро.
+  const nowTimeStr = pad2(now.getHours())+':'+pad2(now.getMinutes());
+  const todayLessons = lessonsOfTeacher().filter(l=>l.date===todayISO()).sort((a,b)=>{
+    const aFuture = a.time >= nowTimeStr;
+    const bFuture = b.time >= nowTimeStr;
+    if(aFuture !== bFuture) return aFuture ? -1 : 1;
+    return a.time<b.time?-1:1;
+  });
   document.getElementById('dLessonsToday').textContent = todayLessons.length;
   const todayCountBadge = document.getElementById('todayCountBadge');
   if(todayCountBadge) todayCountBadge.textContent = todayLessons.length;
