@@ -669,8 +669,22 @@
   .song-item:hover{background:var(--card2)}
   .song-num{font-size:11px;color:var(--text3);width:18px}
   .song-info{flex:1;min-width:0}
-  .song-title{font-size:13.5px;font-weight:500}
-  .song-artist{font-size:12.5px;color:var(--text3)}
+  .song-title{font-size:15px;font-weight:500}
+  .song-artist{font-size:13px;color:var(--text3);margin-top:1px}
+  /* Выпадающий список статуса песни — раньше был отдельно уменьшен
+     инлайн-стилем (маленький шрифт, узкие поля) и выбивался из общего
+     стиля форм CRM. Теперь это тот же select.input (тот же фон, рамка,
+     скругление и стрелка, что и во всех остальных выпадающих списках
+     приложения), просто компактнее по ширине — под однострочное
+     размещение внутри карточки песни. */
+  .song-status-select.input{
+    width:auto;padding:8px 30px 8px 12px;font-size:12.5px;font-weight:500;
+    background-position:right 10px center;flex-shrink:0;
+  }
+  /* Корзина в "Репертуаре" была слишком мелкой на фоне выросшей карточки —
+     увеличиваем до того же размера, что и у корзины в карточках заданий
+     (см. .hw-card-footer .btn-delete-icon). */
+  .song-delete-icon{width:34px;height:34px;font-size:15px}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
   .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
   #modal-content.modal-danger{border-color:var(--red)}
@@ -6245,10 +6259,10 @@ function renderRepertoire(){
   const list = repertoireOfStudent(s.id);
   const rows = list.length ? list.map((r,i)=>
     '<div class="song-item"><div class="song-num">'+(i+1)+'</div><div class="song-info"><div class="song-title">'+escapeHTML(r.title)+'</div><div class="song-artist">'+escapeHTML(r.artist)+'</div></div>'
-    +'<select class="input" style="width:auto;padding:3px 8px;font-size:11px" onchange="updateRepertoireStatus(\''+r.id+'\',this.value)">'
+    +'<select class="input song-status-select" onchange="updateRepertoireStatus(\''+r.id+'\',this.value)">'
     + [['активная','tag-green'],['разучиваем','tag-amber'],['готово','tag-blue']].map(o=>'<option value="'+o[0]+'" '+(o[0]===r.status?'selected':'')+'>'+o[0]+'</option>').join('')
     +'</select>'
-    +'<button class="btn-delete-icon" title="Удалить" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
+    +'<button class="btn-delete-icon song-delete-icon" title="Удалить" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
   ).join('') : '<div class="empty-state">Репертуар пока пуст</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
     +'<div class="detail-title"><span class="detail-title-label">🎵 Репертуар</span> <button class="btn btn-primary btn-sm" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
