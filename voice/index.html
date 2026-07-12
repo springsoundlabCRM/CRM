@@ -671,16 +671,22 @@
   .song-info{flex:1;min-width:0}
   .song-title{font-size:15px;font-weight:500}
   .song-artist{font-size:13px;color:var(--text3);margin-top:1px}
-  /* Выпадающий список статуса песни — раньше был отдельно уменьшен
-     инлайн-стилем (маленький шрифт, узкие поля) и выбивался из общего
-     стиля форм CRM. Теперь это тот же select.input (тот же фон, рамка,
-     скругление и стрелка, что и во всех остальных выпадающих списках
-     приложения), просто компактнее по ширине — под однострочное
-     размещение внутри карточки песни. */
-  .song-status-select.input{
-    width:auto;padding:8px 30px 8px 12px;font-size:12.5px;font-weight:500;
-    background-position:right 10px center;flex-shrink:0;
-  }
+  /* Подсветка самой карточки песни по статусу — вместо серого фона внутри
+     карточки лёгкий цветной оттенок (те же полупрозрачные --amber-bg/
+     --green-bg, что и у бейджей "разучиваем"/"готово" в остальной CRM).
+     "На паузе" — это и есть исходный серый фон, отдельный класс не нужен. */
+  .song-item.song-status-progress{background:var(--amber-bg)}
+  .song-item.song-status-progress:hover{background:var(--amber-glow)}
+  .song-item.song-status-done{background:var(--green-bg)}
+  .song-item.song-status-done:hover{background:var(--green-glow)}
+  /* Выпадающий список статуса песни — раньше был обычным <select>,
+     стилизованным отдельно от всей остальной CRM. Теперь это тот же
+     "красивый" кастомный список, что и "Тип голоса"/"Статус" в карточке
+     "Голос" (см. .dd-trigger-btn/.voice-field-dd) — то же самое
+     фиолетовое выделение пункта при наведении вместо системного, тот же
+     фон и рамка. Ширина — по содержимому, а не на всю строку, чтобы
+     аккуратно помещаться рядом с корзиной. */
+  .song-status-trigger.dd-trigger-btn{width:auto;padding:8px 10px;font-size:12.5px;font-weight:500;gap:6px;flex-shrink:0}
   /* Корзина в "Репертуаре" была слишком мелкой на фоне выросшей карточки —
      увеличиваем до того же размера, что и у корзины в карточках заданий
      (см. .hw-card-footer .btn-delete-icon). */
@@ -886,6 +892,12 @@
     .student-progress-bar{height:7px}
     .student-tags-row{padding-top:10px}
     .student-card .tag{font-size:12px;padding:3px 9px;border-radius:8px;margin-top:8px;margin-right:5px;gap:4px}
+    /* Кнопка "Добавить песню" в "Репертуаре" — на компьютере была слишком
+       низкой (обычный .btn-sm). Увеличиваем именно высоту (вертикальный
+       padding), горизонтальный padding и ширина не трогаются — на
+       мобильной версии кнопка не меняется вообще (правило только для
+       десктопа). */
+    .song-add-btn{padding-top:13px;padding-bottom:13px;font-size:13px}
   }
 
   /* ================================================================
@@ -2860,10 +2872,10 @@ function seedDB(){
 
     // Репертуар
     const songs = [
-      {title:'Голос', artist:'Полина Гагарина', status:'активная', cls:'tag-green'},
-      {title:'Вдыхая', artist:'Loboda', status:'разучиваем', cls:'tag-amber'},
+      {title:'Голос', artist:'Полина Гагарина', status:'готово'},
+      {title:'Вдыхая', artist:'Loboda', status:'разучиваем'},
     ];
-    songs.forEach(sg=> DB.repertoire.push({ id:uid('r'), studentId, title:sg.title, artist:sg.artist, status:sg.status, cls:sg.cls }) );
+    songs.forEach(sg=> DB.repertoire.push({ id:uid('r'), studentId, title:sg.title, artist:sg.artist, status:sg.status }) );
   });
 }
 
@@ -6253,25 +6265,68 @@ function setSkillMood(studentId, key, mood){
 }
 
 /* ---------- Репертуар ---------- */
+// Три статуса песни: "разучиваем" (жёлтая подсветка), "готово" (зелёная),
+// "на паузе" (обычный серый фон карточки — как раньше).
+const REP_STATUS_OPTIONS = [['разучиваем','Разучиваем'],['готово','Готово'],['на паузе','На паузе']];
+function repStatusClass(status){
+  return status==='готово' ? 'song-status-done' : status==='разучиваем' ? 'song-status-progress' : '';
+}
 function renderRepertoire(){
   const s = studentById(currentStudentId); if(!s) return;
   const host = document.getElementById('dtab-repertoire');
   const list = repertoireOfStudent(s.id);
   const rows = list.length ? list.map((r,i)=>
-    '<div class="song-item"><div class="song-num">'+(i+1)+'</div><div class="song-info"><div class="song-title">'+escapeHTML(r.title)+'</div><div class="song-artist">'+escapeHTML(r.artist)+'</div></div>'
-    +'<select class="input song-status-select" onchange="updateRepertoireStatus(\''+r.id+'\',this.value)">'
-    + [['активная','tag-green'],['разучиваем','tag-amber'],['готово','tag-blue']].map(o=>'<option value="'+o[0]+'" '+(o[0]===r.status?'selected':'')+'>'+o[0]+'</option>').join('')
-    +'</select>'
+    '<div class="song-item '+repStatusClass(r.status)+'"><div class="song-num">'+(i+1)+'</div><div class="song-info"><div class="song-title">'+escapeHTML(r.title)+'</div><div class="song-artist">'+escapeHTML(r.artist)+'</div></div>'
+    +repStatusTriggerHTML(r)
     +'<button class="btn-delete-icon song-delete-icon" title="Удалить" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
   ).join('') : '<div class="empty-state">Репертуар пока пуст</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
-    +'<div class="detail-title"><span class="detail-title-label">🎵 Репертуар</span> <button class="btn btn-primary btn-sm" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
+    +'<div class="detail-title"><span class="detail-title-label">🎵 Репертуар</span> <button class="btn btn-primary btn-sm song-add-btn" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
     +'<div id="repertoire-list">'+rows+'</div></div>';
+}
+/* Кастомный выпадающий список статуса песни — построен по тому же
+   принципу, что и "Тип голоса"/"Статус" в карточке "Голос" (см.
+   openVoiceFieldPicker/closeVoiceFieldPicker/positionVoiceFieldDD выше):
+   переиспользуем те же функции закрытия/позиционирования и тот же CSS
+   (.dd-trigger-btn, .voice-field-dd, .autocomplete-item) — поэтому список
+   выглядит и ведёт себя абсолютно так же, как остальные такие списки в CRM. */
+let _openRepStatusPicker = null;
+function openRepStatusPicker(repId, btnEl){
+  if(_openRepStatusPicker === repId){ closeVoiceFieldPicker(); _openRepStatusPicker = null; return; }
+  closeVoiceFieldPicker();
+  btnEl.classList.add('open');
+  _openRepStatusPicker = repId;
+  const r = DB.repertoire.find(x=>x.id===repId);
+  const currentVal = r ? r.status : '';
+  const dd = document.createElement('div');
+  dd.className = 'autocomplete-dropdown open voice-field-dd';
+  dd.onclick = function(e){ e.stopPropagation(); };
+  dd.innerHTML = REP_STATUS_OPTIONS.map(function(o){
+    return '<div class="autocomplete-item'+(o[0]===currentVal?' active':'')+'" onmousedown="event.preventDefault();selectRepStatusOption(\''+repId+'\',\''+o[0]+'\')"><span class="autocomplete-name">'+escapeHTML(o[1])+'</span></div>';
+  }).join('');
+  document.body.appendChild(dd);
+  positionVoiceFieldDD(dd, btnEl);
+  window.addEventListener('scroll', closeVoiceFieldPicker, true);
+  window.addEventListener('resize', closeVoiceFieldPicker);
+}
+function selectRepStatusOption(repId, value){
+  updateRepertoireStatus(repId, value);
+  closeVoiceFieldPicker();
+  _openRepStatusPicker = null;
+}
+function repStatusTriggerHTML(r){
+  const found = REP_STATUS_OPTIONS.find(function(o){ return o[0]===r.status; });
+  const label = found ? found[1] : 'Разучиваем';
+  return '<div class="autocomplete-wrap">'
+    +'<button type="button" class="dd-trigger-btn song-status-trigger" onclick="event.stopPropagation();openRepStatusPicker(\''+r.id+'\',this)">'
+      +'<span class="dd-trigger-name">'+escapeHTML(label)+'</span>'
+      +'<span class="dd-caret">▾</span>'
+    +'</button>'
+  +'</div>';
 }
 function updateRepertoireStatus(id, status){
   const r = DB.repertoire.find(x=>x.id===id); if(!r) return;
-  const clsMap={'активная':'tag-green','разучиваем':'tag-amber','готово':'tag-blue'};
-  r.status=status; r.cls=clsMap[status]||'tag-blue';
+  r.status = status;
   saveDB(); renderRepertoire();
 }
 function deleteRepertoire(id){
@@ -7878,7 +7933,7 @@ function buildRepertoireModal(ctx){
   return '<div class="modal-title">Добавить песню <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div class="input-group"><label class="input-label">Название</label><input class="input" id="f-rep-title" placeholder="Голос"></div>'
     +'<div class="input-group"><label class="input-label">Исполнитель</label><input class="input" id="f-rep-artist" placeholder="Полина Гагарина"></div>'
-    +'<div class="input-group"><label class="input-label">Статус</label><select class="input" id="f-rep-status"><option value="разучиваем">разучиваем</option><option value="активная">активная</option><option value="готово">готово</option></select></div>'
+    +'<div class="input-group"><label class="input-label">Статус</label><select class="input" id="f-rep-status"><option value="разучиваем">Разучиваем</option><option value="готово">Готово</option><option value="на паузе">На паузе</option></select></div>'
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveRepertoireForm(\''+studentId+'\')">Добавить</button>';
 }
 function saveRepertoireForm(studentId){
@@ -7886,8 +7941,7 @@ function saveRepertoireForm(studentId){
   if(!title){ toast('Введите название песни','red'); return; }
   const artist = document.getElementById('f-rep-artist').value.trim();
   const status = document.getElementById('f-rep-status').value;
-  const clsMap={'активная':'tag-green','разучиваем':'tag-amber','готово':'tag-blue'};
-  DB.repertoire.push({ id:uid('r'), studentId, title, artist, status, cls:clsMap[status] });
+  DB.repertoire.push({ id:uid('r'), studentId, title, artist, status });
   saveDB();
   closeModal();
   toast('Песня добавлена ✓');
