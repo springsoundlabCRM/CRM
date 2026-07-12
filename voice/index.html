@@ -2115,9 +2115,9 @@
         <div id="dashScrollArea">
         <div class="stat-grid">
           <div class="stat-card purple"><div class="stat-label">Учеников</div><div class="stat-value" id="dStudents">0</div><div class="stat-delta" id="dStudentsDelta" style="color:var(--text3)">активных</div></div>
-          <div class="stat-card green"><div class="stat-label">Доход (месяц)</div><div class="stat-value" id="dIncome">0₽</div><div class="stat-delta" id="dIncomeDelta" style="color:var(--text3)">—</div></div>
+          <div class="stat-card green"><div class="stat-label">Ближайший урок</div><div class="stat-value" id="dUpcomingLessonTime">—</div><div class="stat-delta" id="dUpcomingLessonSub" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
-          <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="dDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="dDebtCount">у 0 учеников</div></div>
+          <div class="stat-card blue"><div class="stat-label">Новых учеников за неделю</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за 7 дней</div></div>
         </div>
         <div class="kpi-ring-grid">
           <div class="kpi-ring-card split-card" id="ringAttendanceCard">
@@ -2127,15 +2127,12 @@
             </div>
             <div class="kpi-ring-extra" id="ringAttendanceExtra"></div>
           </div>
-          <div class="kpi-ring-card goal-card" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
+          <div class="kpi-ring-card split-card" id="ringHomeworkCard">
             <div class="goal-card-left">
-              <div class="kpi-ring" id="ringPayments"><span class="kpi-ring-val" id="ringPaymentsVal">—</span></div>
-              <div class="kpi-ring-info">
-                <div class="kpi-ring-title">Цель по доходу</div>
-                <div class="kpi-ring-sub" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
-              </div>
+              <div class="kpi-ring" id="ringHomework"><span class="kpi-ring-val" id="ringHomeworkVal">—</span></div>
+              <div class="kpi-ring-info"><div class="kpi-ring-title">Выполнение ДЗ</div><div class="kpi-ring-sub" id="ringHomeworkSub">за 30 дней</div></div>
             </div>
-            <div class="kpi-ring-extra" id="ringGoalExtra"></div>
+            <div class="kpi-ring-extra" id="ringHomeworkExtra"></div>
           </div>
           <div class="kpi-ring-card split-card" id="ringActiveCard">
             <div class="goal-card-left">
@@ -2253,10 +2250,23 @@
         <button class="btn btn-primary" onclick="openModal('payment')">Платёж</button>
       </div>
       <div class="content">
-        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat-card purple"><div class="stat-label">Доход (месяц)</div><div class="stat-value" id="finIncome">0₽</div><div class="stat-delta" id="finIncomeDelta" style="color:var(--text3)">—</div></div>
           <div class="stat-card green"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
           <div class="stat-card amber"><div class="stat-label">Ожидается</div><div class="stat-value" id="finPending">0₽</div><div class="stat-delta" id="finPendingSub" style="color:var(--text3)">—</div></div>
           <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="finDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="finDebtCount">—</div></div>
+        </div>
+        <div class="kpi-ring-grid">
+          <div class="kpi-ring-card goal-card" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
+            <div class="goal-card-left">
+              <div class="kpi-ring" id="ringPayments"><span class="kpi-ring-val" id="ringPaymentsVal">—</span></div>
+              <div class="kpi-ring-info">
+                <div class="kpi-ring-title">Цель по доходу</div>
+                <div class="kpi-ring-sub" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
+              </div>
+            </div>
+            <div class="kpi-ring-extra" id="ringGoalExtra"></div>
+          </div>
         </div>
         <div class="section-head"><div class="section-title">Статус оплат</div></div>
         <div class="tab-row" id="financeFilterTabs">
@@ -2292,9 +2302,7 @@
 
         <div id="analyticsScaleWrap">
         <div class="pill-row" id="analyticsPillRow">
-          <div class="pill-stat"><div class="pill-stat-label">Учеников</div><b id="anPillStudents">0</b></div>
           <div class="pill-stat"><div class="pill-stat-label">Средний прогресс</div><b id="anPillProgress">0%</b></div>
-          <div class="pill-stat"><div class="pill-stat-label">Доход за год</div><b id="anPillIncome">0₽</b></div>
           <div class="pill-stat"><div class="pill-stat-label">Долги всего</div><b id="anPillDebt" style="color:var(--red)">0₽</b></div>
         </div>
 
@@ -3851,16 +3859,23 @@ function renderDashboard(){
   document.getElementById('dStudents').textContent = myStudents.length;
   document.getElementById('dStudentsDelta').textContent = active.length+' активных';
 
-  const {paid} = monthIncome(now.getFullYear(), now.getMonth());
-  document.getElementById('dIncome').textContent = money(paid);
-  const prevD = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  const {paid:prevPaid} = monthIncome(prevD.getFullYear(), prevD.getMonth());
-  const dIncomeDelta = document.getElementById('dIncomeDelta');
-  if(prevPaid>0){
-    const pct = Math.round((paid-prevPaid)/prevPaid*100);
-    dIncomeDelta.textContent = (pct>=0?'↑ ':'↓ ')+Math.abs(pct)+'% к прошлому месяцу';
-    dIncomeDelta.className='stat-delta '+(pct>=0?'delta-up':'delta-down');
-  } else { dIncomeDelta.textContent='—'; dIncomeDelta.className='stat-delta'; }
+  // "Ближайший урок": самый ранний по дате/времени урок учителя со статусом
+  // "planned" среди дат >= сегодня (не только сегодняшних, в отличие от dNextLesson выше).
+  const upcomingLessons = lessonsOfTeacher()
+    .filter(l=> l.status==='planned' && l.date>=todayISO())
+    .sort((a,b)=> a.date!==b.date ? (a.date<b.date?-1:1) : (a.time<b.time?-1:1));
+  const upcoming = upcomingLessons[0];
+  const dUpcomingTime = document.getElementById('dUpcomingLessonTime');
+  const dUpcomingSub = document.getElementById('dUpcomingLessonSub');
+  if(upcoming){
+    const uStudent = studentById(upcoming.studentId);
+    dUpcomingTime.textContent = upcoming.time;
+    const dayLabel = upcoming.date===todayISO() ? 'сегодня' : formatRuShort(upcoming.date);
+    dUpcomingSub.textContent = (uStudent ? uStudent.name : '—')+' · '+dayLabel;
+  } else {
+    dUpcomingTime.textContent = '—';
+    dUpcomingSub.textContent = 'нет уроков';
+  }
 
   const todayLessons = lessonsOfTeacher().filter(l=>l.date===todayISO()).sort((a,b)=>a.time<b.time?-1:1);
   document.getElementById('dLessonsToday').textContent = todayLessons.length;
@@ -3869,10 +3884,13 @@ function renderDashboard(){
   const nextL = todayLessons.find(l=>l.status==='planned');
   document.getElementById('dNextLesson').textContent = nextL ? 'Ближайший в '+nextL.time : (todayLessons.length? 'Все уроки обработаны' : 'Нет уроков');
 
-  let totalDebt=0; const debtStudents=new Set();
-  myStudents.forEach(s=>{ const d=studentDebt(s.id); if(d>0){ totalDebt+=d; debtStudents.add(s.id); } });
-  document.getElementById('dDebt').textContent = money(totalDebt);
-  document.getElementById('dDebtCount').textContent = 'у '+debtStudents.size+' учеников';
+  // "Новых учеников за неделю": дата начала занятий (studySince или createdAt) попадает в последние 7 дней.
+  const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
+  const newStudentsWeek = allStudentsOfTeacher().filter(s=>{
+    const d = parseISO(s.studySince||s.createdAt);
+    return d && d>=weekAgo && d<=now;
+  }).length;
+  document.getElementById('dNewStudentsWeek').textContent = newStudentsWeek;
 
   const todayHost=document.getElementById('todayLessons');
   todayHost.innerHTML = todayLessons.length ? todayLessons.map(l=>lessonCardHTML(l)).join('') : '<div class="empty-state">Сегодня уроков нет</div>';
@@ -3995,8 +4013,7 @@ function renderDashboardPulse(myStudents, active, now){
 
   // Справа от кольца посещаемости — сводка за месяц: сколько пришло,
   // сколько не пришло (неявка) и сколько уроков отменилось. Строится
-  // точно по тому же принципу, что и правая часть карточки "Цель по
-  // доходу" (см. ringGoalExtra ниже).
+  // по тому же принципу, что и правые сводки других split-карточек ниже.
   const cancelledCnt = monthLessons.filter(l=>l.status==='cancelled').length;
   const attExtraHost = document.getElementById('ringAttendanceExtra');
   attExtraHost.innerHTML =
@@ -4004,35 +4021,28 @@ function renderDashboardPulse(myStudents, active, now){
     +'<div class="kpi-ring-extra-row"><span>Не пришли</span><span class="v">'+noshowCnt+'</span></div>'
     +'<div class="kpi-ring-extra-row"><span>Отменились</span><span class="v">'+cancelledCnt+'</span></div>';
 
-  // Цель по доходу за месяц: пользователь сам задаёт желаемую сумму
-  // (клик по карточке), кольцо заполняется по мере поступления оплат.
-  // Цель хранится помесячно в профиле учителя — с новым месяцем начинается
-  // новый прогресс с нуля.
-  const {paid:mPaid} = monthIncome(now.getFullYear(), now.getMonth());
-  const teacher = getCurrentTeacher();
-  const goalKey = now.getFullYear()+'-'+now.getMonth();
-  const incomeGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || 0;
-  const ringGoal = document.getElementById('ringPayments');
-  const goalPct = incomeGoal>0 ? (mPaid/incomeGoal*100) : 0;
-  const pctGoal = setRing(ringGoal, goalPct, 'var(--green)', 'var(--green-glow)');
-  document.getElementById('ringPaymentsVal').textContent = incomeGoal>0 ? pctGoal+'%' : '—';
-  document.getElementById('ringPaymentsSub').textContent = incomeGoal>0 ? money(mPaid)+' из '+money(incomeGoal) : 'Нажмите, чтобы задать цель';
-  const extraHost = document.getElementById('ringGoalExtra');
-  if(incomeGoal>0){
-    const remaining = Math.max(0, incomeGoal-mPaid);
-    const paidDoneLessons = monthLessons.filter(l=>l.status==='done' && !l.viaSubscription && Number(l.paid||0)>0);
-    const avgPrice = paidDoneLessons.length
-      ? paidDoneLessons.reduce((sum,l)=>sum+Number(l.paid||0),0)/paidDoneLessons.length
-      : ((DB.settings && DB.settings.defaultLessonPrice) || 0);
-    const lessonsLeft = remaining<=0 ? 0 : (avgPrice>0 ? Math.ceil(remaining/avgPrice) : null);
-    const daysLeft = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()-now.getDate();
-    extraHost.innerHTML =
-      '<div class="kpi-ring-extra-row"><span>Осталось уроков</span><span class="v">'+(remaining<=0?'Цель выполнена 🎉':(lessonsLeft===null?'—':lessonsLeft))+'</span></div>'
-      +'<div class="kpi-ring-extra-row"><span>Осталось заработать</span><span class="v">'+money(remaining)+'</span></div>'
-      +'<div class="kpi-ring-extra-row"><span>До конца месяца</span><span class="v">'+daysLeft+' дн.</span></div>';
-  } else {
-    extraHost.innerHTML = '<div class="kpi-ring-extra-row" style="white-space:normal">Кликните и задайте желаемый доход — появится прогресс</div>';
-  }
+  // Выполнение ДЗ за последние 30 дней: доля заданий со статусом "done"
+  // от общего числа заданий учеников учителя, созданных (assignedDate) за этот период.
+  const hwWindowStart = new Date(now); hwWindowStart.setDate(hwWindowStart.getDate()-30);
+  const hwStudentIds = new Set(allStudentsOfTeacher().map(s=>s.id));
+  const hwRecent = DB.homework.filter(h=>{
+    if(!hwStudentIds.has(h.studentId)) return false;
+    const d = parseISO(h.assignedDate);
+    return d && d>=hwWindowStart && d<=now;
+  });
+  const hwDoneCnt = hwRecent.filter(h=>h.status==='done').length;
+  const hwPct = hwRecent.length>0 ? (hwDoneCnt/hwRecent.length*100) : 0;
+  const ringHw = document.getElementById('ringHomework');
+  const pctHw = setRing(ringHw, hwPct, 'var(--accent)', 'var(--accent-glow)');
+  document.getElementById('ringHomeworkVal').textContent = hwRecent.length>0 ? pctHw+'%' : '—';
+  document.getElementById('ringHomeworkSub').textContent = hwRecent.length>0 ? (hwDoneCnt+' из '+hwRecent.length+' сдано') : 'нет данных за 30 дней';
+  const hwExtraHost = document.getElementById('ringHomeworkExtra');
+  const hwProgressCnt = hwRecent.filter(h=>h.status==='progress').length;
+  const hwTodoCnt = hwRecent.filter(h=>h.status==='todo').length;
+  hwExtraHost.innerHTML =
+    '<div class="kpi-ring-extra-row"><span>Сдано</span><span class="v">'+hwDoneCnt+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>В процессе</span><span class="v">'+hwProgressCnt+'</span></div>'
+    +'<div class="kpi-ring-extra-row"><span>Не сдано</span><span class="v">'+hwTodoCnt+'</span></div>';
 
   // Доля активных учеников от всех (без учёта архивных)
   const activePct = myStudents.length>0 ? (active.length/myStudents.length)*100 : 0;
@@ -6480,6 +6490,47 @@ function renderFinances(){
   document.getElementById('finPaid').textContent = money(paid);
   document.getElementById('finPaidDelta').textContent = 'за '+MN[now.getMonth()].toLowerCase();
 
+  // "Доход (месяц)": всегда за текущий реальный календарный месяц (не зависит
+  // от просматриваемого периода financeMonthOffset) — перенесено с дашборда.
+  const realNow = new Date();
+  const {paid:realPaid} = monthIncome(realNow.getFullYear(), realNow.getMonth());
+  document.getElementById('finIncome').textContent = money(realPaid);
+  const realPrevD = new Date(realNow.getFullYear(), realNow.getMonth()-1, 1);
+  const {paid:realPrevPaid} = monthIncome(realPrevD.getFullYear(), realPrevD.getMonth());
+  const finIncomeDelta = document.getElementById('finIncomeDelta');
+  if(realPrevPaid>0){
+    const pct = Math.round((realPaid-realPrevPaid)/realPrevPaid*100);
+    finIncomeDelta.textContent = (pct>=0?'↑ ':'↓ ')+Math.abs(pct)+'% к прошлому месяцу';
+    finIncomeDelta.className='stat-delta '+(pct>=0?'delta-up':'delta-down');
+  } else { finIncomeDelta.textContent='—'; finIncomeDelta.className='stat-delta'; }
+
+  // Кольцо "Цель по доходу" — перенесено с дашборда, тоже считается за текущий реальный месяц.
+  const teacher = getCurrentTeacher();
+  const goalKey = realNow.getFullYear()+'-'+realNow.getMonth();
+  const incomeGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || 0;
+  const ringGoal = document.getElementById('ringPayments');
+  const goalPct = incomeGoal>0 ? (realPaid/incomeGoal*100) : 0;
+  const pctGoal = setRing(ringGoal, goalPct, 'var(--green)', 'var(--green-glow)');
+  document.getElementById('ringPaymentsVal').textContent = incomeGoal>0 ? pctGoal+'%' : '—';
+  document.getElementById('ringPaymentsSub').textContent = incomeGoal>0 ? money(realPaid)+' из '+money(incomeGoal) : 'Нажмите, чтобы задать цель';
+  const goalExtraHost = document.getElementById('ringGoalExtra');
+  if(incomeGoal>0){
+    const remaining = Math.max(0, incomeGoal-realPaid);
+    const realMonthLessons = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===realNow.getFullYear() && d.getMonth()===realNow.getMonth(); });
+    const paidDoneLessons = realMonthLessons.filter(l=>l.status==='done' && !l.viaSubscription && Number(l.paid||0)>0);
+    const avgPrice = paidDoneLessons.length
+      ? paidDoneLessons.reduce((sum,l)=>sum+Number(l.paid||0),0)/paidDoneLessons.length
+      : ((DB.settings && DB.settings.defaultLessonPrice) || 0);
+    const lessonsLeft = remaining<=0 ? 0 : (avgPrice>0 ? Math.ceil(remaining/avgPrice) : null);
+    const daysLeft = new Date(realNow.getFullYear(), realNow.getMonth()+1, 0).getDate()-realNow.getDate();
+    goalExtraHost.innerHTML =
+      '<div class="kpi-ring-extra-row"><span>Осталось уроков</span><span class="v">'+(remaining<=0?'Цель выполнена 🎉':(lessonsLeft===null?'—':lessonsLeft))+'</span></div>'
+      +'<div class="kpi-ring-extra-row"><span>Осталось заработать</span><span class="v">'+money(remaining)+'</span></div>'
+      +'<div class="kpi-ring-extra-row"><span>До конца месяца</span><span class="v">'+daysLeft+' дн.</span></div>';
+  } else {
+    goalExtraHost.innerHTML = '<div class="kpi-ring-extra-row" style="white-space:normal">Кликните и задайте желаемый доход — появится прогресс</div>';
+  }
+
   let pendingValue=0, pendingCount=0;
   DB.subscriptions.forEach(su=>{
     if(!myStudentIds.has(su.studentId) || !su.active) return;
@@ -6615,11 +6666,8 @@ function renderAnalytics(){
   /* ---------- Сводная строка-«пилюли» ---------- */
   const progressValues = myStudents.map(s=>studentProgress(s.id)).filter(v=>v>0);
   const avgProgress = progressValues.length ? Math.round(progressValues.reduce((a,b)=>a+b,0)/progressValues.length) : 0;
-  const yearNow = yearIncomeSeries(now.getFullYear()).reduce((a,m)=>a+m.paid,0);
   const totalDebtAll = allStudents.reduce((a,s)=>a+studentDebt(s.id),0);
-  document.getElementById('anPillStudents').textContent = myStudents.length;
   document.getElementById('anPillProgress').textContent = avgProgress+'%';
-  document.getElementById('anPillIncome').textContent = money(yearNow);
   document.getElementById('anPillDebt').textContent = money(totalDebtAll);
 
   /* ---------- Воронка учеников ---------- */
