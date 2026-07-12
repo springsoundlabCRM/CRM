@@ -6573,23 +6573,14 @@ function renderFinances(){
   // времени, поэтому записи одного дня перемешивались в случайном порядке.
   const items = [];
 
-  // Активные абонементы — показываем в "Все" и "Абонементы"
-  if(financeFilter==='all' || financeFilter==='subs'){
-    DB.subscriptions.filter(su=>myStudentIds.has(su.studentId) && su.active).forEach(su=>{
-      const s = studentById(su.studentId); if(!s) return;
-      const left = su.totalLessons-su.usedLessons;
-      const pct = Math.round(su.usedLessons/su.totalLessons*100);
-      items.push({key: (su.purchaseDate || '')+'T00:00', html:
-        '<div class="finance-row" onclick="openStudent(studentById(\''+s.id+'\'))"><div style="font-size:20px">🎫</div>'
-        +'<div class="finance-name"><div>'+escapeHTML(s.name)+' — '+escapeHTML(su.title)+'</div>'
-        +'<div class="finance-sub">'+su.usedLessons+'/'+su.totalLessons+' уроков использовано · осталось '+left+'</div>'
-        +'<div class="progress-bar" style="width:140px"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div></div>'
-        +'<div class="finance-amount paid">'+money(su.totalPrice)+'</div></div>'});
-    });
-  }
+  // Шкала "использовано/осталось" с прогресс-баром по активным абонементам
+  // сюда намеренно НЕ выводится — она уже показана в карточке ученика на
+  // вкладке "Профиль", дублировать её в общем разделе "Финансы" не нужно.
+  // Здесь для абонементов достаточно истории покупок/пополнений (когда и
+  // сколько потрачено) — см. блок ниже.
 
   if(financeFilter==='subs'){
-    // история покупок/пополнений абонементов
+    // история покупок/пополнений абонементов: что куплено, когда, сколько потрачено
     const subPayments = DB.payments.filter(p=>{
       const st=studentById(p.studentId);
       return st && myStudentIds.has(st.id) && (p.type==='subscription_purchase'||p.type==='subscription_topup');
@@ -6605,8 +6596,13 @@ function renderFinances(){
     return;
   }
 
-  // Записи по урокам (не покрытые абонементом) — текущий месяц + переносы долгов из прошлых месяцев
-  let lessonRows = lessonsOfTeacher().filter(l=> !l.viaSubscription && l.price>0);
+  // Записи по урокам — текущий месяц + переносы долгов из прошлых месяцев.
+  // Уроки, оплаченные абонементом (viaSubscription), теперь тоже попадают
+  // сюда: раньше они полностью исключались фильтром "!l.viaSubscription",
+  // из-за чего ученик с абонементом вообще не появлялся во вкладке "Все".
+  // Долг по ним всегда 0 (см. lessonDebt), поэтому они и так корректно
+  // ведут себя во вкладках "Оплачено"/"Долги" — их просто не отфильтровывали раньше.
+  let lessonRows = lessonsOfTeacher().filter(l=> l.viaSubscription || l.price>0);
   const carry = lessonRows.filter(isCarryoverDebt);
   let monthRows = lessonRows.filter(l=>{
     const d=parseISO(l.date); if(!d) return false;
@@ -6631,12 +6627,24 @@ function renderFinances(){
     const debt = lessonDebt(l);
     const rowCls = debt>0 ? 'is-debt' : 'is-paid';
     const amountCls = debt>0 ? (l.paid>0?'partial':'debt') : 'paid';
-    const amountText = debt>0 ? (l.paid>0 ? '−'+money(debt)+' (частично)' : '−'+money(debt)) : '+'+money(l.paid);
+    // Урок, списанный с абонемента, уже оплачен заранее (при покупке
+    // абонемента) — вместо суммы показываем пометку "Абонемент", чтобы не
+    // создавалось впечатление, будто деньги получены именно за этот урок.
+    const amountText = l.viaSubscription ? 'Абонемент' : (debt>0 ? (l.paid>0 ? '−'+money(debt)+' (частично)' : '−'+money(debt)) : '+'+money(l.paid));
     const carryBadge = l._carry ? '<span class="carryover-badge">↺ Перенос</span>' : '';
+    // Отдельная зелёная пометка "оплачено абонементом" — сразу видно, что
+    // урок не требует отдельной оплаты.
+    const subBadge = l.viaSubscription ? '<span class="tag tag-green" style="margin-left:6px">🎫 Абонемент</span>' : '';
+    // Клик по уже оплаченному абонементным списанием уроку не должен вести
+    // в модалку "Зафиксировать платёж" (платить тут нечего) — вместо этого
+    // ведём на карточку ученика, как и для строк по абонементам выше.
+    const clickAction = l.viaSubscription
+      ? "openStudent(studentById('"+s.id+"'))"
+      : "openModal('payment',{studentId:'"+s.id+"',lessonId:'"+l.id+"'})";
     items.push({key: (l.date||'')+'T'+(l.time||'00:00'), html:
-      '<div class="finance-row '+rowCls+'" onclick="openModal(\'payment\',{studentId:\''+s.id+'\',lessonId:\''+l.id+'\'})">'
+      '<div class="finance-row '+rowCls+'" onclick="'+clickAction+'">'
       +'<div style="font-size:20px">'+(debt>0?'⚠️':'💸')+'</div>'
-      +'<div class="finance-name"><div>'+escapeHTML(s.name)+carryBadge+'</div><div class="finance-sub">Урок '+formatRuShort(l.date)+' · '+l.time+'</div></div>'
+      +'<div class="finance-name"><div>'+escapeHTML(s.name)+carryBadge+subBadge+'</div><div class="finance-sub">Урок '+formatRuShort(l.date)+' · '+l.time+'</div></div>'
       +'<div class="finance-amount '+amountCls+'">'+amountText+'</div></div>'});
   });
 
