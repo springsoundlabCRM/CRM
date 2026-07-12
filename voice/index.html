@@ -3872,23 +3872,7 @@ function renderDashboard(){
   document.getElementById('dStudents').textContent = myStudents.length;
   document.getElementById('dStudentsDelta').textContent = active.length+' активных';
 
-  // "Ближайший урок": самый ранний по дате/времени урок учителя со статусом
-  // "planned" среди дат >= сегодня (не только сегодняшних, в отличие от dNextLesson выше).
-  const upcomingLessons = lessonsOfTeacher()
-    .filter(l=> l.status==='planned' && l.date>=todayISO())
-    .sort((a,b)=> a.date!==b.date ? (a.date<b.date?-1:1) : (a.time<b.time?-1:1));
-  const upcoming = upcomingLessons[0];
-  const dUpcomingTime = document.getElementById('dUpcomingLessonTime');
-  const dUpcomingSub = document.getElementById('dUpcomingLessonSub');
-  if(upcoming){
-    const uStudent = studentById(upcoming.studentId);
-    dUpcomingTime.textContent = upcoming.time;
-    const dayLabel = upcoming.date===todayISO() ? 'сегодня' : formatRuShort(upcoming.date);
-    dUpcomingSub.textContent = (uStudent ? uStudent.name : '—')+' · '+dayLabel;
-  } else {
-    dUpcomingTime.textContent = '—';
-    dUpcomingSub.textContent = 'нет уроков';
-  }
+  updateUpcomingLessonCard();
 
   // Список уроков "Сегодня": ближайшие по времени от текущего момента — сверху.
   // Уроки, время которых уже прошло, опускаются вниз списка (а не остаются
@@ -3924,6 +3908,59 @@ function renderDashboard(){
   renderDashboardPulse(myStudents, active, now);
   requestAnimationFrame(syncDashColumnHeights);
 }
+
+/* ---------- Карточка "Ближайший урок" ----------
+   Раньше урок считался "ближайшим", если его дата >= сегодня — без учёта
+   времени. Из-за этого урок сегодняшним днём, который уже начался (или
+   вовсе закончился), но ещё не отмечен как проведённый/неявка (статус
+   остаётся "planned"), продолжал висеть в карточке как "ближайший" сколько
+   угодно долго — хотя на самом деле следующий урок уже другой. Теперь для
+   сегодняшней даты в расчёт берутся только уроки, время начала которых ещё
+   не наступило (строго больше текущего времени); для будущих дат — как и
+   раньше, время не важно. Функция вынесена отдельно и вызывается не только
+   при полном рендере дашборда, но и раз в минуту (см. таймер ниже), пока
+   раздел "Дашборд" открыт — так карточка сама "перескакивает" на
+   следующий урок ровно в момент, когда предыдущий начался, без
+   необходимости обновлять страницу или дожидаться следующего полного
+   рендера. */
+function updateUpcomingLessonCard(){
+  const dUpcomingTime = document.getElementById('dUpcomingLessonTime');
+  const dUpcomingSub = document.getElementById('dUpcomingLessonSub');
+  if(!dUpcomingTime || !dUpcomingSub) return;
+  const now = new Date();
+  const today = todayISO();
+  const nowTimeStr = pad2(now.getHours())+':'+pad2(now.getMinutes());
+  const upcomingLessons = lessonsOfTeacher()
+    .filter(l=> l.status==='planned' && (l.date>today || (l.date===today && l.time>nowTimeStr)))
+    .sort((a,b)=> a.date!==b.date ? (a.date<b.date?-1:1) : (a.time<b.time?-1:1));
+  const upcoming = upcomingLessons[0];
+  if(upcoming){
+    const uStudent = studentById(upcoming.studentId);
+    dUpcomingTime.textContent = upcoming.time;
+    const dayLabel = upcoming.date===today ? 'сегодня' : formatRuShort(upcoming.date);
+    dUpcomingSub.textContent = (uStudent ? uStudent.name : '—')+' · '+dayLabel;
+  } else {
+    dUpcomingTime.textContent = '—';
+    dUpcomingSub.textContent = 'нет уроков';
+  }
+}
+
+// Раз в минуту, пока открыт "Дашборд", пересчитываем только карточку
+// "Ближайший урок" (без полного renderDashboard — чтобы не дёргать лишний
+// раз анимацию KPI-колец и не мигать остальными блоками). Как только время
+// урока в карточке наступает, она сама переключается на следующий урок.
+setInterval(function(){
+  if(currentPageName === 'dashboard') updateUpcomingLessonCard();
+}, 60*1000);
+// Плюс мгновенно пересчитываем при возврате на вкладку/в приложение —
+// человек мог свернуть телефон/браузер на произвольное время и вернуться
+// уже после того, как "ближайший" урок наступил.
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible' && currentPageName === 'dashboard') updateUpcomingLessonCard();
+});
+window.addEventListener('focus', function(){
+  if(currentPageName === 'dashboard') updateUpcomingLessonCard();
+});
 
 /* ---------- Фиксированная высота колонок "Сегодня" / "Уведомления" / "Дни
    рождения" на дашборде (только десктоп) ----------
