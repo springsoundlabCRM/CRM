@@ -1250,32 +1250,46 @@
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
 
-  /* ---------- Настройка блоков дашборда — ТОЛЬКО мобильная версия.
-     Включается стандартной кнопкой "Настройки" нижнего меню (как и
-     перестановка карточек в "Аналитике"/"Профиле"), а не отдельной
-     кнопкой на странице. В режиме редактирования блоки дашборда
-     подсвечиваются той же фиолетовой рамкой + тенью, что и карточки в
-     режиме перестановки на вкладке "Профиль" (см. .profile-grid.reorder-mode
-     > .detail-card) — без пунктира, единый стиль по всей CRM. Клик по
-     блоку с кольцами открывает попап с переключателем "Компактный
-     вариант". На компьютерной версии (>880px) вся эта логика визуально
-     не работает — правила ниже намеренно закрыты в @media(max-width:880px). ---------- */
-  .dash-block-popover{position:fixed;z-index:150;width:230px;background:var(--card);border:1px solid var(--border2);
-    border-radius:var(--r2);box-shadow:0 14px 36px rgba(0,0,0,.35);padding:12px 13px;font-size:12px;color:var(--text2);
+  /* ---------- Настройка блока "Показатели" на дашборде — ТОЛЬКО
+     мобильная версия. Включается стандартной кнопкой "Настройки" нижнего
+     меню (как и перестановка карточек в "Аналитике"/"Профиле"), а не
+     отдельной кнопкой на странице. Редактируемый на дашборде — ТОЛЬКО
+     блок с тремя кольцами (посещаемость/ДЗ/активные); остальные блоки
+     дашборда (верхние 4 прямоугольника, "Сегодня", "Уведомления", "Дни
+     рождения") в этом режиме никак не выделяются и не редактируются.
+     Блок с кольцами подсвечивается той же фиолетовой рамкой + тенью, что
+     и карточки в режиме перестановки на вкладке "Профиль" (см.
+     .profile-grid.reorder-mode > .detail-card) — единый стиль по всей
+     CRM. Подсказка "Компактный вариант" при входе в режим настройки
+     показывается СРАЗУ и ЗАКРЕПЛЕНА на экране (position:fixed, привязана
+     к верхней шторке "Настройки раздела", а не к самому блоку) — поэтому
+     не скачет по экрану при прокрутке дашборда. На компьютерной версии
+     (>880px) вся эта логика визуально не работает — правила ниже
+     намеренно закрыты в @media(max-width:880px). ---------- */
+  .dash-ring-hint{display:none;position:fixed;left:12px;right:12px;z-index:74;
+    top:calc(54px + env(safe-area-inset-top));
+    background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);
+    box-shadow:0 10px 28px rgba(0,0,0,.35);padding:12px 14px;
     animation:notePopIn .16s cubic-bezier(.22,1,.36,1)}
-  .dash-block-popover-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;
+  .dash-ring-hint.show{display:block}
+  .dash-ring-hint-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;
     font-weight:700;margin-bottom:9px}
-  .dash-block-popover-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .dash-ring-hint-row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-size:12.5px;color:var(--text2)}
   .dash-toggle{position:relative;width:36px;height:21px;border-radius:99px;background:var(--card2);
     border:1px solid var(--border2);cursor:pointer;flex-shrink:0;transition:background .15s}
   .dash-toggle::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
     background:var(--text3);transition:transform .15s,background .15s}
   .dash-toggle.on{background:var(--accent);border-color:var(--accent)}
   .dash-toggle.on::after{transform:translateX(15px);background:#fff}
+  /* Всплывающая подсказка-расшифровка показателя при клике на кольцо в
+     компактном виде (вне режима настройки) — плавающая у самого кольца,
+     это отдельная, простая штука, а не "закреплённая" подсказка выше. */
+  .dash-ring-tip{position:fixed;z-index:150;width:210px;background:var(--card);border:1px solid var(--border2);
+    border-radius:var(--r2);box-shadow:0 14px 36px rgba(0,0,0,.35);padding:11px 13px;font-size:12px;
+    line-height:1.45;color:var(--text2);animation:notePopIn .16s cubic-bezier(.22,1,.36,1)}
   @media(max-width:880px){
-    .dash-edit-mode .dash-editable-block{border-radius:var(--r2);box-shadow:0 0 0 1px var(--accent);
-      cursor:pointer;transition:box-shadow .15s}
-    .dash-edit-mode .dash-editable-block.dash-block-active{box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 2px var(--accent)}
+    .dash-edit-mode #dashRingsBlock{border-radius:var(--r2);box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 2px var(--accent)}
     /* Компактный вариант блока с тремя кольцами: одна узкая полоска,
        кольца в ряд — РАЗМЕР И ВИД КОЛЕЦ ТЕ ЖЕ, что и в обычном режиме на
        мобильных (наследуются от .goal-card-left .kpi-ring и т.д. чуть
@@ -2128,13 +2142,13 @@
       </div>
       <div class="content">
         <div id="dashScrollArea">
-        <div class="stat-grid dash-editable-block" data-dash-block="stats" onclick="onDashBlockClick(event,'stats')">
+        <div class="stat-grid">
           <div class="stat-card purple"><div class="stat-label">Учеников</div><div class="stat-value" id="dStudents">0</div><div class="stat-delta" id="dStudentsDelta" style="color:var(--text3)">активных</div></div>
           <div class="stat-card green"><div class="stat-label">Ближайший урок</div><div class="stat-value" id="dUpcomingLessonTime">—</div><div class="stat-delta" id="dUpcomingLessonSub" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card blue"><div class="stat-label">Новых учеников за месяц</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за месяц</div></div>
         </div>
-        <div class="kpi-ring-grid dash-editable-block" id="dashRingsBlock" data-dash-block="rings" onclick="onDashBlockClick(event,'rings')">
+        <div class="kpi-ring-grid" id="dashRingsBlock">
           <div class="kpi-ring-card split-card" id="ringAttendanceCard" onclick="onDashRingClick(event,'attendance')">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
@@ -2158,15 +2172,15 @@
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
-          <div class="dash-editable-block" data-dash-block="today" onclick="onDashBlockClick(event,'today')">
+          <div>
             <div class="section-head"><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div></div>
             <div id="todayLessons"></div>
           </div>
-          <div class="dash-editable-block" data-dash-block="notif" onclick="onDashBlockClick(event,'notif')">
+          <div>
             <div class="section-head"><div class="section-title">Уведомления</div></div>
             <div id="notifList"></div>
           </div>
-          <div class="dash-editable-block" data-dash-block="bday" onclick="onDashBlockClick(event,'bday')">
+          <div>
             <div class="section-head"><div class="section-title">🎂 Дни рождения</div></div>
             <div id="bdayList"></div>
           </div>
@@ -4095,22 +4109,25 @@ function setRing(el, pct, colorVar, glowVar){
 }
 
 /* ==========================================================================
-   НАСТРОЙКА БЛОКОВ ДАШБОРДА — только мобильная версия
+   НАСТРОЙКА БЛОКА "ПОКАЗАТЕЛИ" НА ДАШБОРДЕ — только мобильная версия
    Включается СТАНДАРТНОЙ кнопкой "Настройки" нижнего меню (той же самой,
    что запускает перестановку карточек в "Аналитике" и на вкладке
-   "Профиль") — см. trySectionSettingsAction(). В режиме редактирования
-   каждый из редактируемых блоков (4 верхних прямоугольника, блок с тремя
-   кольцами, "Сегодня", "Уведомления", "Дни рождения") обводится при
-   наведении/клике фиолетовой рамкой. Клик по блоку с кольцами открывает
-   попап с переключателем "Компактный вариант" — три кольца выстраиваются
-   в один ряд с короткой подписью снизу, а тройная колонка "Сегодня /
+   "Профиль") — см. trySectionSettingsAction(). Редактируемый на
+   дашборде — ТОЛЬКО блок с тремя кольцами (посещаемость/ДЗ/активные), он
+   подсвечивается фиолетовой рамкой; остальные блоки дашборда (верхние 4
+   прямоугольника, "Сегодня", "Уведомления", "Дни рождения") в режиме
+   настройки никак не выделяются и не редактируются. Сразу при входе в
+   режим настройки, ЗАКРЕПЛЁННО на экране (не привязана к прокрутке
+   самого блока — see .dash-ring-hint), показывается подсказка с
+   переключателем "Компактный вариант": три кольца выстраиваются в один
+   ряд с короткой подписью снизу, а тройная колонка "Сегодня /
    Уведомления / Дни рождения" естественным образом поднимается выше за
    счёт освободившейся высоты. Настройка сохраняется в DB.settings и
    переживает перезагрузку. Вне режима редактирования клик по кольцу в
-   компактном виде показывает всплывающую подсказку с расшифровкой
-   показателя. Вся визуальная часть (рамки, компактный вид) закрыта в
-   CSS медиа-запросом max-width:880px — на компьютерной версии эта
-   настройка не действует, даже если сохранена. ========================== */
+   компактном виде показывает отдельную всплывающую подсказку с
+   расшифровкой показателя. Вся визуальная часть (рамка, компактный вид)
+   закрыта в CSS медиа-запросом max-width:880px — на компьютерной версии
+   эта настройка не действует, даже если сохранена. ========================== */
 let dashEditMode = false;
 let dashCompactBeforeEdit = false;
 
@@ -4119,13 +4136,14 @@ function enterDashboardEditMode(){
   dashCompactBeforeEdit = !!(DB.settings && DB.settings.dashRingsCompact);
   const area = document.getElementById('dashScrollArea');
   if(area) area.classList.add('dash-edit-mode');
+  showDashRingHint();
 }
 function exitDashboardEditMode(){
   dashEditMode = false;
   const area = document.getElementById('dashScrollArea');
   if(area) area.classList.remove('dash-edit-mode');
-  document.querySelectorAll('.dash-editable-block.dash-block-active').forEach(b=>b.classList.remove('dash-block-active'));
-  closeDashBlockPopover();
+  hideDashRingHint();
+  closeDashRingTip();
 }
 function saveDashboardEditMode(){
   saveDB();
@@ -4138,62 +4156,42 @@ function cancelDashboardEditMode(){
   exitDashboardEditMode();
 }
 
-/* Клик по любому редактируемому блоку в режиме настройки. Пока
-   дополнительная опция (компактный вариант) есть только у блока с
-   кольцами — остальные блоки просто получают фиолетовую рамку-выделение,
-   чтобы в будущем было легко навесить на них свои настройки по такому же
-   принципу. */
-function onDashBlockClick(e, blockKey){
-  if(!dashEditMode) return;
-  e.stopPropagation();
-  document.querySelectorAll('.dash-editable-block.dash-block-active').forEach(b=>b.classList.remove('dash-block-active'));
-  const el = e.currentTarget;
-  el.classList.add('dash-block-active');
-  if(blockKey === 'rings'){
-    openDashRingsPopover(el);
-  } else {
-    closeDashBlockPopover();
+/* Закреплённая подсказка "Компактный вариант" — создаётся один раз,
+   position:fixed относительно ЭКРАНА (а не относительно блока с
+   кольцами), поэтому не гуляет при прокрутке дашборда. Показывается
+   сразу при входе в режим настройки и остаётся на месте, пока режим не
+   закрыт кнопкой "Сохранить"/"Отмена" в верхней шторке. */
+function showDashRingHint(){
+  let hint = document.getElementById('dashRingHint');
+  if(!hint){
+    hint = document.createElement('div');
+    hint.id = 'dashRingHint';
+    hint.className = 'dash-ring-hint';
+    document.body.appendChild(hint);
   }
+  renderDashRingHint(hint);
+  hint.classList.add('show');
 }
-
-function closeDashBlockPopover(){
-  const existing = document.querySelector('.dash-block-popover');
-  if(existing) existing.remove();
+function hideDashRingHint(){
+  const hint = document.getElementById('dashRingHint');
+  if(hint) hint.classList.remove('show');
 }
-
-function openDashRingsPopover(anchorEl){
-  closeDashBlockPopover();
-  const pop = document.createElement('div');
-  pop.className = 'dash-block-popover';
+function renderDashRingHint(hint){
   const isCompact = !!(DB.settings && DB.settings.dashRingsCompact);
-  pop.innerHTML =
-    '<div class="dash-block-popover-title">Блок «Показатели»</div>'
-    +'<div class="dash-block-popover-row">'
+  hint.innerHTML =
+    '<div class="dash-ring-hint-title">Блок «Показатели»</div>'
+    +'<div class="dash-ring-hint-row">'
       +'<span>Компактный вариант</span>'
-      +'<span class="dash-toggle'+(isCompact?' on':'')+'" id="dashRingsCompactToggle" onclick="event.stopPropagation();setDashRingsCompact(!('+isCompact+'))"></span>'
+      +'<span class="dash-toggle'+(isCompact?' on':'')+'" onclick="setDashRingsCompact(!('+isCompact+'))"></span>'
     +'</div>';
-  document.body.appendChild(pop);
-  const r = anchorEl.getBoundingClientRect();
-  const top = Math.min(r.bottom + 8, window.innerHeight - 90);
-  let left = r.right - 230;
-  if(left < 10) left = 10;
-  pop.style.top = top+'px';
-  pop.style.left = left+'px';
-  setTimeout(()=>{ document.addEventListener('click', closeDashBlockPopoverOnce); }, 0);
-}
-function closeDashBlockPopoverOnce(ev){
-  if(ev.target.closest('.dash-block-popover')) return;
-  closeDashBlockPopover();
-  document.removeEventListener('click', closeDashBlockPopoverOnce);
 }
 
 function setDashRingsCompact(val){
   DB.settings = DB.settings || {};
   DB.settings.dashRingsCompact = !!val;
   applyDashRingsCompact();
-  // Попап переоткрываем с уже актуальным состоянием переключателя
-  const anchor = document.getElementById('dashRingsBlock');
-  if(anchor) openDashRingsPopover(anchor);
+  const hint = document.getElementById('dashRingHint');
+  if(hint) renderDashRingHint(hint);
 }
 
 function applyDashRingsCompact(){
@@ -4204,31 +4202,41 @@ function applyDashRingsCompact(){
 }
 
 /* В компактном виде (и вне режима настройки) клик по кольцу показывает
-   короткую подсказку — что означает показатель. В режиме настройки клик
-   по кольцу не должен открывать подсказку, он всплывает к обработчику
-   блока (onDashBlockClick) и открывает попап "Компактный вариант". */
+   короткую всплывающую подсказку — что означает показатель. Это
+   отдельная, простая плавающая подсказка у самого кольца — в отличие от
+   закреплённой .dash-ring-hint, ей не нужна фиксация на экране, потому
+   что вне режима настройки страница не имеет смысла листать одновременно
+   с открытой подсказкой (она закрывается по клику вовне). */
 const DASH_RING_TOOLTIPS = {
   attendance: 'Доля проведённых уроков от всех запланированных в этом месяце (без учёта отменённых).',
   homework: 'Доля заданий со статусом «Сдано» среди всех, выданных за последние 30 дней.',
   active: 'Сколько учеников сейчас в статусе «Активный» от общего числа учеников в базе.'
 };
 function onDashRingClick(e, key){
-  if(dashEditMode) return; // клик уйдёт наверх, в onDashBlockClick
+  if(dashEditMode) return; // в режиме настройки клик по кольцу ничего не делает
   const grid = document.getElementById('dashRingsBlock');
   if(!grid || !grid.classList.contains('kpi-ring-compact')) return; // подсказка — только в компактном виде
   e.stopPropagation();
-  closeDashBlockPopover();
-  const pop = document.createElement('div');
-  pop.className = 'dash-block-popover';
-  pop.style.width = '210px';
-  pop.innerHTML = '<div style="font-size:12px;line-height:1.45;color:var(--text2)">'+DASH_RING_TOOLTIPS[key]+'</div>';
-  document.body.appendChild(pop);
+  closeDashRingTip();
+  const tip = document.createElement('div');
+  tip.className = 'dash-ring-tip';
+  tip.innerHTML = DASH_RING_TOOLTIPS[key];
+  document.body.appendChild(tip);
   const r = e.currentTarget.getBoundingClientRect();
   const top = Math.min(r.bottom + 8, window.innerHeight - 90);
   let left = Math.max(10, Math.min(r.left, window.innerWidth - 220));
-  pop.style.top = top+'px';
-  pop.style.left = left+'px';
-  setTimeout(()=>{ document.addEventListener('click', closeDashBlockPopoverOnce); }, 0);
+  tip.style.top = top+'px';
+  tip.style.left = left+'px';
+  setTimeout(()=>{ document.addEventListener('click', closeDashRingTipOnce); }, 0);
+}
+function closeDashRingTip(){
+  const existing = document.querySelector('.dash-ring-tip');
+  if(existing) existing.remove();
+}
+function closeDashRingTipOnce(ev){
+  if(ev.target.closest('.dash-ring-tip')) return;
+  closeDashRingTip();
+  document.removeEventListener('click', closeDashRingTipOnce);
 }
 
 /* Три «пульс»-кольца дашборда: посещаемость, собираемость оплат, доля активных учеников */
