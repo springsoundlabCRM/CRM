@@ -6549,21 +6549,26 @@ function renderFinances(){
   document.getElementById('finDebtCount').textContent = debtStudents.size+' учеников';
 
   const host = document.getElementById('finance-list');
-  host.innerHTML = '';
+
+  // Все записи (абонементы, их покупка/пополнение, платежи за уроки, переносы
+  // долгов) собираются в один список и сортируются вместе по дате — самое
+  // новое всегда сверху. Раньше активные абонементы выводились отдельным
+  // блоком без сортировки, из-за чего порядок казался случайным.
+  const items = [];
 
   // Активные абонементы — показываем в "Все" и "Абонементы"
   if(financeFilter==='all' || financeFilter==='subs'){
-    const subsHtml = DB.subscriptions.filter(su=>myStudentIds.has(su.studentId) && su.active).map(su=>{
-      const s = studentById(su.studentId);
+    DB.subscriptions.filter(su=>myStudentIds.has(su.studentId) && su.active).forEach(su=>{
+      const s = studentById(su.studentId); if(!s) return;
       const left = su.totalLessons-su.usedLessons;
       const pct = Math.round(su.usedLessons/su.totalLessons*100);
-      return '<div class="finance-row" onclick="openStudent(studentById(\''+s.id+'\'))"><div style="font-size:20px">🎫</div>'
+      items.push({date: su.purchaseDate || '', html:
+        '<div class="finance-row" onclick="openStudent(studentById(\''+s.id+'\'))"><div style="font-size:20px">🎫</div>'
         +'<div class="finance-name"><div>'+escapeHTML(s.name)+' — '+escapeHTML(su.title)+'</div>'
         +'<div class="finance-sub">'+su.usedLessons+'/'+su.totalLessons+' уроков использовано · осталось '+left+'</div>'
         +'<div class="progress-bar" style="width:140px"><div class="progress-fill" style="width:'+pct+'%;background:var(--accent)"></div></div></div>'
-        +'<div class="finance-amount paid">'+money(su.totalPrice)+'</div></div>';
-    }).join('');
-    if(subsHtml) host.innerHTML += subsHtml;
+        +'<div class="finance-amount paid">'+money(su.totalPrice)+'</div></div>'});
+    });
   }
 
   if(financeFilter==='subs'){
@@ -6571,14 +6576,15 @@ function renderFinances(){
     const subPayments = DB.payments.filter(p=>{
       const st=studentById(p.studentId);
       return st && myStudentIds.has(st.id) && (p.type==='subscription_purchase'||p.type==='subscription_topup');
-    }).sort((a,b)=> a.date<b.date?1:-1);
-    const rows = subPayments.map(p=>{
-      const s = studentById(p.studentId);
+    });
+    subPayments.forEach(p=>{
+      const s = studentById(p.studentId); if(!s) return;
       const lbl = p.type==='subscription_purchase' ? 'Покупка абонемента' : 'Пополнение абонемента';
-      return '<div class="finance-row is-paid" onclick="openStudent(studentById(\''+s.id+'\'))"><div style="font-size:20px">💸</div><div class="finance-name"><div>'+escapeHTML(s.name)+'</div><div class="finance-sub">'+lbl+' · '+formatRu(p.date)+'</div></div><div class="finance-amount paid">+'+money(p.amount)+'</div></div>';
-    }).join('');
-    host.innerHTML += rows || (host.innerHTML ? '' : '<div class="empty-state">Абонементов пока нет</div>');
-    if(!host.innerHTML) host.innerHTML = '<div class="empty-state">Абонементов пока нет</div>';
+      items.push({date: p.date, html:
+        '<div class="finance-row is-paid" onclick="openStudent(studentById(\''+s.id+'\'))"><div style="font-size:20px">💸</div><div class="finance-name"><div>'+escapeHTML(s.name)+'</div><div class="finance-sub">'+lbl+' · '+formatRu(p.date)+'</div></div><div class="finance-amount paid">+'+money(p.amount)+'</div></div>'});
+    });
+    items.sort((a,b)=> a.date<b.date?1:-1);
+    host.innerHTML = items.map(it=>it.html).join('') || '<div class="empty-state">Абонементов пока нет</div>';
     return;
   }
 
@@ -6602,12 +6608,7 @@ function renderFinances(){
     const ids = new Set(finalRows.map(l=>l.id));
     carry.forEach(l=>{ if(!ids.has(l.id)) finalRows.push(Object.assign({_carry:true}, l)); });
   }
-  finalRows.sort((a,b)=> a.date<b.date?1:-1);
 
-  if(!finalRows.length && !host.innerHTML){
-    host.innerHTML = '<div class="empty-state">Нет записей за выбранный период</div>';
-    return;
-  }
   finalRows.forEach(l=>{
     const s = studentById(l.studentId); if(!s) return;
     const debt = lessonDebt(l);
@@ -6615,11 +6616,19 @@ function renderFinances(){
     const amountCls = debt>0 ? (l.paid>0?'partial':'debt') : 'paid';
     const amountText = debt>0 ? (l.paid>0 ? '−'+money(debt)+' (частично)' : '−'+money(debt)) : '+'+money(l.paid);
     const carryBadge = l._carry ? '<span class="carryover-badge">↺ Перенос</span>' : '';
-    host.innerHTML += '<div class="finance-row '+rowCls+'" onclick="openModal(\'payment\',{studentId:\''+s.id+'\',lessonId:\''+l.id+'\'})">'
+    items.push({date: l.date, html:
+      '<div class="finance-row '+rowCls+'" onclick="openModal(\'payment\',{studentId:\''+s.id+'\',lessonId:\''+l.id+'\'})">'
       +'<div style="font-size:20px">'+(debt>0?'⚠️':'💸')+'</div>'
       +'<div class="finance-name"><div>'+escapeHTML(s.name)+carryBadge+'</div><div class="finance-sub">Урок '+formatRuShort(l.date)+' · '+l.time+'</div></div>'
-      +'<div class="finance-amount '+amountCls+'">'+amountText+'</div></div>';
+      +'<div class="finance-amount '+amountCls+'">'+amountText+'</div></div>'});
   });
+
+  if(!items.length){
+    host.innerHTML = '<div class="empty-state">Нет записей за выбранный период</div>';
+    return;
+  }
+  items.sort((a,b)=> a.date<b.date?1:-1);
+  host.innerHTML = items.map(it=>it.html).join('');
 }
 
 function isCarryoverDebt(l){
