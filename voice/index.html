@@ -1250,6 +1250,53 @@
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
 
+  /* ---------- Настройка блоков дашборда (кнопка "Настройка" в правом
+     нижнем углу дашборда включает режим редактирования: блоки
+     обводятся фиолетовой пунктирной рамкой, клик по блоку с кольцами
+     открывает попап с переключателем "Компактный вариант"). ---------- */
+  .dash-customize-row{display:flex;justify-content:flex-end;margin-top:-6px;margin-bottom:18px}
+  .dash-customize-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:99px;
+    background:var(--card);border:1px solid var(--border2);color:var(--text2);font-size:12px;font-weight:600;
+    cursor:pointer;transition:all .15s}
+  .dash-customize-btn:hover{border-color:var(--accent);color:var(--text)}
+  .dash-customize-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .dash-edit-mode .dash-editable-block{outline:2px dashed transparent;outline-offset:3px;border-radius:var(--r2);
+    cursor:pointer;transition:outline-color .15s}
+  .dash-edit-mode .dash-editable-block:hover{outline-color:rgba(167,139,250,.55)}
+  .dash-edit-mode .dash-editable-block.dash-block-active{outline-style:solid;outline-color:var(--accent)}
+  .dash-block-popover{position:fixed;z-index:150;width:230px;background:var(--card);border:1px solid var(--border2);
+    border-radius:var(--r2);box-shadow:0 14px 36px rgba(0,0,0,.35);padding:12px 13px;font-size:12px;color:var(--text2);
+    animation:notePopIn .16s cubic-bezier(.22,1,.36,1)}
+  .dash-block-popover-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;
+    font-weight:700;margin-bottom:9px}
+  .dash-block-popover-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .dash-toggle{position:relative;width:36px;height:21px;border-radius:99px;background:var(--card2);
+    border:1px solid var(--border2);cursor:pointer;flex-shrink:0;transition:background .15s}
+  .dash-toggle::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
+    background:var(--text3);transition:transform .15s,background .15s}
+  .dash-toggle.on{background:var(--accent);border-color:var(--accent)}
+  .dash-toggle.on::after{transform:translateX(15px);background:#fff}
+  /* Компактный вариант блока с тремя кольцами: одна узкая полоска,
+     кольца поменьше и в ряд, подпись коротко снизу вместо развёрнутой
+     правой колонки со статистикой. */
+  .kpi-ring-grid.kpi-ring-compact{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 10px;margin-bottom:16px}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring-card{display:flex;flex-direction:column;align-items:center;
+    text-align:center;gap:6px;padding:0;border:none;background:transparent;flex:1;cursor:pointer}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring-card:hover{border:none}
+  .kpi-ring-grid.kpi-ring-compact .goal-card-left{flex-direction:column;padding-right:0;gap:6px}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring{width:52px;height:52px}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring-val{font-size:12px}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring-info{text-align:center}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring-title{font-size:10.5px;margin-bottom:0;white-space:nowrap}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring-sub{display:none}
+  .kpi-ring-grid.kpi-ring-compact .kpi-ring-extra{display:none}
+  @media(max-width:880px){
+    .kpi-ring-grid.kpi-ring-compact{padding:12px 6px}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring{width:44px;height:44px}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-title{font-size:9.5px}
+  }
+
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
      #analyticsScaleWrap чуть сжимается через JS (см. fitAnalyticsPage), если контент
@@ -2082,28 +2129,28 @@
       </div>
       <div class="content">
         <div id="dashScrollArea">
-        <div class="stat-grid">
+        <div class="stat-grid dash-editable-block" data-dash-block="stats" onclick="onDashBlockClick(event,'stats')">
           <div class="stat-card purple"><div class="stat-label">Учеников</div><div class="stat-value" id="dStudents">0</div><div class="stat-delta" id="dStudentsDelta" style="color:var(--text3)">активных</div></div>
           <div class="stat-card green"><div class="stat-label">Ближайший урок</div><div class="stat-value" id="dUpcomingLessonTime">—</div><div class="stat-delta" id="dUpcomingLessonSub" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card blue"><div class="stat-label">Новых учеников за месяц</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за месяц</div></div>
         </div>
-        <div class="kpi-ring-grid">
-          <div class="kpi-ring-card split-card" id="ringAttendanceCard">
+        <div class="kpi-ring-grid dash-editable-block" id="dashRingsBlock" data-dash-block="rings" onclick="onDashBlockClick(event,'rings')">
+          <div class="kpi-ring-card split-card" id="ringAttendanceCard" onclick="onDashRingClick(event,'attendance')">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
               <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
             </div>
             <div class="kpi-ring-extra" id="ringAttendanceExtra"></div>
           </div>
-          <div class="kpi-ring-card split-card" id="ringHomeworkCard">
+          <div class="kpi-ring-card split-card" id="ringHomeworkCard" onclick="onDashRingClick(event,'homework')">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringHomework"><span class="kpi-ring-val" id="ringHomeworkVal">—</span></div>
               <div class="kpi-ring-info"><div class="kpi-ring-title">Выполнение ДЗ</div><div class="kpi-ring-sub" id="ringHomeworkSub">за 30 дней</div></div>
             </div>
             <div class="kpi-ring-extra" id="ringHomeworkExtra"></div>
           </div>
-          <div class="kpi-ring-card split-card" id="ringActiveCard">
+          <div class="kpi-ring-card split-card" id="ringActiveCard" onclick="onDashRingClick(event,'active')">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
               <div class="kpi-ring-info"><div class="kpi-ring-title">Активные ученики</div><div class="kpi-ring-sub" id="ringActiveSub">от общего числа</div></div>
@@ -2112,18 +2159,21 @@
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
-          <div>
+          <div class="dash-editable-block" data-dash-block="today" onclick="onDashBlockClick(event,'today')">
             <div class="section-head"><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div></div>
             <div id="todayLessons"></div>
           </div>
-          <div>
+          <div class="dash-editable-block" data-dash-block="notif" onclick="onDashBlockClick(event,'notif')">
             <div class="section-head"><div class="section-title">Уведомления</div></div>
             <div id="notifList"></div>
           </div>
-          <div>
+          <div class="dash-editable-block" data-dash-block="bday" onclick="onDashBlockClick(event,'bday')">
             <div class="section-head"><div class="section-title">🎂 Дни рождения</div></div>
             <div id="bdayList"></div>
           </div>
+        </div>
+        <div class="dash-customize-row">
+          <button class="dash-customize-btn" id="dashCustomizeBtn" onclick="toggleDashboardEditMode(event)">⚙ Настройка</button>
         </div>
         </div>
       </div>
@@ -2548,6 +2598,9 @@ async function loadDB(prefetchedSnap){
   // в модалке 'Запланировать урок'" и "цена пробного урока по умолчанию".
   if(DB.settings.defaultLessonModalPrice === undefined){ DB.settings.defaultLessonModalPrice = null; needsSave = true; }
   if(DB.settings.defaultTrialPrice === undefined){ DB.settings.defaultTrialPrice = null; needsSave = true; }
+  // Компактный вариант блока с тремя кольцами на дашборде (настраивается
+  // через кнопку "Настройка" под дашбордом) — по умолчанию выключен.
+  if(DB.settings.dashRingsCompact === undefined){ DB.settings.dashRingsCompact = false; needsSave = true; }
   // Раньше здесь был безусловный await saveDB() — то есть КАЖДЫЙ запуск
   // приложения делал лишнюю запись в Firestore сразу после чтения, даже
   // если ничего не изменилось. Это удваивало время до отрисовки интерфейса
@@ -3837,6 +3890,7 @@ function renderSidebar(){
    DASHBOARD
    ============================================================ */
 function renderDashboard(){
+  applyDashRingsCompact();
   const now=new Date();
   // Запоминаем, на какой месяц сейчас пересчитан дашборд — используется
   // в checkDashboardMonthRollover(), чтобы отследить наступление нового
@@ -4042,6 +4096,131 @@ function setRing(el, pct, colorVar, glowVar){
   if(card){ card.style.setProperty('--ring-color', colorVar); }
   animateNumProp(el, '--ring-pct', pct);
   return pct;
+}
+
+/* ==========================================================================
+   НАСТРОЙКА БЛОКОВ ДАШБОРДА
+   Кнопка "⚙ Настройка" под дашбордом включает режим редактирования:
+   каждый из редактируемых блоков (4 верхних прямоугольника, блок с тремя
+   кольцами, "Сегодня", "Уведомления", "Дни рождения") обводится при
+   наведении/клике фиолетовой рамкой. Клик по блоку с кольцами открывает
+   попап с переключателем "Компактный вариант" — три кольца выстраиваются
+   в один ряд с короткой подписью снизу, а тройная колонка "Сегодня /
+   Уведомления / Дни рождения" естественным образом поднимается выше за
+   счёт освободившейся высоты. Настройка сохраняется в DB.settings и
+   переживает перезагрузку. Вне режима редактирования клик по кольцу в
+   компактном виде показывает всплывающую подсказку с расшифровкой
+   показателя. ========================================================== */
+let dashEditMode = false;
+
+function toggleDashboardEditMode(e){
+  if(e) e.stopPropagation();
+  dashEditMode = !dashEditMode;
+  const area = document.getElementById('dashScrollArea');
+  const btn = document.getElementById('dashCustomizeBtn');
+  if(area) area.classList.toggle('dash-edit-mode', dashEditMode);
+  if(btn){
+    btn.classList.toggle('active', dashEditMode);
+    btn.textContent = dashEditMode ? '✓ Готово' : '⚙ Настройка';
+  }
+  closeDashBlockPopover();
+  if(!dashEditMode){
+    document.querySelectorAll('.dash-editable-block.dash-block-active').forEach(b=>b.classList.remove('dash-block-active'));
+  }
+}
+
+/* Клик по любому редактируемому блоку в режиме настройки. Пока
+   дополнительная опция (компактный вариант) есть только у блока с
+   кольцами — остальные блоки просто получают фиолетовую рамку-выделение,
+   чтобы в будущем было легко навесить на них свои настройки по такому же
+   принципу. */
+function onDashBlockClick(e, blockKey){
+  if(!dashEditMode) return;
+  e.stopPropagation();
+  document.querySelectorAll('.dash-editable-block.dash-block-active').forEach(b=>b.classList.remove('dash-block-active'));
+  const el = e.currentTarget;
+  el.classList.add('dash-block-active');
+  if(blockKey === 'rings'){
+    openDashRingsPopover(el);
+  } else {
+    closeDashBlockPopover();
+  }
+}
+
+function closeDashBlockPopover(){
+  const existing = document.querySelector('.dash-block-popover');
+  if(existing) existing.remove();
+}
+
+function openDashRingsPopover(anchorEl){
+  closeDashBlockPopover();
+  const pop = document.createElement('div');
+  pop.className = 'dash-block-popover';
+  const isCompact = !!(DB.settings && DB.settings.dashRingsCompact);
+  pop.innerHTML =
+    '<div class="dash-block-popover-title">Блок «Показатели»</div>'
+    +'<div class="dash-block-popover-row">'
+      +'<span>Компактный вариант</span>'
+      +'<span class="dash-toggle'+(isCompact?' on':'')+'" id="dashRingsCompactToggle" onclick="event.stopPropagation();setDashRingsCompact(!('+isCompact+'))"></span>'
+    +'</div>';
+  document.body.appendChild(pop);
+  const r = anchorEl.getBoundingClientRect();
+  const top = Math.min(r.bottom + 8, window.innerHeight - 90);
+  let left = r.right - 230;
+  if(left < 10) left = 10;
+  pop.style.top = top+'px';
+  pop.style.left = left+'px';
+  setTimeout(()=>{ document.addEventListener('click', closeDashBlockPopoverOnce); }, 0);
+}
+function closeDashBlockPopoverOnce(ev){
+  if(ev.target.closest('.dash-block-popover')) return;
+  closeDashBlockPopover();
+  document.removeEventListener('click', closeDashBlockPopoverOnce);
+}
+
+function setDashRingsCompact(val){
+  DB.settings = DB.settings || {};
+  DB.settings.dashRingsCompact = !!val;
+  applyDashRingsCompact();
+  saveDB();
+  // Попап переоткрываем с уже актуальным состоянием переключателя
+  const anchor = document.getElementById('dashRingsBlock');
+  if(anchor) openDashRingsPopover(anchor);
+}
+
+function applyDashRingsCompact(){
+  const grid = document.getElementById('dashRingsBlock');
+  if(!grid) return;
+  const compact = !!(DB.settings && DB.settings.dashRingsCompact);
+  grid.classList.toggle('kpi-ring-compact', compact);
+}
+
+/* В компактном виде (и вне режима настройки) клик по кольцу показывает
+   короткую подсказку — что означает показатель. В режиме настройки клик
+   по кольцу не должен открывать подсказку, он всплывает к обработчику
+   блока (onDashBlockClick) и открывает попап "Компактный вариант". */
+const DASH_RING_TOOLTIPS = {
+  attendance: 'Доля проведённых уроков от всех запланированных в этом месяце (без учёта отменённых).',
+  homework: 'Доля заданий со статусом «Сдано» среди всех, выданных за последние 30 дней.',
+  active: 'Сколько учеников сейчас в статусе «Активный» от общего числа учеников в базе.'
+};
+function onDashRingClick(e, key){
+  if(dashEditMode) return; // клик уйдёт наверх, в onDashBlockClick
+  const grid = document.getElementById('dashRingsBlock');
+  if(!grid || !grid.classList.contains('kpi-ring-compact')) return; // подсказка — только в компактном виде
+  e.stopPropagation();
+  closeDashBlockPopover();
+  const pop = document.createElement('div');
+  pop.className = 'dash-block-popover';
+  pop.style.width = '210px';
+  pop.innerHTML = '<div style="font-size:12px;line-height:1.45;color:var(--text2)">'+DASH_RING_TOOLTIPS[key]+'</div>';
+  document.body.appendChild(pop);
+  const r = e.currentTarget.getBoundingClientRect();
+  const top = Math.min(r.bottom + 8, window.innerHeight - 90);
+  let left = Math.max(10, Math.min(r.left, window.innerWidth - 220));
+  pop.style.top = top+'px';
+  pop.style.left = left+'px';
+  setTimeout(()=>{ document.addEventListener('click', closeDashBlockPopoverOnce); }, 0);
 }
 
 /* Три «пульс»-кольца дашборда: посещаемость, собираемость оплат, доля активных учеников */
