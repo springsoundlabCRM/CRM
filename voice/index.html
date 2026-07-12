@@ -2897,6 +2897,19 @@ function studentPaymentTag(studentId){
 function studentDebt(studentId){
   return lessonsOfStudent(studentId).reduce((sum,l)=> sum+lessonDebt(l), 0);
 }
+// Долг "для уведомлений": в отличие от studentDebt() (который учитывает вообще
+// все незакрытые уроки, включая ещё не наступившие запланированные), здесь
+// считаются только уроки, дата которых уже полностью прошла (строго раньше
+// сегодняшнего дня) — чтобы преподаватель не видел "долг" за урок, который
+// поставлен в расписание на будущее и просто ещё не был оплачен заранее.
+// Долг появляется в уведомлениях со следующего дня после урока (после
+// полуночи), в самой карточке ученика при этом долг виден как обычно (см. studentDebt).
+function studentDebtNotifiable(studentId){
+  const today = todayISO();
+  return lessonsOfStudent(studentId)
+    .filter(l=> l.date < today)
+    .reduce((sum,l)=> sum+lessonDebt(l), 0);
+}
 function studentTotalPaid(studentId){
   let sum=0;
   DB.payments.filter(p=>p.studentId===studentId).forEach(p=> sum+=Number(p.amount||0));
@@ -4097,7 +4110,7 @@ function renderNotifications(){
     if(hwTodo.length>=2) items.push({color:'red', text:escapeHTML(s.name)+' не сдаёт ДЗ ('+hwTodo.length+' заданий)'});
     const sub = activeSubscriptionOf(s.id);
     if(sub && (sub.totalLessons-sub.usedLessons)<=1) items.push({color:'amber', text:'У '+escapeHTML(s.name)+' заканчивается абонемент — остал'+((sub.totalLessons-sub.usedLessons)===1?'ся 1 урок':'ось 0 уроков')});
-    const debt = studentDebt(s.id);
+    const debt = studentDebtNotifiable(s.id);
     if(debt>0) items.push({color:'red', text:'Долг '+money(debt)+' — '+escapeHTML(s.name)});
     const dleft = daysUntilBirthday(s.birthday);
     if(dleft!==null && dleft<=2) items.push({color:'pink', text:'🎂 День рождения у '+escapeHTML(s.name)+' '+(dleft===0?'сегодня!':dleft===1?'завтра':'через '+dleft+' дн.')});
