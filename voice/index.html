@@ -4105,11 +4105,19 @@ function renderNotifications(){
   const host=document.getElementById('notifList');
   const items=[];
   const myStudents = studentsOfTeacher();
+  const todayD = todayISO();
   myStudents.forEach(s=>{
     const hwTodo = homeworkOfStudent(s.id).filter(h=>h.status==='todo');
     if(hwTodo.length>=2) items.push({color:'red', text:escapeHTML(s.name)+' не сдаёт ДЗ ('+hwTodo.length+' заданий)'});
     const sub = activeSubscriptionOf(s.id);
     if(sub && (sub.totalLessons-sub.usedLessons)<=1) items.push({color:'amber', text:'У '+escapeHTML(s.name)+' заканчивается абонемент — остал'+((sub.totalLessons-sub.usedLessons)===1?'ся 1 урок':'ось 0 уроков')});
+    // "Ближайший платёж": урок сегодняшним днём, ещё не оплаченный (полностью
+    // или частично) — показываем строго день в день, не заранее. Со следующего
+    // дня, если оплата так и не поступила, этот же урок уже войдёт в "Долг"
+    // (см. studentDebtNotifiable выше).
+    lessonsOfStudent(s.id).filter(l=> l.date===todayD && l.status!=='cancelled' && lessonDebt(l)>0).forEach(l=>{
+      items.push({color:'amber', text:'Ближайший платёж: '+escapeHTML(s.name)+' — '+money(lessonDebt(l))+', урок в '+l.time});
+    });
     const debt = studentDebtNotifiable(s.id);
     if(debt>0) items.push({color:'red', text:'Долг '+money(debt)+' — '+escapeHTML(s.name)});
     const dleft = daysUntilBirthday(s.birthday);
