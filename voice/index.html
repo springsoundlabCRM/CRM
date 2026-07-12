@@ -6632,9 +6632,13 @@ function renderFinances(){
     // создавалось впечатление, будто деньги получены именно за этот урок.
     const amountText = l.viaSubscription ? 'Абонемент' : (debt>0 ? (l.paid>0 ? '−'+money(debt)+' (частично)' : '−'+money(debt)) : '+'+money(l.paid));
     const carryBadge = l._carry ? '<span class="carryover-badge">↺ Перенос</span>' : '';
-    // Отдельная зелёная пометка "оплачено абонементом" — сразу видно, что
-    // урок не требует отдельной оплаты.
-    const subBadge = l.viaSubscription ? '<span class="tag tag-green" style="margin-left:6px">🎫 Абонемент</span>' : '';
+    // Слева, вместо иконки денег — синяя иконка абонемента (значок "билет"),
+    // чтобы сразу отличать такие уроки от обычных оплаченных наличными/переводом.
+    // Отдельного текстового ярлыка "Абонемент" рядом с именем больше нет —
+    // теперь это видно по иконке слева и по подписи "Абонемент" справа (вместо суммы).
+    const leftIcon = l.viaSubscription
+      ? '<div style="width:20px;height:20px;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%"><path d="M3 8a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a2 2 0 0 1 0-4V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M13 5v1.5M13 11.25v1.5M13 17v1.5"/></svg></div>'
+      : '<div style="font-size:20px">'+(debt>0?'⚠️':'💸')+'</div>';
     // Клик по уже оплаченному абонементным списанием уроку не должен вести
     // в модалку "Зафиксировать платёж" (платить тут нечего) — вместо этого
     // ведём на карточку ученика, как и для строк по абонементам выше.
@@ -6643,8 +6647,8 @@ function renderFinances(){
       : "openModal('payment',{studentId:'"+s.id+"',lessonId:'"+l.id+"'})";
     items.push({key: (l.date||'')+'T'+(l.time||'00:00'), html:
       '<div class="finance-row '+rowCls+'" onclick="'+clickAction+'">'
-      +'<div style="font-size:20px">'+(debt>0?'⚠️':'💸')+'</div>'
-      +'<div class="finance-name"><div>'+escapeHTML(s.name)+carryBadge+subBadge+'</div><div class="finance-sub">Урок '+formatRuShort(l.date)+' · '+l.time+'</div></div>'
+      +leftIcon
+      +'<div class="finance-name"><div>'+escapeHTML(s.name)+carryBadge+'</div><div class="finance-sub">Урок '+formatRuShort(l.date)+' · '+l.time+'</div></div>'
       +'<div class="finance-amount '+amountCls+'">'+amountText+'</div></div>'});
   });
 
