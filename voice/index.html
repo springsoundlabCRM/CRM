@@ -1752,7 +1752,18 @@
     var _maxVH = 0;
     var _lastW = window.innerWidth;
     var _touching = false;
+    // Пока сфокусировано поле ввода (значит, скорее всего, открыта
+    // экранная клавиатура) — держим высоту приложения "замороженной" на
+    // том значении, что было до появления клавиатуры. Раньше высота
+    // пересчитывалась по window.visualViewport, а он на телефоне при
+    // открытии клавиатуры уменьшается — из-за этого весь интерфейс
+    // (включая нижнее меню) сжимался в верхнюю часть экрана, а под ним
+    // оголялась пустая чёрная область до самой клавиатуры. Клавиатура
+    // должна просто перекрывать нижнюю часть интерфейса сверху, а не
+    // заставлять его "сплющиваться".
+    var _kbLock = false;
     function setVH(force){
+      if (_kbLock && !force) return;
       var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
       var w = window.innerWidth;
       // Если ширина экрана заметно изменилась — это поворот экрана
@@ -1792,6 +1803,23 @@
       window.visualViewport.addEventListener('resize', function(){ refreshAll(); });
       window.visualViewport.addEventListener('scroll', function(){ setVH(); });
     }
+    // Ловим появление/скрытие экранной клавиатуры через фокус на полях
+    // ввода (input/textarea/contenteditable) — единственный надёжный
+    // кросс-браузерный признак того, что клавиатура вот-вот появится.
+    // На фокусе — замораживаем высоту (см. _kbLock выше). На потере
+    // фокуса — снимаем заморозку и пересчитываем актуальную высоту
+    // (с небольшой задержкой, пока клавиатура доигрывает анимацию скрытия).
+    document.addEventListener('focusin', function(e){
+      var el = e.target;
+      if(el && el.closest && el.closest('input, textarea, [contenteditable="true"]')) _kbLock = true;
+    });
+    document.addEventListener('focusout', function(e){
+      var el = e.target;
+      if(el && el.closest && el.closest('input, textarea, [contenteditable="true"]')){
+        _kbLock = false;
+        setTimeout(function(){ refreshAll(true); }, 300);
+      }
+    });
     // Меню рендерится через JS уже после загрузки страницы — следим за ним,
     // чтобы пересчитать высоту, как только оно реально появится в DOM.
     var navWatcher = new MutationObserver(setNavH);
@@ -1808,6 +1836,11 @@
     document.addEventListener('touchstart', function(){ _touching = true; }, { passive:true });
     document.addEventListener('touchend', function(){
       _touching = false;
+      // Если клавиатура уже открыта (идёт редактирование поля) — не
+      // форсируем пересчёт высоты по этому касанию (например, при
+      // перестановке курсора внутри поля). Иначе поймаем уже уменьшенную
+      // клавиатурой высоту и интерфейс "сожмётся" прямо во время печати.
+      if (_kbLock) return;
       setVH(true);
       setTimeout(function(){ setVH(true); }, 50);
     }, { passive:true });
@@ -1816,6 +1849,7 @@
       setVH(true);
     }, { passive:true });
   })();
+
 </script>
 <!-- ===== СТИЛИ АНИМИРОВАННОГО ЭКРАНА ЗАГРУЗКИ (песочные часы + логотип) ===== -->
 <style>
