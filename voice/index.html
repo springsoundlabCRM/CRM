@@ -232,7 +232,6 @@
   .delta-down{color:var(--red)}
   .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
   .section-title{font-size:14px;font-weight:600}
-  .section-link{font-size:11px;color:var(--accent);cursor:pointer}
   .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:1fr;gap:12px;margin-bottom:24px;align-items:stretch}
   .student-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px;cursor:pointer;transition:all .2s;position:relative;display:flex;flex-direction:column;height:100%;box-sizing:border-box;min-width:0;overflow:hidden}
   .student-card:hover{border-color:var(--border2);background:var(--card2)}
@@ -263,10 +262,6 @@
   .tag-purple{background:var(--accent-glow);color:var(--accent)}
   .tag-blue{background:var(--blue-bg);color:var(--blue)}
   .tag-orange{background:var(--orange-bg);color:var(--orange)}
-  .tag-dark{background:rgba(0,0,0,.4);color:#ffffff}
-  .tag-pink{background:var(--pink-bg);color:var(--pink)}
-  .tag-grey{background:var(--bg3);color:var(--text3)}
-  .bday-tag{background:linear-gradient(135deg,rgba(244,114,182,.18),rgba(167,139,250,.18));color:var(--pink);border:1px solid rgba(244,114,182,.3)}
   /* ===== КАЛЕНДАРЬ ===== */
   .cal-head {
     display: grid;
@@ -394,25 +389,6 @@
     border-radius: 50%;
     background: var(--red);
   }
-  .cal-drag-ghost {
-    position: absolute;
-    left: 3px;
-    right: 3px;
-    border-radius: 6px;
-    pointer-events: none;
-    z-index: 20;
-    border: 2px dashed transparent;
-  }
-  .cal-drag-ghost-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 10px;
-    font-weight: 700;
-    white-space: nowrap;
-    pointer-events: none;
-  }
   @media(max-width:768px) {
     .cal-head {
       grid-template-columns: 36px repeat(7, 1fr);
@@ -429,7 +405,6 @@
   .day-col{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px;min-height:160px}
   .day-col.today{border-color:var(--accent)}
   .day-name{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px}
-  .day-name.today-name{color:var(--accent)}
   .lesson-slot{background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:8px;border-left:3px solid var(--accent);cursor:pointer;transition:all .15s}
   body.light-theme .lesson-slot{background:var(--card);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
   .lesson-slot:hover{background:var(--card2)}
@@ -443,7 +418,6 @@
   .finance-row{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:8px;gap:12px;cursor:pointer;transition:all .15s}
   .finance-row:hover{background:var(--card2);border-color:var(--border2)}
   .finance-row.is-debt{border-left:3px solid var(--red)}
-  .finance-row.is-partial{border-left:3px solid var(--amber)}
   .finance-row.is-paid{border-left:3px solid var(--green)}
   /* Строки платежей на вкладке "Финансы" внутри карточки ученика (не
      общий раздел "Финансы" в левом меню — там .finance-row не трогаем)
@@ -499,11 +473,6 @@
   .sub-cost-val{font-size:15px}
   .sub-btn-row{margin-top:10px}
   .sub-delete-btn{margin-top:8px}
-  .skill-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-  .skill-name{font-size:12px;width:110px;flex-shrink:0;color:var(--text2)}
-  .skill-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
-  .skill-fill{height:100%;border-radius:3px;transition:width .3s}
-  .skill-input{width:46px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:11px;padding:2px 4px;font-family:var(--font);text-align:center}
   .mood-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
   .mood-row:last-child{border-bottom:none}
   .mood-row-name{font-size:12.5px;color:var(--text);font-weight:500}
@@ -526,7 +495,6 @@
      Когда статус выбран (.active) — та же подложка остаётся постоянно,
      это и есть индикатор "выбрано". Никакой анимации нажатия (scale) —
      только сама подсветка. */
-  .hw-status-pills{display:flex;align-items:center;gap:4px}
   /* Кнопки статуса ДЗ в состоянии покоя показывают серую рамку, но сама
      иконка (✓ / ⏳ / ✗) всегда в своём цвете — зелёная/жёлтая/красная,
      чтобы сразу было видно, что это за кнопка (так же, как эмодзи ⏳
@@ -630,7 +598,6 @@
   .note-date{font-size:12.5px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
   .note-text{font-size:13.5px;color:var(--text2);line-height:1.6}
   .tab-row{display:flex;gap:2px;background:transparent;border-radius:9px;padding:3px;margin-bottom:20px;flex-wrap:wrap;position:relative}
-  .tab-row.scrolly{overflow-x:auto;flex-wrap:nowrap}
   /* ===== Выбор периода (месяц) в разделе "Финансы" — стрелки в шапке
      справа от кнопки "Абонемент" + попап посередине экрана для выбора
      месяца/года (использует общую систему модальных окон) ===== */
@@ -680,7 +647,6 @@
     100%{box-shadow:0 0 0 11px rgba(248,113,113,0)}
   }
   .notif-text{font-size:12px;line-height:1.5}
-  .notif-time{font-size:10px;color:var(--text3);margin-top:3px}
   .mini-chart{height:60px;display:flex;align-items:flex-end;gap:4px;margin:12px 0 4px}
   .bar-col{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer}
   .bar{width:100%;border-radius:3px 3px 0 0;background:var(--accent);opacity:.7;transition:opacity .15s}
@@ -844,8 +810,6 @@
   .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;position:relative;margin-left:4px}
   .pulse::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:var(--green);opacity:.3;animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.6);opacity:0}}
-  .range-bar{flex:1;height:6px;background:var(--bg3);border-radius:3px;position:relative;overflow:hidden}
-  .range-fill{position:absolute;top:0;left:0;right:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--accent),var(--pink))}
   .empty-state{color:var(--text3);font-size:12px;padding:30px 18px;text-align:center;background:var(--card);border:1px dashed var(--border2);border-radius:var(--r2)}
   .attend-row{display:flex;gap:6px;margin-top:8px}
   .attend-btn{flex:1;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);border-radius:6px;font-size:10px;padding:4px 0;cursor:pointer;text-align:center;transition:all .15s;font-family:var(--font)}
@@ -862,10 +826,8 @@
   .teacher-row.active{border-color:var(--accent);background:var(--accent-glow)}
   .bday-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;margin-bottom:6px;background:var(--bg3)}
   .bday-days{font-size:10px;color:var(--pink);font-weight:600;margin-left:auto;white-space:nowrap}
-  .sub-progress-wrap{margin-top:6px}
   .swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
   .swatch.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--accent)}
-  .color-row{display:flex;gap:8px;flex-wrap:wrap}
   @media (max-width:1100px){
     .stat-grid{grid-template-columns:repeat(2,1fr)}
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
@@ -986,10 +948,6 @@
      карточек и т.п.) — это единственный визуальный признак "идёт
      редактирование", вместо прежней отдельной перекрашиваемой кнопки. */
   .bn-item.settings-editing{color:var(--accent)}
-  .bn-item .bn-dot{
-    position:absolute;top:2px;right:18%;width:7px;height:7px;border-radius:50%;
-    background:var(--red);border:1.5px solid var(--bg2);
-  }
   .bn-more-sheet{
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;
     background:var(--bg2);border-top:1px solid var(--border2);
@@ -1189,9 +1147,6 @@
     .cal-event-name{font-size:8px}
     .cal-event-svc{display:none}
 
-    /* Карточка ученика (детальная) */
-    .skill-name{width:84px;font-size:11px}
-
     /* Нижняя навигация включается */
     .bottom-nav{display:flex}
     .qm-edit-bar.show{display:flex}
@@ -1225,7 +1180,6 @@
     .bn-edit-center{font-size:7.5px;padding:5px 1px 4px}
     .bn-edit-center .bn-icon{font-size:14px}
     .bn-move-arrow{width:14px;font-size:14px}
-    .skill-name{width:70px;font-size:10px}
     #page-schedule .topbar .btn{padding:5px 6px;font-size:9.5px}
     .cal-head{grid-template-columns:32px repeat(7,1fr)}
     .cal-body{grid-template-columns:32px repeat(7,1fr)}
@@ -1580,7 +1534,6 @@
   .voice-tool-btn.mode-desired.active{background:var(--blue);border-color:var(--blue);color:#fff}
   .voice-tool-btn.voice-save-btn{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   .voice-tool-btn.voice-save-btn:hover{filter:brightness(1.08)}
-  .voice-tool-btn.voice-save-btn.is-dirty{box-shadow:0 0 0 3px var(--accent-glow)}
   .voice-tool-btn.voice-reset-btn{background:var(--card);border-color:var(--border2);color:var(--text2);font-weight:600}
   .voice-tool-btn.voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   @media (max-width:640px){
@@ -2872,7 +2825,6 @@ function studentById(id){ return DB.students.find(s=>s.id===id); }
 function lessonsOfTeacher(){ return DB.lessons.filter(l=>l.teacherId===DB.currentTeacherId); }
 function lessonsOfStudent(id){ return DB.lessons.filter(l=>l.studentId===id).sort((a,b)=> a.date<b.date?1:-1); }
 function activeSubscriptionOf(studentId){ return DB.subscriptions.find(su=>su.studentId===studentId && su.active && su.usedLessons<su.totalLessons) || null; }
-function allSubscriptionsOf(studentId){ return DB.subscriptions.filter(su=>su.studentId===studentId).sort((a,b)=> a.purchaseDate<b.purchaseDate?1:-1); }
 function subHistoryOf(studentId){ return DB.subHistory.filter(h=>h.studentId===studentId).sort((a,b)=> a.date<b.date?1:-1); }
 function homeworkOfStudent(id){ return DB.homework.filter(h=>h.studentId===id); }
 function repertoireOfStudent(id){ return DB.repertoire.filter(r=>r.studentId===id); }
@@ -2884,9 +2836,6 @@ function lessonDebt(l){
   const paid = Number(l.paid||0);
   return Math.max(0, full-paid);
 }
-function lessonIsPaidInFull(l){ return l.viaSubscription || lessonDebt(l)<=0; }
-function lessonIsPartial(l){ return !l.viaSubscription && l.paid>0 && lessonDebt(l)>0; }
-
 function studentPaymentTag(studentId){
   const sub = activeSubscriptionOf(studentId);
   if(sub) return 'sub';
@@ -3432,16 +3381,6 @@ function monthIncome(year, month){
     }
   });
   return {paid, debt};
-}
-
-function last6MonthsIncome(){
-  const now=new Date(); const res=[];
-  for(let i=5;i>=0;i--){
-    const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
-    const {paid} = monthIncome(d.getFullYear(), d.getMonth());
-    res.push({label:MNSh[d.getMonth()], value:paid});
-  }
-  return res;
 }
 
 function yearIncomeSeries(year){
@@ -4707,8 +4646,6 @@ function qmMoveSlot(e, idx, dir){
   renderBottomNav();
 }
 
-function toggleMoreSheet(){ enterQuickMenuEditMode(); }
-function closeMoreSheet(){ closeQuickMenuPicker(); }
 function insertHamburgers(){
   document.querySelectorAll('.topbar').forEach(tb=>{
     // Расписание — у него своя кнопка меню (scheduleMenuBtn), пропускаем
@@ -6994,14 +6931,6 @@ function openMonthInfo(idx, paid, debt){
    ============================================================ */
 let modalCtx = {};
 
-function studentOptionsHTML(selectedId){
-  let list = studentsOfTeacher();
-  if(selectedId && !list.find(s=>s.id===selectedId)){
-    const sel = studentById(selectedId);
-    if(sel) list = list.concat([sel]);
-  }
-  return list.map(s=>'<option value="'+s.id+'" '+(s.id===selectedId?'selected':'')+'>'+escapeHTML(s.name)+'</option>').join('');
-}
 function studentNameOf(id){
   if(!id) return '';
   const s = studentById(id);
