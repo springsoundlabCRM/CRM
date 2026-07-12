@@ -1019,6 +1019,12 @@
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
     .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    /* Финансы: тот же порядок 2-в-ряд, что и на телефоне (см. блок ≤600px
+       ниже) — Оплачено/Доход за год сверху, Доход за месяц/Долги снизу. */
+    #page-finances .stat-grid > div:nth-child(1){order:3} /* Доход (месяц) */
+    #page-finances .stat-grid > div:nth-child(2){order:1} /* Оплачено (месяц) */
+    #page-finances .stat-grid > div:nth-child(3){order:2} /* Доход за год */
+    #page-finances .stat-grid > div:nth-child(4){order:4} /* Долги */
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
     .detail-panel{grid-template-columns:1fr}
@@ -1074,8 +1080,18 @@
     /* Дашборд: триколонка → одна колонка */
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
 
-    /* Финансы: 3 стат-карточки → 1 колонка */
-    #page-finances .stat-grid{grid-template-columns:1fr!important}
+    /* Финансы: 4 стат-карточки — было по одной в ряд (друг под другом,
+       с пустым местом справа), теперь по 2 в ряд, как и везде в приложении.
+       Порядок в HTML/JS (id-шники finIncome/finPaid/finYearIncome/finDebt)
+       не трогаем — переставляем визуально через order, чтобы не задеть
+       renderFinances(). Нужный порядок на экране:
+       1) Оплачено (месяц)   2) Доход за год
+       3) Доход (месяц)      4) Долги            */
+    #page-finances .stat-grid{grid-template-columns:repeat(2,1fr)!important}
+    #page-finances .stat-grid > div:nth-child(1){order:3} /* Доход (месяц) */
+    #page-finances .stat-grid > div:nth-child(2){order:1} /* Оплачено (месяц) */
+    #page-finances .stat-grid > div:nth-child(3){order:2} /* Доход за год */
+    #page-finances .stat-grid > div:nth-child(4){order:4} /* Долги */
 
     /* Задания: 3 колонки → 1 колонка, с разделителями */
     #page-homework .content > div{grid-template-columns:1fr!important;gap:18px!important}
