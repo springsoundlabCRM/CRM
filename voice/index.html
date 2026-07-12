@@ -181,16 +181,12 @@
     .sub-action-btn{padding:12px 9px;font-size:13px;font-weight:500}
     /* ===== Дашборд на компьютере: страница ЖЁСТКО статична и не крутится
        колесом мыши целиком. Триколонка (Сегодня/Уведомления/Дни рождения)
-       растягивается через flex:1 1 auto ровно на всё оставшееся место под
-       карточками "Учеников/Ближайший урок/..." (#stat-grid) — до самого
-       низа экрана, без пустого "воздуха" и без переезда нижней границы
-       страницы. Высота трёх списков карточек нигде не задаётся числом
-       пикселей и не считается в JS: раз все три колонки — ячейки одной
-       CSS grid-строки (#dashTriColumn), они автоматически растягиваются
-       вровень (align-items:stretch по умолчанию), сколько бы места ни
-       освободилось. Крутятся колесом мыши только сами списки карточек
-       внутри каждой из трёх колонок (когда карточек больше, чем
-       помещается по высоте). ===== */
+       живёт в верхней части экрана дашборда, а высота самих трёх списков
+       карточек фиксирована ровно под DASH_VISIBLE_CARDS карточек (см. JS,
+       syncDashColumnHeights) — одинаковая у всех трёх колонок, чтобы их
+       нижние границы всегда совпадали. Крутятся колесом мыши только сами
+       списки карточек внутри каждой из трёх колонок (когда карточек больше,
+       чем помещается по высоте). ===== */
     #page-dashboard .content{display:flex;flex-direction:column;overflow:hidden;min-height:0}
     /* ===== Аналитика на компьютере: та же логика, что и в Дашборде — страница
        ЖЁСТКО статична и не крутится колесом мыши ни при каких обстоятельствах.
@@ -200,15 +196,14 @@
        если расчёт масштаба на конкретном компьютере окажется неточным на
        пару пикселей: прокрутки не будет в любом случае. ===== */
     #page-analytics .content{overflow:hidden !important}
-    /* Списки карточек "Сегодня" / "Уведомления" / "Дни рождения" — flex:1
-       внутри своей колонки, поэтому каждый список сам растягивается на всю
-       высоту, которую грид выделил колонке (см. комментарий выше), и уже
-       внутри себя даёт вертикальную прокрутку колесом мыши, если карточек
-       больше, чем помещается. */
+    /* Высота списков карточек "Сегодня" / "Уведомления" / "Дни рождения"
+       теперь фиксированная (её в px выставляет JS, syncDashColumnHeights),
+       поэтому flex-grow здесь выключен (flex:0 0 auto) — иначе flexbox
+       растянул бы их и перебил бы заданную высоту. */
     #dashScrollArea{flex:1 1 auto;overflow:hidden;min-height:0;padding-right:4px;display:flex;flex-direction:column}
-    #dashTriColumn{flex:1 1 auto;min-height:0}
+    #dashTriColumn{min-height:0}
     #dashTriColumn>div{display:flex;flex-direction:column;min-height:0}
-    #todayLessons,#notifList,#bdayList{flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:4px}
+    #todayLessons,#notifList,#bdayList{flex:0 0 auto;min-height:0;overflow-y:auto;padding-right:4px}
   }
   .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff}
@@ -1303,7 +1298,7 @@
      сохраняют свой обычный, некомпрессированный размер (flex:0 0 auto). */
   @media (min-width:881px){
     #analyticsScaleWrap{display:flex;flex-direction:column;height:100%}
-    #analyticsScaleWrap>.kpi-ring-grid,#analyticsScaleWrap>.an-row-3{flex:0 0 auto}
+    #analyticsScaleWrap>.pill-row,#analyticsScaleWrap>.an-row-3{flex:0 0 auto}
     #analyticsScaleWrap>#incomeYearCard{flex:1 1 auto;min-height:0}
     #incomeYearCard .year-chart{flex:1 1 auto;min-height:70px;height:auto}
   }
@@ -2124,6 +2119,29 @@
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card blue"><div class="stat-label">Новых учеников за месяц</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за месяц</div></div>
         </div>
+        <div class="kpi-ring-grid">
+          <div class="kpi-ring-card split-card" id="ringAttendanceCard">
+            <div class="goal-card-left">
+              <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
+              <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
+            </div>
+            <div class="kpi-ring-extra" id="ringAttendanceExtra"></div>
+          </div>
+          <div class="kpi-ring-card split-card" id="ringHomeworkCard">
+            <div class="goal-card-left">
+              <div class="kpi-ring" id="ringHomework"><span class="kpi-ring-val" id="ringHomeworkVal">—</span></div>
+              <div class="kpi-ring-info"><div class="kpi-ring-title">Выполнение ДЗ</div><div class="kpi-ring-sub" id="ringHomeworkSub">за 30 дней</div></div>
+            </div>
+            <div class="kpi-ring-extra" id="ringHomeworkExtra"></div>
+          </div>
+          <div class="kpi-ring-card split-card" id="ringActiveCard">
+            <div class="goal-card-left">
+              <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
+              <div class="kpi-ring-info"><div class="kpi-ring-title">Активные ученики</div><div class="kpi-ring-sub" id="ringActiveSub">от общего числа</div></div>
+            </div>
+            <div class="kpi-ring-extra" id="ringActiveExtra"></div>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
           <div>
             <div class="section-head"><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div></div>
@@ -2283,28 +2301,9 @@
       <div class="content">
 
         <div id="analyticsScaleWrap">
-        <div class="kpi-ring-grid">
-          <div class="kpi-ring-card split-card" id="ringAttendanceCard">
-            <div class="goal-card-left">
-              <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
-              <div class="kpi-ring-info"><div class="kpi-ring-title">Посещаемость</div><div class="kpi-ring-sub" id="ringAttendanceSub">за этот месяц</div></div>
-            </div>
-            <div class="kpi-ring-extra" id="ringAttendanceExtra"></div>
-          </div>
-          <div class="kpi-ring-card split-card" id="ringHomeworkCard">
-            <div class="goal-card-left">
-              <div class="kpi-ring" id="ringHomework"><span class="kpi-ring-val" id="ringHomeworkVal">—</span></div>
-              <div class="kpi-ring-info"><div class="kpi-ring-title">Выполнение ДЗ</div><div class="kpi-ring-sub" id="ringHomeworkSub">за 30 дней</div></div>
-            </div>
-            <div class="kpi-ring-extra" id="ringHomeworkExtra"></div>
-          </div>
-          <div class="kpi-ring-card split-card" id="ringActiveCard">
-            <div class="goal-card-left">
-              <div class="kpi-ring" id="ringActive"><span class="kpi-ring-val" id="ringActiveVal">—</span></div>
-              <div class="kpi-ring-info"><div class="kpi-ring-title">Активные ученики</div><div class="kpi-ring-sub" id="ringActiveSub">от общего числа</div></div>
-            </div>
-            <div class="kpi-ring-extra" id="ringActiveExtra"></div>
-          </div>
+        <div class="pill-row" id="analyticsPillRow">
+          <div class="pill-stat"><div class="pill-stat-label">Средний прогресс</div><b id="anPillProgress">0%</b></div>
+          <div class="pill-stat"><div class="pill-stat-label">Долги всего</div><b id="anPillDebt" style="color:var(--red)">0₽</b></div>
         </div>
 
         <div class="an-row-3" style="align-items:stretch" data-reorder-row="1">
@@ -3923,6 +3922,84 @@ function renderDashboard(){
   renderNotifications();
   renderBirthdays();
   renderDashboardPulse(myStudents, active, now);
+  requestAnimationFrame(syncDashColumnHeights);
+}
+
+/* ---------- Фиксированная высота колонок "Сегодня" / "Уведомления" / "Дни
+   рождения" на дашборде (только десктоп) ----------
+   Задача: в колонке "Сегодня" всегда видно ровно DASH_VISIBLE_CARDS карточек,
+   дальше — прокрутка колесом мыши внутри самой колонки. Высоту считаем не
+   фиксированным числом пикселей, а по реальной высоте отрисованных карточек
+   урока (она берётся из живого DOM) — так это одинаково корректно работает
+   при любом масштабе шрифта/DPI и не "поплывёт", если позже поменяется
+   вёрстка самой карточки урока. Ровно ту же высоту в px проставляем и
+   колонкам "Уведомления"/"Дни рождения", чтобы их нижняя граница никогда
+   не уезжала ниже границы колонки "Сегодня" — все три всегда вровень. */
+const DASH_DESKTOP_MIN_WIDTH = 881; // совпадает с общим брейкпоинтом десктоп/мобайл в остальной вёрстке
+const DASH_VISIBLE_CARDS = 5; // сколько карточек показываем в "Сегодня" до появления внутренней прокрутки
+const DASH_CARD_GAP = 8; // совпадает с margin-bottom у .lesson-slot в CSS — запасной вариант, если на сегодня всего 1 урок
+function syncDashColumnHeights(){
+  const today = document.getElementById('todayLessons');
+  const notif = document.getElementById('notifList');
+  const bday = document.getElementById('bdayList');
+  if(!today || !notif || !bday) return;
+
+  // На мобильных версиях фиксированная высота не нужна — сбрасываем, если она
+  // вдруг осталась от предыдущей (десктопной) ширины экрана. На мобильных все
+  // карточки просто показываются целиком, страница скроллится как обычно.
+  if(window.innerWidth < DASH_DESKTOP_MIN_WIDTH){
+    today.style.height = ''; notif.style.height = ''; bday.style.height = '';
+    return;
+  }
+
+  const cards = today.querySelectorAll('.lesson-slot');
+  let h = 0;
+  if(cards.length >= DASH_VISIBLE_CARDS){
+    // Самый точный вариант: реальное расстояние от верха 1-й до низа 5-й карточки.
+    const top = cards[0].getBoundingClientRect().top;
+    const bottom = cards[DASH_VISIBLE_CARDS-1].getBoundingClientRect().bottom;
+    h = Math.round(bottom - top);
+  } else if(cards.length >= 2){
+    // Уроков сегодня меньше пяти, но хотя бы 2 — считаем по фактическому шагу
+    // между карточками (высота карточки + отступ между ними).
+    const step = cards[1].getBoundingClientRect().top - cards[0].getBoundingClientRect().top;
+    const firstH = cards[0].getBoundingClientRect().height;
+    h = Math.round(step*(DASH_VISIBLE_CARDS-1) + firstH);
+  } else if(cards.length === 1){
+    // Всего 1 урок на сегодня — берём его высоту + стандартный отступ из CSS.
+    const firstH = cards[0].getBoundingClientRect().height;
+    h = Math.round((firstH+DASH_CARD_GAP)*(DASH_VISIBLE_CARDS-1) + firstH);
+  }
+
+  if(!h){
+    // Уроков на сегодня нет вообще (пустая заглушка) — фиксированную высоту
+    // посчитать не из чего, оставляем колонки как есть (по естественной высоте).
+    today.style.height = ''; notif.style.height = ''; bday.style.height = '';
+    return;
+  }
+
+  today.style.height = h+'px';
+  notif.style.height = h+'px';
+  bday.style.height = h+'px';
+}
+
+// Пересчитываем при изменении размера окна (например, при разворачивании/сворачивании
+// окна браузера) — но только пока открыт дашборд.
+let _dashHeightResizeTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(_dashHeightResizeTimer);
+  _dashHeightResizeTimer = setTimeout(()=>{
+    if(currentPageName === 'dashboard') syncDashColumnHeights();
+  }, 120);
+});
+
+// Веб-шрифт (Inter) иногда подгружается уже ПОСЛЕ первого рендера дашборда — высота
+// текста в карточках может чуть измениться, пересчитываем высоту колонок ещё раз,
+// когда все шрифты точно готовы.
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(function(){
+    if(currentPageName === 'dashboard') syncDashColumnHeights();
+  });
 }
 
 /* Универсальный помощник: плавно "докручивает" CSS-переменную с числом (0 -> target),
@@ -3946,9 +4023,7 @@ function setRing(el, pct, colorVar, glowVar){
   return pct;
 }
 
-/* Три «пульс»-кольца (живут наверху "Аналитики"): посещаемость, выполнение ДЗ,
-   доля активных учеников. Название функции сохранено как есть (когда-то жили
-   на Дашборде) — вызывается и из renderDashboard, и из renderAnalytics. */
+/* Три «пульс»-кольца дашборда: посещаемость, собираемость оплат, доля активных учеников */
 function renderDashboardPulse(myStudents, active, now){
   // Посещаемость за месяц: проведено / (проведено + неявка)
   const monthLessons = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); });
@@ -4026,15 +4101,11 @@ function renderDashboardPulse(myStudents, active, now){
    возврате приложения на передний план (см. ниже). */
 function checkDashboardMonthRollover(){
   const dashPage = document.getElementById('page-dashboard');
-  const analyticsPage = document.getElementById('page-analytics');
-  const dashOpen = dashPage && !dashPage.classList.contains('hidden');
-  const analyticsOpen = analyticsPage && !analyticsPage.classList.contains('hidden');
-  if(!dashOpen && !analyticsOpen) return;
+  if(!dashPage || dashPage.classList.contains('hidden')) return;
   const now = new Date();
   const key = now.getFullYear()+'-'+now.getMonth();
   if(dashboardMonthKey !== null && dashboardMonthKey !== key){
-    if(dashOpen) renderDashboard();
-    else renderAnalytics();
+    renderDashboard();
   }
 }
 
@@ -6620,11 +6691,13 @@ function renderAnalytics(){
   const myStudents = studentsOfTeacher();       // активные + на паузе + пробные (без "неактивных")
   const allStudents = allStudentsOfTeacher();   // вообще все, включая неактивных — для воронки/удержания
   const now = new Date();
-  dashboardMonthKey = now.getFullYear()+'-'+now.getMonth();
 
-  /* ---------- Три KPI-кольца (перенесены сюда с Дашборда, на самое верх) ---------- */
-  const active = myStudents.filter(s=>s.status==='active');
-  renderDashboardPulse(myStudents, active, now);
+  /* ---------- Сводная строка-«пилюли» ---------- */
+  const progressValues = myStudents.map(s=>studentProgress(s.id)).filter(v=>v>0);
+  const avgProgress = progressValues.length ? Math.round(progressValues.reduce((a,b)=>a+b,0)/progressValues.length) : 0;
+  const totalDebtAll = allStudents.reduce((a,s)=>a+studentDebt(s.id),0);
+  document.getElementById('anPillProgress').textContent = avgProgress+'%';
+  document.getElementById('anPillDebt').textContent = money(totalDebtAll);
 
   /* ---------- Воронка учеников ---------- */
   const fTotal = allStudents.length;
