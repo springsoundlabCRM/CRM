@@ -31,8 +31,8 @@
     --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--card:#1a1a24;--card2:#22222e;
     --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#ffffff;--text3:#ffffff;
     --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.15);
-    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-bg2:rgba(52,211,153,0.18);--green-glow:rgba(52,211,153,0.4);
-    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-bg2:rgba(251,191,36,0.18);--amber-glow:rgba(251,191,36,0.4);
+    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-bg2:rgba(52,211,153,0.09);--green-glow:rgba(52,211,153,0.4);--green-song-hover:rgba(52,211,153,0.2);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-bg2:rgba(251,191,36,0.09);--amber-glow:rgba(251,191,36,0.4);--amber-song-hover:rgba(251,191,36,0.2);
     --red:#f87171;--red-bg:rgba(248,113,113,0.12);--red-glow:rgba(248,113,113,0.4);
     --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);
     --orange:#fb923c;--orange-bg:rgba(251,146,60,0.14);
@@ -45,8 +45,8 @@
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
     --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
     --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
-    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-bg2:rgba(5,150,105,0.2);--green-glow:rgba(5,150,105,0.35);
-    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-bg2:rgba(217,119,6,0.2);--amber-glow:rgba(217,119,6,0.35);
+    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-bg2:rgba(5,150,105,0.2);--green-glow:rgba(5,150,105,0.35);--green-song-hover:rgba(5,150,105,0.35);
+    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-bg2:rgba(217,119,6,0.2);--amber-glow:rgba(217,119,6,0.35);--amber-song-hover:rgba(217,119,6,0.35);
     --red:#dc2626;--red-bg:rgba(220,38,38,0.1);--red-glow:rgba(220,38,38,0.35);
     --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
     --orange:#ea580c;--orange-bg:rgba(234,88,12,0.1);
@@ -676,9 +676,9 @@
      --green-bg, что и у бейджей "разучиваем"/"готово" в остальной CRM).
      "На паузе" — это и есть исходный серый фон, отдельный класс не нужен. */
   .song-item.song-status-progress{background:var(--amber-bg2)}
-  .song-item.song-status-progress:hover{background:var(--amber-glow)}
+  .song-item.song-status-progress:hover{background:var(--amber-song-hover)}
   .song-item.song-status-done{background:var(--green-bg2)}
-  .song-item.song-status-done:hover{background:var(--green-glow)}
+  .song-item.song-status-done:hover{background:var(--green-song-hover)}
   /* Выпадающий список статуса песни — раньше был обычным <select>,
      стилизованным отдельно от всей остальной CRM. Теперь это тот же
      "красивый" кастомный список, что и "Тип голоса"/"Статус" в карточке
