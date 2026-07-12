@@ -2117,7 +2117,7 @@
           <div class="stat-card purple"><div class="stat-label">Учеников</div><div class="stat-value" id="dStudents">0</div><div class="stat-delta" id="dStudentsDelta" style="color:var(--text3)">активных</div></div>
           <div class="stat-card green"><div class="stat-label">Ближайший урок</div><div class="stat-value" id="dUpcomingLessonTime">—</div><div class="stat-delta" id="dUpcomingLessonSub" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
-          <div class="stat-card blue"><div class="stat-label">Новых учеников за неделю</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за 7 дней</div></div>
+          <div class="stat-card blue"><div class="stat-label">Новых учеников за месяц</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за месяц</div></div>
         </div>
         <div class="kpi-ring-grid">
           <div class="kpi-ring-card split-card" id="ringAttendanceCard">
@@ -2253,7 +2253,7 @@
         <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
           <div class="stat-card purple"><div class="stat-label">Доход (месяц)</div><div class="stat-value" id="finIncome">0₽</div><div class="stat-delta" id="finIncomeDelta" style="color:var(--text3)">—</div></div>
           <div class="stat-card green"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
-          <div class="stat-card amber"><div class="stat-label">Ожидается</div><div class="stat-value" id="finPending">0₽</div><div class="stat-delta" id="finPendingSub" style="color:var(--text3)">—</div></div>
+          <div class="stat-card amber"><div class="stat-label">Доход за год</div><div class="stat-value" id="finYearIncome">0₽</div><div class="stat-delta" id="finYearIncomeSub" style="color:var(--text3)">—</div></div>
           <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="finDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="finDebtCount">—</div></div>
         </div>
         <div class="kpi-ring-grid">
@@ -3884,13 +3884,14 @@ function renderDashboard(){
   const nextL = todayLessons.find(l=>l.status==='planned');
   document.getElementById('dNextLesson').textContent = nextL ? 'Ближайший в '+nextL.time : (todayLessons.length? 'Все уроки обработаны' : 'Нет уроков');
 
-  // "Новых учеников за неделю": дата начала занятий (studySince или createdAt) попадает в последние 7 дней.
-  const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
-  const newStudentsWeek = allStudentsOfTeacher().filter(s=>{
+  // "Новых учеников за месяц": дата начала занятий (studySince или createdAt) попадает
+  // в текущий календарный месяц — счётчик автоматически обнуляется с наступлением нового
+  // месяца (пересчитывается через checkDashboardMonthRollover/renderDashboard).
+  const newStudentsMonth = allStudentsOfTeacher().filter(s=>{
     const d = parseISO(s.studySince||s.createdAt);
-    return d && d>=weekAgo && d<=now;
+    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
   }).length;
-  document.getElementById('dNewStudentsWeek').textContent = newStudentsWeek;
+  document.getElementById('dNewStudentsWeek').textContent = newStudentsMonth;
 
   const todayHost=document.getElementById('todayLessons');
   todayHost.innerHTML = todayLessons.length ? todayLessons.map(l=>lessonCardHTML(l)).join('') : '<div class="empty-state">Сегодня уроков нет</div>';
@@ -6531,14 +6532,11 @@ function renderFinances(){
     goalExtraHost.innerHTML = '<div class="kpi-ring-extra-row" style="white-space:normal">Кликните и задайте желаемый доход — появится прогресс</div>';
   }
 
-  let pendingValue=0, pendingCount=0;
-  DB.subscriptions.forEach(su=>{
-    if(!myStudentIds.has(su.studentId) || !su.active) return;
-    const left = su.totalLessons-su.usedLessons;
-    if(left>0){ pendingValue += left*su.pricePerLesson; pendingCount++; }
-  });
-  document.getElementById('finPending').textContent = money(pendingValue);
-  document.getElementById('finPendingSub').textContent = pendingCount+' '+(pendingCount===1?'абонемент':'абонемента');
+  // "Доход за год": суммарный оплаченный доход учителя за текущий календарный год
+  // (перенесено с бывшей пилюли аналитики "Доход за год").
+  const yearIncome = yearIncomeSeries(realNow.getFullYear()).reduce((a,m)=>a+m.paid,0);
+  document.getElementById('finYearIncome').textContent = money(yearIncome);
+  document.getElementById('finYearIncomeSub').textContent = realNow.getFullYear()+' год';
 
   let totalDebt=0; const debtStudents=new Set();
   myStudentIds.forEach(id=>{ const d=studentDebt(id); if(d>0){ totalDebt+=d; debtStudents.add(id); } });
@@ -7392,6 +7390,11 @@ function saveLessonForm(){
   }
 
   // Создание нового урока
+  // Считаем количество уроков ученика ДО добавления этого нового — если оно
+  // больше нуля, значит текущий урок не первый, а значит пробный период уже
+  // закончился и статус нужно автоматически перевести в "Активный" (если он
+  // всё ещё "Пробный"). Первый урок любого нового ученика остаётся пробным.
+  const existingLessonsCount = lessonsOfStudent(studentId).length;
   let lesson = { id:uid('l'), studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status:'planned', plan, workedOn:'', createdAt: todayISO() };
   if(sub){
     lesson.viaSubscription = true; lesson.subscriptionId = sub.id; lesson.price = sub.pricePerLesson; lesson.paid = sub.pricePerLesson;
@@ -7408,6 +7411,10 @@ function saveLessonForm(){
     if(paid>0) DB.payments.push({ id:uid('p'), studentId, lessonId:lesson.id, date: todayISO(), amount:paid, type:'lesson', note:'Оплата урока '+formatRu(date) });
   }
   DB.lessons.push(lesson);
+  const lessonStudent = studentById(studentId);
+  if(existingLessonsCount>0 && lessonStudent && lessonStudent.status==='trial'){
+    lessonStudent.status = 'active';
+  }
   saveDB();
   closeModal();
   toast('Урок запланирован ✓');
