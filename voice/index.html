@@ -1250,20 +1250,14 @@
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
 
-  /* ---------- Настройка блоков дашборда (кнопка "Настройка" в правом
-     нижнем углу дашборда включает режим редактирования: блоки
-     обводятся фиолетовой пунктирной рамкой, клик по блоку с кольцами
-     открывает попап с переключателем "Компактный вариант"). ---------- */
-  .dash-customize-row{display:flex;justify-content:flex-end;margin-top:-6px;margin-bottom:18px}
-  .dash-customize-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:99px;
-    background:var(--card);border:1px solid var(--border2);color:var(--text2);font-size:12px;font-weight:600;
-    cursor:pointer;transition:all .15s}
-  .dash-customize-btn:hover{border-color:var(--accent);color:var(--text)}
-  .dash-customize-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-  .dash-edit-mode .dash-editable-block{outline:2px dashed transparent;outline-offset:3px;border-radius:var(--r2);
-    cursor:pointer;transition:outline-color .15s}
-  .dash-edit-mode .dash-editable-block:hover{outline-color:rgba(167,139,250,.55)}
-  .dash-edit-mode .dash-editable-block.dash-block-active{outline-style:solid;outline-color:var(--accent)}
+  /* ---------- Настройка блоков дашборда — ТОЛЬКО мобильная версия.
+     Включается стандартной кнопкой "Настройки" нижнего меню (как и
+     перестановка карточек в "Аналитике"/"Профиле"), а не отдельной
+     кнопкой на странице. В режиме редактирования блоки дашборда
+     обводятся фиолетовой пунктирной рамкой; клик по блоку с кольцами
+     открывает попап с переключателем "Компактный вариант". На
+     компьютерной версии (>880px) вся эта логика визуально не работает —
+     правила ниже намеренно закрыты в @media(max-width:880px). ---------- */
   .dash-block-popover{position:fixed;z-index:150;width:230px;background:var(--card);border:1px solid var(--border2);
     border-radius:var(--r2);box-shadow:0 14px 36px rgba(0,0,0,.35);padding:12px 13px;font-size:12px;color:var(--text2);
     animation:notePopIn .16s cubic-bezier(.22,1,.36,1)}
@@ -1276,25 +1270,27 @@
     background:var(--text3);transition:transform .15s,background .15s}
   .dash-toggle.on{background:var(--accent);border-color:var(--accent)}
   .dash-toggle.on::after{transform:translateX(15px);background:#fff}
-  /* Компактный вариант блока с тремя кольцами: одна узкая полоска,
-     кольца поменьше и в ряд, подпись коротко снизу вместо развёрнутой
-     правой колонки со статистикой. */
-  .kpi-ring-grid.kpi-ring-compact{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;
-    background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 10px;margin-bottom:16px}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring-card{display:flex;flex-direction:column;align-items:center;
-    text-align:center;gap:6px;padding:0;border:none;background:transparent;flex:1;cursor:pointer}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring-card:hover{border:none}
-  .kpi-ring-grid.kpi-ring-compact .goal-card-left{flex-direction:column;padding-right:0;gap:6px}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring{width:52px;height:52px}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring-val{font-size:12px}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring-info{text-align:center}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring-title{font-size:10.5px;margin-bottom:0;white-space:nowrap}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring-sub{display:none}
-  .kpi-ring-grid.kpi-ring-compact .kpi-ring-extra{display:none}
   @media(max-width:880px){
-    .kpi-ring-grid.kpi-ring-compact{padding:12px 6px}
+    .dash-edit-mode .dash-editable-block{outline:2px dashed transparent;outline-offset:3px;border-radius:var(--r2);
+      cursor:pointer;transition:outline-color .15s}
+    .dash-edit-mode .dash-editable-block:hover{outline-color:rgba(167,139,250,.55)}
+    .dash-edit-mode .dash-editable-block.dash-block-active{outline-style:solid;outline-color:var(--accent)}
+    /* Компактный вариант блока с тремя кольцами: одна узкая полоска,
+       кольца поменьше и в ряд, подпись коротко снизу вместо развёрнутой
+       правой колонки со статистикой. Работает только на мобильных —
+       на десктопе класс kpi-ring-compact ни на что не влияет. */
+    .kpi-ring-grid.kpi-ring-compact{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;
+      background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 6px;margin-bottom:16px}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-card{display:flex;flex-direction:column;align-items:center;
+      text-align:center;gap:6px;padding:0;border:none;background:transparent;flex:1;cursor:pointer}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-card:hover{border:none}
+    .kpi-ring-grid.kpi-ring-compact .goal-card-left{flex-direction:column;padding-right:0;gap:6px}
     .kpi-ring-grid.kpi-ring-compact .kpi-ring{width:44px;height:44px}
-    .kpi-ring-grid.kpi-ring-compact .kpi-ring-title{font-size:9.5px}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-val{font-size:12px}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-info{text-align:center}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-title{font-size:9.5px;margin-bottom:0;white-space:nowrap}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-sub{display:none}
+    .kpi-ring-grid.kpi-ring-compact .kpi-ring-extra{display:none}
   }
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
@@ -2171,9 +2167,6 @@
             <div class="section-head"><div class="section-title">🎂 Дни рождения</div></div>
             <div id="bdayList"></div>
           </div>
-        </div>
-        <div class="dash-customize-row">
-          <button class="dash-customize-btn" id="dashCustomizeBtn" onclick="toggleDashboardEditMode(event)">⚙ Настройка</button>
         </div>
         </div>
       </div>
@@ -4099,8 +4092,10 @@ function setRing(el, pct, colorVar, glowVar){
 }
 
 /* ==========================================================================
-   НАСТРОЙКА БЛОКОВ ДАШБОРДА
-   Кнопка "⚙ Настройка" под дашбордом включает режим редактирования:
+   НАСТРОЙКА БЛОКОВ ДАШБОРДА — только мобильная версия
+   Включается СТАНДАРТНОЙ кнопкой "Настройки" нижнего меню (той же самой,
+   что запускает перестановку карточек в "Аналитике" и на вкладке
+   "Профиль") — см. trySectionSettingsAction(). В режиме редактирования
    каждый из редактируемых блоков (4 верхних прямоугольника, блок с тремя
    кольцами, "Сегодня", "Уведомления", "Дни рождения") обводится при
    наведении/клике фиолетовой рамкой. Клик по блоку с кольцами открывает
@@ -4110,23 +4105,34 @@ function setRing(el, pct, colorVar, glowVar){
    счёт освободившейся высоты. Настройка сохраняется в DB.settings и
    переживает перезагрузку. Вне режима редактирования клик по кольцу в
    компактном виде показывает всплывающую подсказку с расшифровкой
-   показателя. ========================================================== */
+   показателя. Вся визуальная часть (рамки, компактный вид) закрыта в
+   CSS медиа-запросом max-width:880px — на компьютерной версии эта
+   настройка не действует, даже если сохранена. ========================== */
 let dashEditMode = false;
+let dashCompactBeforeEdit = false;
 
-function toggleDashboardEditMode(e){
-  if(e) e.stopPropagation();
-  dashEditMode = !dashEditMode;
+function enterDashboardEditMode(){
+  dashEditMode = true;
+  dashCompactBeforeEdit = !!(DB.settings && DB.settings.dashRingsCompact);
   const area = document.getElementById('dashScrollArea');
-  const btn = document.getElementById('dashCustomizeBtn');
-  if(area) area.classList.toggle('dash-edit-mode', dashEditMode);
-  if(btn){
-    btn.classList.toggle('active', dashEditMode);
-    btn.textContent = dashEditMode ? '✓ Готово' : '⚙ Настройка';
-  }
+  if(area) area.classList.add('dash-edit-mode');
+}
+function exitDashboardEditMode(){
+  dashEditMode = false;
+  const area = document.getElementById('dashScrollArea');
+  if(area) area.classList.remove('dash-edit-mode');
+  document.querySelectorAll('.dash-editable-block.dash-block-active').forEach(b=>b.classList.remove('dash-block-active'));
   closeDashBlockPopover();
-  if(!dashEditMode){
-    document.querySelectorAll('.dash-editable-block.dash-block-active').forEach(b=>b.classList.remove('dash-block-active'));
-  }
+}
+function saveDashboardEditMode(){
+  saveDB();
+  exitDashboardEditMode();
+}
+function cancelDashboardEditMode(){
+  DB.settings = DB.settings || {};
+  DB.settings.dashRingsCompact = dashCompactBeforeEdit;
+  applyDashRingsCompact();
+  exitDashboardEditMode();
 }
 
 /* Клик по любому редактируемому блоку в режиме настройки. Пока
@@ -4182,7 +4188,6 @@ function setDashRingsCompact(val){
   DB.settings = DB.settings || {};
   DB.settings.dashRingsCompact = !!val;
   applyDashRingsCompact();
-  saveDB();
   // Попап переоткрываем с уже актуальным состоянием переключателя
   const anchor = document.getElementById('dashRingsBlock');
   if(anchor) openDashRingsPopover(anchor);
@@ -4659,6 +4664,12 @@ function showPage(name){
   // updateProfileReorderBtnVisibility выше).
   if(currentPageName === 'analytics' && name !== 'analytics' && typeof analyticsReorderIsOn === 'function' && analyticsReorderIsOn()){
     cancelAnalyticsReorderMode();
+    if(typeof hideSettingsEditBar === 'function') hideSettingsEditBar();
+  }
+  // То же самое для режима настройки блоков дашборда (компактный вид
+  // показателей) — уходя со страницы, откатываем несохранённое.
+  if(currentPageName === 'dashboard' && name !== 'dashboard' && typeof dashEditMode !== 'undefined' && dashEditMode){
+    cancelDashboardEditMode();
     if(typeof hideSettingsEditBar === 'function') hideSettingsEditBar();
   }
   currentPageName = name;
@@ -5872,6 +5883,17 @@ function trySectionSettingsAction(){
     updateSectionSettingsIndicator();
     return true;
   }
+  if(currentPageName === 'dashboard'){
+    if(dashEditMode) return true; // режим уже включён — шторка сверху уже открыта
+    enterDashboardEditMode();
+    showSettingsEditBar(
+      'Настройка блоков дашборда — нажмите на блок с показателями, чтобы включить компактный вид',
+      function(){ saveDashboardEditMode(); updateSectionSettingsIndicator(); },
+      function(){ cancelDashboardEditMode(); updateSectionSettingsIndicator(); }
+    );
+    updateSectionSettingsIndicator();
+    return true;
+  }
   // Для остальных разделов настройка ещё не реализована — bnItemClick
   // в этом случае просто покажет подсказку "скоро появится" и никуда
   // не перейдёт (страница общих настроек теперь открывается только
@@ -5888,7 +5910,8 @@ function updateSectionSettingsIndicator(){
   if(!item) return;
   const onAnalytics = currentPageName === 'analytics' && typeof analyticsReorderIsOn==='function' && analyticsReorderIsOn();
   const onProfileTab = currentPageName === 'student-detail' && currentDetailTab === 'profile' && profileReorderMode;
-  item.classList.toggle('settings-editing', onAnalytics || onProfileTab);
+  const onDashboard = currentPageName === 'dashboard' && dashEditMode;
+  item.classList.toggle('settings-editing', onAnalytics || onProfileTab || onDashboard);
 }
 
 /* ============================================================
