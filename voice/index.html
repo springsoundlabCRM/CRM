@@ -31,8 +31,8 @@
     --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--card:#1a1a24;--card2:#22222e;
     --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#ffffff;--text3:#ffffff;
     --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.15);
-    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-glow:rgba(52,211,153,0.4);
-    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-glow:rgba(251,191,36,0.4);
+    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-bg2:rgba(52,211,153,0.24);--green-glow:rgba(52,211,153,0.4);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-bg2:rgba(251,191,36,0.24);--amber-glow:rgba(251,191,36,0.4);
     --red:#f87171;--red-bg:rgba(248,113,113,0.12);--red-glow:rgba(248,113,113,0.4);
     --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);
     --orange:#fb923c;--orange-bg:rgba(251,146,60,0.14);
@@ -45,8 +45,8 @@
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
     --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
     --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
-    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-glow:rgba(5,150,105,0.35);
-    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-glow:rgba(217,119,6,0.35);
+    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-bg2:rgba(5,150,105,0.2);--green-glow:rgba(5,150,105,0.35);
+    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-bg2:rgba(217,119,6,0.2);--amber-glow:rgba(217,119,6,0.35);
     --red:#dc2626;--red-bg:rgba(220,38,38,0.1);--red-glow:rgba(220,38,38,0.35);
     --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
     --orange:#ea580c;--orange-bg:rgba(234,88,12,0.1);
@@ -675,9 +675,9 @@
      карточки лёгкий цветной оттенок (те же полупрозрачные --amber-bg/
      --green-bg, что и у бейджей "разучиваем"/"готово" в остальной CRM).
      "На паузе" — это и есть исходный серый фон, отдельный класс не нужен. */
-  .song-item.song-status-progress{background:var(--amber-bg)}
+  .song-item.song-status-progress{background:var(--amber-bg2)}
   .song-item.song-status-progress:hover{background:var(--amber-glow)}
-  .song-item.song-status-done{background:var(--green-bg)}
+  .song-item.song-status-done{background:var(--green-bg2)}
   .song-item.song-status-done:hover{background:var(--green-glow)}
   /* Выпадающий список статуса песни — раньше был обычным <select>,
      стилизованным отдельно от всей остальной CRM. Теперь это тот же
@@ -686,7 +686,18 @@
      фиолетовое выделение пункта при наведении вместо системного, тот же
      фон и рамка. Ширина — по содержимому, а не на всю строку, чтобы
      аккуратно помещаться рядом с корзиной. */
-  .song-status-trigger.dd-trigger-btn{width:auto;padding:8px 10px;font-size:12.5px;font-weight:500;gap:6px;flex-shrink:0}
+  .song-status-trigger.dd-trigger-btn{width:140px;flex-shrink:0;padding:8px 10px;font-size:12.5px;font-weight:500;gap:6px;justify-content:space-between}
+  .song-status-trigger .dd-trigger-name{overflow:visible;text-overflow:clip;white-space:nowrap}
+  /* Подсветка самой кнопки статуса тем же (чуть более ярким) тоном, что и
+     карточка песни — чтобы цвет статуса читался и на самой кнопке, а не
+     только на фоне всей строки. "На паузе" — обычный нейтральный вид
+     кнопки (как и было), отдельного класса не нужно. */
+  .song-status-trigger.song-status-trigger-progress{background:var(--amber-bg2);border-color:rgba(251,191,36,.4);color:var(--amber)}
+  .song-status-trigger.song-status-trigger-progress:hover{border-color:var(--amber)}
+  .song-status-trigger.song-status-trigger-progress .dd-caret{color:var(--amber)}
+  .song-status-trigger.song-status-trigger-done{background:var(--green-bg2);border-color:rgba(52,211,153,.4);color:var(--green)}
+  .song-status-trigger.song-status-trigger-done:hover{border-color:var(--green)}
+  .song-status-trigger.song-status-trigger-done .dd-caret{color:var(--green)}
   /* Корзина в "Репертуаре" была слишком мелкой на фоне выросшей карточки —
      увеличиваем до того же размера, что и у корзины в карточках заданий
      (см. .hw-card-footer .btn-delete-icon). */
@@ -6317,8 +6328,13 @@ function selectRepStatusOption(repId, value){
 function repStatusTriggerHTML(r){
   const found = REP_STATUS_OPTIONS.find(function(o){ return o[0]===r.status; });
   const label = found ? found[1] : 'Разучиваем';
+  // Кнопка статуса подсвечивается тем же цветом, что и вся карточка песни
+  // (repStatusClass), плюс всегда одинаковой ширины (см. CSS
+  // .song-status-trigger.dd-trigger-btn) — независимо от длины текста
+  // "Готово"/"Разучиваем"/"На паузе".
+  const colorCls = r.status==='готово' ? ' song-status-trigger-done' : r.status==='разучиваем' ? ' song-status-trigger-progress' : '';
   return '<div class="autocomplete-wrap">'
-    +'<button type="button" class="dd-trigger-btn song-status-trigger" onclick="event.stopPropagation();openRepStatusPicker(\''+r.id+'\',this)">'
+    +'<button type="button" class="dd-trigger-btn song-status-trigger'+colorCls+'" onclick="event.stopPropagation();openRepStatusPicker(\''+r.id+'\',this)">'
       +'<span class="dd-trigger-name">'+escapeHTML(label)+'</span>'
       +'<span class="dd-caret">▾</span>'
     +'</button>'
