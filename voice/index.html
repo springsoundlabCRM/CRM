@@ -2798,7 +2798,14 @@ function seedDB(){
 let currentStudentId = null;
 // Какая страница сейчас открыта — нужно, чтобы при обновлении страницы (F5)
 // вернуть человека туда же, где он был, а не всегда на дашборд.
-let currentPageName = 'dashboard';
+// ВАЖНО: раньше здесь стояло значение 'dashboard' по умолчанию. Из-за этого
+// глобальные обработчики visibilitychange/focus/pageshow/resize (см. ниже),
+// которые проверяют currentPageName==='dashboard' и дёргают DB.lessons,
+// могли сработать ЕЩЁ ДО входа в аккаунт и загрузки данных (DB тогда ещё
+// null) — именно это и вызывало "Cannot read properties of null (reading
+// 'lessons')". showPage('dashboard') в initApp() выставит нужное значение
+// сама, как только приложение реально готово.
+let currentPageName = null;
 let studentFilter = 'all';
 let financeFilter = 'all';
 let financeMonthOffset = 0; // 0 = текущий месяц, -1 = предыдущий, +1 = следующий и т.д.
@@ -2819,15 +2826,20 @@ function getCurrentTeacher(){ return DB.teachers.find(t=>t.id===DB.currentTeache
 // планировании урока/платежа. Поэтому "ученики преподавателя" по умолчанию
 // исключает их. Единственное место, где их всё-таки нужно видеть — вкладка
 // "Неактивные" на странице "Ученики" — там используется allStudentsOfTeacher().
-function studentsOfTeacher(){ return DB.students.filter(s=>s.teacherId===DB.currentTeacherId && s.status!=='inactive'); }
-function allStudentsOfTeacher(){ return DB.students.filter(s=>s.teacherId===DB.currentTeacherId); }
-function studentById(id){ return DB.students.find(s=>s.id===id); }
-function lessonsOfTeacher(){ return DB.lessons.filter(l=>l.teacherId===DB.currentTeacherId); }
-function lessonsOfStudent(id){ return DB.lessons.filter(l=>l.studentId===id).sort((a,b)=> a.date<b.date?1:-1); }
-function activeSubscriptionOf(studentId){ return DB.subscriptions.find(su=>su.studentId===studentId && su.active && su.usedLessons<su.totalLessons) || null; }
-function subHistoryOf(studentId){ return DB.subHistory.filter(h=>h.studentId===studentId).sort((a,b)=> a.date<b.date?1:-1); }
-function homeworkOfStudent(id){ return DB.homework.filter(h=>h.studentId===id); }
-function repertoireOfStudent(id){ return DB.repertoire.filter(r=>r.studentId===id); }
+// Во всех геттерах ниже добавлена защита "if(!DB) return ..." — на случай,
+// если какой-то обработчик (таймер, событие resize/focus/visibilitychange
+// и т.п.) сработает ДО того, как приложение реально вошло в аккаунт и
+// loadDB() успел заполнить DB. Раньше это приводило к падению вида
+// "Cannot read properties of null (reading 'lessons')" и аналогичным.
+function studentsOfTeacher(){ if(!DB) return []; return DB.students.filter(s=>s.teacherId===DB.currentTeacherId && s.status!=='inactive'); }
+function allStudentsOfTeacher(){ if(!DB) return []; return DB.students.filter(s=>s.teacherId===DB.currentTeacherId); }
+function studentById(id){ if(!DB) return null; return DB.students.find(s=>s.id===id); }
+function lessonsOfTeacher(){ if(!DB) return []; return DB.lessons.filter(l=>l.teacherId===DB.currentTeacherId); }
+function lessonsOfStudent(id){ if(!DB) return []; return DB.lessons.filter(l=>l.studentId===id).sort((a,b)=> a.date<b.date?1:-1); }
+function activeSubscriptionOf(studentId){ if(!DB) return null; return DB.subscriptions.find(su=>su.studentId===studentId && su.active && su.usedLessons<su.totalLessons) || null; }
+function subHistoryOf(studentId){ if(!DB) return []; return DB.subHistory.filter(h=>h.studentId===studentId).sort((a,b)=> a.date<b.date?1:-1); }
+function homeworkOfStudent(id){ if(!DB) return []; return DB.homework.filter(h=>h.studentId===id); }
+function repertoireOfStudent(id){ if(!DB) return []; return DB.repertoire.filter(r=>r.studentId===id); }
 function paymentsOfStudent(id){ return DB.payments.filter(p=>p.studentId===id).sort((a,b)=> a.date<b.date?1:-1); }
 
 function lessonDebt(l){
@@ -3866,6 +3878,9 @@ function updateUpcomingLessonCard(){
   const dUpcomingTime = document.getElementById('dUpcomingLessonTime');
   const dUpcomingSub = document.getElementById('dUpcomingLessonSub');
   if(!dUpcomingTime || !dUpcomingSub) return;
+  // Защита от вызова до входа в аккаунт/загрузки данных (DB ещё null) —
+  // см. комментарий у currentPageName выше.
+  if(!DB) return;
   const now = new Date();
   const today = todayISO();
   const nowTimeStr = pad2(now.getHours())+':'+pad2(now.getMinutes());
@@ -4076,6 +4091,7 @@ function renderDashboardPulse(myStudents, active, now){
    обновились "с нуля" для нового месяца. Вызывается по таймеру и при
    возврате приложения на передний план (см. ниже). */
 function checkDashboardMonthRollover(){
+  if(!DB) return;
   const dashPage = document.getElementById('page-dashboard');
   if(!dashPage || dashPage.classList.contains('hidden')) return;
   const now = new Date();
