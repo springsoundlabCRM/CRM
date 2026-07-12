@@ -547,7 +547,16 @@
      статуса. Убрано по просьбе — выбранного статуса достаточно видно по
      подсветке самой кнопки-пилюли (.hw-status-pill.active), обводка
      вокруг всей карточки больше не нужна: карточка остаётся с обычной
-     нейтральной рамкой (var(--border)) независимо от статуса. */
+     нейтральной рамкой (var(--border)) независимо от статуса.
+     Вместо рамки — едва заметный (~8%) оттенок цвета статуса в самом
+     фоне карточки (color-mix с исходным var(--card), поэтому это именно
+     лёгкий оттенок, а не полупрозрачная плашка поверх). Поля ввода
+     "Задание"/комментарий не подсвечиваются — у них свой собственный
+     непрозрачный фон (var(--bg3), см. .hw-card-title/.hw-card-sub ниже),
+     который перекрывает фон карточки под ними. */
+  .hw-card.hw-card-status-todo{background:var(--red-bg);background:color-mix(in srgb, var(--red) 8%, var(--card))}
+  .hw-card.hw-card-status-progress{background:var(--amber-bg);background:color-mix(in srgb, var(--amber) 8%, var(--card))}
+  .hw-card.hw-card-status-done{background:var(--green-bg);background:color-mix(in srgb, var(--green) 8%, var(--card))}
   .hw-card-student{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-shrink:0}
   .hw-card-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:#fff;flex-shrink:0}
   .hw-card-name{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -6373,7 +6382,6 @@ function renderDetailHomework(){
     '<div class="hw-card hw-card-status-'+h.status+'">'
       +'<div class="hw-card-student"><div class="hw-card-avatar" style="background:'+s.color+'">'+s.initials+'</div><div class="hw-card-name">'+escapeHTML(s.name)+'</div></div>'
       +'<div class="hw-card-body">'
-        +'<div class="hw-card-label">📝 Задание <span class="hw-card-label-hint">✎ нажмите, чтобы изменить</span></div>'
         +'<div class="hw-card-title" contenteditable="true" spellcheck="false" title="Нажмите, чтобы отредактировать" oninput="keepCaretInView(this)" onblur="updateHomeworkField(\''+h.id+'\',\'title\',this.innerText)">'+escapeHTML(h.title)+'</div>'
         +'<div class="hw-card-sub" contenteditable="true" spellcheck="false" title="Комментарий (необязательно)" oninput="keepCaretInView(this)" onblur="updateHomeworkField(\''+h.id+'\',\'sub\',this.innerText)">'+escapeHTML(h.sub||'')+'</div>'
       +'</div>'
