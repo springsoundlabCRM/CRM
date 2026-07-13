@@ -494,7 +494,8 @@
      Слева цветная полоса статуса — как в разделе "Финансы"
      (.finance-row.is-paid/.is-debt): красная/жёлтая/зелёная в зависимости
      от текущего статуса задания (см. renderHomework() в JS). */
-  .homework-item{display:flex;align-items:center;gap:10px;padding:16px 14px;background:var(--bg3);border-radius:8px;margin-bottom:10px;min-height:75px;box-sizing:border-box;border-left:3px solid var(--border2)}
+  .homework-item{display:flex;align-items:center;gap:10px;padding:16px 14px;background:var(--bg3);border-radius:8px;margin-bottom:10px;min-height:75px;box-sizing:border-box;border-left:3px solid var(--border2);cursor:pointer;transition:background .15s}
+  .homework-item:hover{background:var(--card2)}
   .homework-item.hw-item-todo{border-left-color:var(--red)}
   .homework-item.hw-item-progress{border-left-color:var(--amber)}
   .homework-item.hw-item-done{border-left-color:var(--green)}
@@ -692,13 +693,17 @@
      часики/...), вместо прежнего выпадающего списка. Для "На паузе" своей
      готовой пилюли у ДЗ нет (там только сдано/в процессе/не сдано) —
      добавлен новый цвет pill-purple с иконкой паузы. */
-  .song-status-pills{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .song-status-pills{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  /* Кнопки статуса песни и корзина рядом с ними были слишком мелкими на
+     фоне выросшей карточки — увеличены (крупнее, чем в футере карточки
+     задания, т.к. тут это единственные кнопки в строке). */
+  .song-status-pills .hw-status-pill{width:38px;height:34px;font-size:16px}
   .hw-status-pill.pill-purple{color:var(--accent)}
   .hw-status-pill.pill-purple.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
   /* Корзина в "Репертуаре" была слишком мелкой на фоне выросшей карточки —
      увеличиваем до того же размера, что и у корзины в карточках заданий
      (см. .hw-card-footer .btn-delete-icon). */
-  .song-delete-icon{width:34px;height:34px;font-size:15px}
+  .song-delete-icon{width:38px;height:38px;font-size:16px}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
   .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
   #modal-content.modal-danger{border-color:var(--red)}
@@ -4497,10 +4502,10 @@ function readNavState(){
   }catch(e){ return null; }
 }
 
-function openStudent(s){
+function openStudent(s, tab){
   if(!s) return;
   currentStudentId = s.id;
-  currentDetailTab = 'profile';
+  currentDetailTab = (tab && DETAIL_TABS.includes(tab)) ? tab : 'profile';
   if(typeof profileReorderMode !== 'undefined') profileReorderMode = false;
   document.getElementById('detail-name').textContent = s.name;
   showPage('student-detail');
@@ -6401,16 +6406,10 @@ function setHomeworkStatus(id, status){
   if(!document.getElementById('page-homework').classList.contains('hidden')) renderHomework();
   renderSidebar();
 }
-// Используется на общей странице "Задания" (канбан-колонки по статусам) —
-// там кнопка просто перемещает карточку в следующую колонку по кругу.
-// В карточке ученика вместо этого теперь цветные пилюли (см. setHomeworkStatus).
-function cycleHomeworkStatus(id){
-  const h = DB.homework.find(x=>x.id===id); if(!h) return;
-  h.status = h.status==='todo' ? 'progress' : h.status==='progress' ? 'done' : 'todo';
-  saveDB(); renderDetailHomework();
-  if(!document.getElementById('page-homework').classList.contains('hidden')) renderHomework();
-  renderSidebar();
-}
+// Кнопка "перемотки" статуса на общей странице "Задания" убрана — статус
+// задания меняется только в карточке ученика (вкладка "Задания", цветные
+// пилюли, см. setHomeworkStatus). Здесь карточка кликабельна целиком и
+// просто открывает нужного ученика сразу на этой вкладке (см. renderHomework()).
 // Удаление задания теперь всегда идёт через стилизованное модальное окно
 // с подтверждением (см. buildDeleteHomeworkModal) — раньше карточка
 // удалялась сразу по клику на корзину, без единого запроса "вы уверены?".
@@ -6812,8 +6811,11 @@ function renderHomework(){
   function row(h){
     const s = studentById(h.studentId);
     const st = groups[h.status] ? h.status : 'todo';
-    return '<div class="homework-item hw-item-'+st+'"><div class="hw-icon">'+(h.icon||'🎵')+'</div><div class="hw-content" style="cursor:pointer" onclick="openStudent(studentById(\''+h.studentId+'\'))"><div class="hw-title">'+escapeHTML(s?s.name:'?')+'</div><div class="hw-sub">'+escapeHTML(h.title)+'</div></div>'
-      +'<button class="btn btn-ghost btn-sm" onclick="cycleHomeworkStatus(\''+h.id+'\')">↻</button></div>';
+    // Управлять статусом задания можно только в карточке ученика (вкладка
+    // "Задания") — здесь, на общей странице, карточка только для обзора и
+    // навигации: клик по ней сразу открывает нужного ученика на вкладке
+    // "Задания", без промежуточной кнопки "перемотки" статуса.
+    return '<div class="homework-item hw-item-'+st+'" onclick="openStudent(studentById(\''+h.studentId+'\'),\'homework-tab\')"><div class="hw-icon">'+(h.icon||'🎵')+'</div><div class="hw-content"><div class="hw-title">'+escapeHTML(s?s.name:'?')+'</div><div class="hw-sub">'+escapeHTML(h.title)+'</div></div></div>';
   }
   document.getElementById('hwTodoList').innerHTML = groups.todo.length ? groups.todo.map(row).join('') : '<div class="empty-state">Пусто</div>';
   document.getElementById('hwProgressList').innerHTML = groups.progress.length ? groups.progress.map(row).join('') : '<div class="empty-state">Пусто</div>';
