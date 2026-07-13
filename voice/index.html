@@ -1071,12 +1071,9 @@
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
     .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
-    /* Финансы: тот же порядок 2-в-ряд, что и на телефоне (см. блок ≤600px
-       ниже) — Оплачено/Доход за год сверху, Доход за месяц/Долги снизу. */
-    #page-finances .stat-grid > div:nth-child(1){order:3} /* Доход (месяц) */
-    #page-finances .stat-grid > div:nth-child(2){order:1} /* Оплачено (месяц) */
-    #page-finances .stat-grid > div:nth-child(3){order:2} /* Доход за год */
-    #page-finances .stat-grid > div:nth-child(4){order:4} /* Долги */
+    /* Финансы: верхняя строка (Оплачено / Цель по доходу / Доход за год) —
+       на планшете складываем в один столбец, порядок как в HTML. */
+    .fin-top-row{grid-template-columns:1fr;gap:10px;margin-bottom:16px}
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
     .detail-panel{grid-template-columns:1fr}
@@ -1134,18 +1131,9 @@
     /* Дашборд: триколонка → одна колонка */
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
 
-    /* Финансы: 4 стат-карточки — было по одной в ряд (друг под другом,
-       с пустым местом справа), теперь по 2 в ряд, как и везде в приложении.
-       Порядок в HTML/JS (id-шники finIncome/finPaid/finYearIncome/finDebt)
-       не трогаем — переставляем визуально через order, чтобы не задеть
-       renderFinances(). Нужный порядок на экране:
-       1) Оплачено (месяц)   2) Доход за год
-       3) Доход (месяц)      4) Долги            */
-    #page-finances .stat-grid{grid-template-columns:repeat(2,1fr)!important}
-    #page-finances .stat-grid > div:nth-child(1){order:3} /* Доход (месяц) */
-    #page-finances .stat-grid > div:nth-child(2){order:1} /* Оплачено (месяц) */
-    #page-finances .stat-grid > div:nth-child(3){order:2} /* Доход за год */
-    #page-finances .stat-grid > div:nth-child(4){order:4} /* Долги */
+    /* Финансы: верхняя строка (Оплачено / Цель по доходу / Доход за год) —
+       на телефоне остаётся в один столбец (унаследовано от блока ≤880px). */
+    .fin-top-row{gap:8px;margin-bottom:16px}
 
     /* Задания: 3 колонки → 1 колонка, с разделителями */
     #page-homework .content > div{grid-template-columns:1fr!important;gap:18px!important}
@@ -1310,6 +1298,11 @@
   .kpi-ring-card.goal-card{cursor:pointer}
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
+
+  /* --- Финансы: верхняя строка из 3 блоков (Оплачено / Цель по доходу / Доход за год) --- */
+  .fin-top-row{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:14px;margin-bottom:24px;align-items:stretch}
+  .fin-top-row .stat-card.fin-top-side{display:flex;flex-direction:column;justify-content:center}
+  .fin-top-row .kpi-ring-card.fin-top-center{margin:0}
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
@@ -2314,14 +2307,12 @@
         <button class="btn btn-primary" onclick="openModal('payment')">Платёж</button>
       </div>
       <div class="content">
-        <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
-          <div class="stat-card purple"><div class="stat-label">Доход (месяц)</div><div class="stat-value" id="finIncome">0₽</div><div class="stat-delta" id="finIncomeDelta" style="color:var(--text3)">—</div></div>
-          <div class="stat-card green"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
-          <div class="stat-card amber"><div class="stat-label">Доход за год</div><div class="stat-value" id="finYearIncome">0₽</div><div class="stat-delta" id="finYearIncomeSub" style="color:var(--text3)">—</div></div>
-          <div class="stat-card blue"><div class="stat-label">Долги</div><div class="stat-value" id="finDebt" style="color:var(--red)">0₽</div><div class="stat-delta delta-down" id="finDebtCount">—</div></div>
-        </div>
-        <div class="kpi-ring-grid">
-          <div class="kpi-ring-card goal-card" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
+        <!-- Верхняя строка "Финансов": слева "Оплачено (месяц)", по центру кольцо
+             "Цель по доходу", справа "Доход за год". Карточки "Доход (месяц)" и
+             "Долги" убраны по просьбе — раньше были в общем .stat-grid из 4 карточек. -->
+        <div class="fin-top-row">
+          <div class="stat-card green fin-top-side"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
+          <div class="kpi-ring-card goal-card fin-top-center" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringPayments"><span class="kpi-ring-val" id="ringPaymentsVal">—</span></div>
               <div class="kpi-ring-info">
@@ -2331,6 +2322,7 @@
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
+          <div class="stat-card amber fin-top-side"><div class="stat-label">Доход за год</div><div class="stat-value" id="finYearIncome">0₽</div><div class="stat-delta" id="finYearIncomeSub" style="color:var(--text3)">—</div></div>
         </div>
         <div class="section-head"><div class="section-title">Статус оплат</div></div>
         <div class="tab-row" id="financeFilterTabs">
@@ -6700,17 +6692,10 @@ function renderFinances(){
 
   // "Доход (месяц)": всегда за текущий реальный календарный месяц (не зависит
   // от просматриваемого периода financeMonthOffset) — перенесено с дашборда.
+  // Карточка "Доход (месяц)" убрана из верхней строки Финансов, но realPaid
+  // всё равно нужен ниже — от него считается кольцо "Цель по доходу".
   const realNow = new Date();
   const {paid:realPaid} = monthIncome(realNow.getFullYear(), realNow.getMonth());
-  document.getElementById('finIncome').textContent = money(realPaid);
-  const realPrevD = new Date(realNow.getFullYear(), realNow.getMonth()-1, 1);
-  const {paid:realPrevPaid} = monthIncome(realPrevD.getFullYear(), realPrevD.getMonth());
-  const finIncomeDelta = document.getElementById('finIncomeDelta');
-  if(realPrevPaid>0){
-    const pct = Math.round((realPaid-realPrevPaid)/realPrevPaid*100);
-    finIncomeDelta.textContent = (pct>=0?'↑ ':'↓ ')+Math.abs(pct)+'% к прошлому месяцу';
-    finIncomeDelta.className='stat-delta '+(pct>=0?'delta-up':'delta-down');
-  } else { finIncomeDelta.textContent='—'; finIncomeDelta.className='stat-delta'; }
 
   // Кольцо "Цель по доходу" — перенесено с дашборда, тоже считается за текущий реальный месяц.
   const teacher = getCurrentTeacher();
@@ -6744,11 +6729,6 @@ function renderFinances(){
   const yearIncome = yearIncomeSeries(realNow.getFullYear()).reduce((a,m)=>a+m.paid,0);
   document.getElementById('finYearIncome').textContent = money(yearIncome);
   document.getElementById('finYearIncomeSub').textContent = realNow.getFullYear()+' год';
-
-  let totalDebt=0; const debtStudents=new Set();
-  myStudentIds.forEach(id=>{ const d=studentDebt(id); if(d>0){ totalDebt+=d; debtStudents.add(id); } });
-  document.getElementById('finDebt').textContent = money(totalDebt);
-  document.getElementById('finDebtCount').textContent = debtStudents.size+' учеников';
 
   const host = document.getElementById('finance-list');
 
