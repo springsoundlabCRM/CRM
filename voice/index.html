@@ -1071,9 +1071,13 @@
     .topbar-title{font-size:14px}
     .topbar-subtitle{display:none}
     .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
-    /* Финансы: верхняя строка (Оплачено / Цель по доходу / Доход за год) —
-       на планшете складываем в один столбец, порядок как в HTML. */
-    .fin-top-row{grid-template-columns:1fr;gap:10px;margin-bottom:16px}
+    /* Финансы: верхняя строка на планшете/телефоне — как было раньше:
+       "Оплачено (месяц)" и "Доход за год" по 2 в ряд сверху, а кольцо
+       "Цель по доходу" отдельным рядом на всю ширину снизу. */
+    .fin-top-row{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .fin-top-row .fin-top-paid{order:1}
+    .fin-top-row .fin-top-year{order:2}
+    .fin-top-row .fin-top-center{order:3;grid-column:1/-1}
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
     .detail-panel{grid-template-columns:1fr}
@@ -1131,8 +1135,9 @@
     /* Дашборд: триколонка → одна колонка */
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
 
-    /* Финансы: верхняя строка (Оплачено / Цель по доходу / Доход за год) —
-       на телефоне остаётся в один столбец (унаследовано от блока ≤880px). */
+    /* Финансы: та же раскладка "2 карточки сверху + кольцо цели снизу",
+       что и на планшете (унаследовано из блока ≤880px) — здесь только
+       компактнее отступы под маленький экран. */
     .fin-top-row{gap:8px;margin-bottom:16px}
 
     /* Задания: 3 колонки → 1 колонка, с разделителями */
@@ -2311,7 +2316,7 @@
              "Цель по доходу", справа "Доход за год". Карточки "Доход (месяц)" и
              "Долги" убраны по просьбе — раньше были в общем .stat-grid из 4 карточек. -->
         <div class="fin-top-row">
-          <div class="stat-card green fin-top-side"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
+          <div class="stat-card green fin-top-side fin-top-paid"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
           <div class="kpi-ring-card goal-card fin-top-center" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringPayments"><span class="kpi-ring-val" id="ringPaymentsVal">—</span></div>
@@ -2322,7 +2327,7 @@
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
-          <div class="stat-card amber fin-top-side"><div class="stat-label">Доход за год</div><div class="stat-value" id="finYearIncome">0₽</div><div class="stat-delta" id="finYearIncomeSub" style="color:var(--text3)">—</div></div>
+          <div class="stat-card amber fin-top-side fin-top-year"><div class="stat-label">Доход за год</div><div class="stat-value" id="finYearIncome">0₽</div><div class="stat-delta" id="finYearIncomeSub" style="color:var(--text3)">—</div></div>
         </div>
         <div class="section-head"><div class="section-title">Статус оплат</div></div>
         <div class="tab-row" id="financeFilterTabs">
