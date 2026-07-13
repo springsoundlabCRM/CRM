@@ -4825,7 +4825,7 @@ function renderDetailProfile(){
   if(sub){
     const left = sub.totalLessons - sub.usedLessons;
     const pct = Math.round(sub.usedLessons/sub.totalLessons*100);
-    subBlock = '<div class="detail-card sub-active-card" data-card-key="sub"><div class="detail-title sub-title"><span class="detail-title-label">💳 Абонемент</span><span class="sub-bought-val">Куплен: '+formatRu(sub.purchaseDate)+'</span></div>'
+    subBlock = '<div class="detail-card sub-active-card" data-card-key="sub"><div class="detail-title sub-title"><span class="detail-title-label">💳 Абонемент</span><span class="sub-bought-val">'+formatRu(sub.purchaseDate)+'</span></div>'
       +'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">'
       +'<div>'
       +'<div class="sub-usedtotal" style="font-weight:600">'+sub.usedLessons+' / '+sub.totalLessons+' уроков</div>'
