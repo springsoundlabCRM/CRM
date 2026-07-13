@@ -1694,6 +1694,18 @@
   .note-btn:hover{border-color:var(--accent);color:var(--text);background:var(--bg3)}
   .note-btn.sharp{color:var(--text3);font-size:11px}
   .note-btn.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+  /* --- Дополнительные маркеры уже выбранных нот из ДРУГИХ полей/режимов,
+     чтобы при выборе, например, верхней ноты было видно, где уже стоит
+     нижняя (и наоборот), а также ноты другого режима (Текущий/Желаемый) —
+     см. openNotePicker(). Приоритет классов при совпадении на одной
+     кнопке: .selected > .selected-pair > .selected-ref. --- */
+  .note-btn.selected-pair{background:var(--green-bg);border-color:var(--green);color:var(--text);box-shadow:inset 0 0 0 1px var(--green)}
+  .note-btn.selected-ref{background:var(--blue-bg);border-color:var(--blue);color:var(--text);box-shadow:inset 0 0 0 1px var(--blue)}
+  .note-pop-legend{display:flex;flex-wrap:wrap;gap:10px;margin:-4px 0 10px;flex-shrink:0}
+  .note-pop-legend-item{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text3);font-weight:600}
+  .note-pop-legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+  .note-pop-legend-dot.pair{background:var(--green-bg);border:1px solid var(--green)}
+  .note-pop-legend-dot.ref{background:var(--blue-bg);border:1px solid var(--blue)}
   @media (max-width:640px){
     .note-btn-grid{grid-template-columns:repeat(4,1fr);gap:5px}
     .note-btn{padding:8px 3px;font-size:12px}
@@ -4971,7 +4983,7 @@ function renderDetailProfile(){
       +'<button type="button" class="voice-tool-btn mode-current'+(mode==='current'?' active':'')+'" onclick="setVoiceRangeMode(\''+s.id+'\',\'current\')">Текущий</button>'
       +'<button type="button" class="voice-tool-btn mode-desired'+(mode==='desired'?' active':'')+'" onclick="setVoiceRangeMode(\''+s.id+'\',\'desired\')">Желаемый</button>'
       +'<button type="button" class="voice-tool-btn voice-save-btn" onclick="saveVoiceRange(\''+s.id+'\')">Сохранить</button>'
-      +'<button type="button" class="voice-tool-btn voice-reset-btn" onclick="resetVoiceRangeProgress(\''+s.id+'\')" title="Сбросить прогресс диапазона (оба кольца)">Сброс</button>'
+      +'<button type="button" class="voice-tool-btn voice-reset-btn" onclick="openModal(\'voiceReset\',{studentId:\''+s.id+'\'})" title="Полностью сбросить карточку «Голос»">Сброс</button>'
     +'</div>'
   +'</div>';
 
@@ -6219,20 +6231,54 @@ function openNotePicker(studentId, field, btnEl){
 
   const lang = s.voiceLang;
   const mode = s.voiceRangeEditMode;
-  const current = mode==='desired'
-    ? (field==='from' ? s.desiredFromNote : s.desiredToNote)
-    : (field==='from' ? s.rangeFromNote : s.rangeToNote);
+
+  // Ноты того же режима (Текущий или Желаемый) — "От" и "До".
+  const modeFromNote = mode==='desired' ? s.desiredFromNote : s.rangeFromNote;
+  const modeToNote   = mode==='desired' ? s.desiredToNote   : s.rangeToNote;
+  // Ноты противоположного режима — показываем как справочные метки,
+  // чтобы при выборе "Желаемого" было видно, где сейчас "Текущий" (и наоборот).
+  const otherFromNote = mode==='desired' ? s.rangeFromNote : s.desiredFromNote;
+  const otherToNote   = mode==='desired' ? s.rangeToNote   : s.desiredToNote;
+
+  // "Своя" нота этого конкретного поля (то, что уже выбрано именно тут).
+  const selfNote = field==='from' ? modeFromNote : modeToNote;
+  // "Парная" нота — второй конец того же диапазона (напр. открываем "До",
+  // а "От" уже выбрано — подсвечиваем его отдельным цветом-маркером).
+  const pairNote = field==='from' ? modeToNote : modeFromNote;
+  const pairLabel = mode==='desired'
+    ? (field==='from' ? 'До желаемого' : 'От желаемого')
+    : (field==='from' ? 'До текущего' : 'От текущего');
+  const refLabel = mode==='desired' ? 'Текущий диапазон' : 'Желаемый диапазон';
+  const hasPair = !!pairNote;
+  const hasRef = !!(otherFromNote || otherToNote);
+
+  const sameNote = function(a,b){ return a && b && a.o===b.o && a.i===b.i; };
 
   const octBlocks = VOICE_OCTAVES.map(oct=>{
     const octLabel = lang==='en' ? ('Октава '+oct.enSci) : (oct.ruLabel+' октава');
     const notes = (lang==='en'?NOTES_EN:NOTES_RU).map((name,i)=>{
-      const isSelected = current && current.o===oct.o && current.i===i;
+      const note = {o:oct.o,i:i};
+      const isSelected = sameNote(selfNote, note);
+      const isPair = !isSelected && sameNote(pairNote, note);
+      const isRef = !isSelected && !isPair && (sameNote(otherFromNote, note) || sameNote(otherToNote, note));
       const isSharp = name.indexOf('#')>=0;
-      return '<button type="button" class="note-btn'+(isSharp?' sharp':'')+(isSelected?' selected':'')+'" '
+      let cls = 'note-btn';
+      let title = '';
+      if(isSharp) cls += ' sharp';
+      if(isSelected){ cls += ' selected'; }
+      else if(isPair){ cls += ' selected-pair'; title = pairLabel; }
+      else if(isRef){ cls += ' selected-ref'; title = refLabel; }
+      return '<button type="button" class="'+cls+'" '
+        +(title?'title="'+escapeHTML(title)+'" ':'')
         +'onclick="event.stopPropagation();selectNote(\''+s.id+'\',\''+field+'\','+oct.o+','+i+')">'+escapeHTML(name)+'</button>';
     }).join('');
     return '<div class="note-oct-block"><div class="note-oct-label">'+octLabel+'</div><div class="note-btn-grid">'+notes+'</div></div>';
   }).join('');
+
+  const legend = (hasPair || hasRef) ? ('<div class="note-pop-legend">'
+      + (hasPair ? '<span class="note-pop-legend-item"><span class="note-pop-legend-dot pair"></span>'+escapeHTML(pairLabel)+'</span>' : '')
+      + (hasRef ? '<span class="note-pop-legend-item"><span class="note-pop-legend-dot ref"></span>'+escapeHTML(refLabel)+'</span>' : '')
+    +'</div>') : '';
 
   const pop = document.createElement('div');
   pop.className = 'note-popover';
@@ -6241,6 +6287,7 @@ function openNotePicker(studentId, field, btnEl){
       +'<span class="note-pop-title">'+(lang==='en'?'Выбор ноты (английская нотация)':'Выбор ноты (русская нотация)')+'</span>'
       +'<button type="button" class="note-pop-close" onclick="event.stopPropagation();closeNotePicker()" aria-label="Закрыть" title="Закрыть">✕</button>'
     +'</div>'
+    + legend
     +'<div class="note-pop-body">'+octBlocks+'</div>';
   // Крепим панель не к маленькой обёртке поля "От"/"До", а ко всей
   // карточке "Голос" целиком (.detail-card.card-voice) — тогда она,
@@ -6312,22 +6359,60 @@ function saveVoiceRange(studentId){
   renderDetailProfile();
 }
 
-/* --- Сброс карточки "Прогресс диапазона". Обнуляет ТОЛЬКО то, что
-   участвует в расчёте двух колец (стартовую базовую ширину и
-   зафиксированные "Текущий"/"Желаемый" диапазоны) — оба кольца
-   вернутся к состоянию "нет данных". Поля "От"/"До" в самой карточке
-   "Голос" (ещё не сохранённый выбор нот) не трогаем, чтобы можно было
-   сразу выбрать диапазон заново и сохранить его. --- */
-function resetVoiceRangeProgress(studentId){
+/* --- Стилизованное pop-up окно подтверждения полного сброса карточки
+   "Голос" (кнопка "Сброс"). Открывается через общий диспетчер модальных
+   окон (openModal('voiceReset',...)) вместо нативного confirm(). --- */
+function buildResetVoiceModal(ctx){
+  ctx = ctx||{};
+  const s = studentById(ctx.studentId);
+  if(!s) return '<div class="modal-title">Ученик не найден <button class="modal-close" onclick="closeModal()">×</button></div>';
+  return '<div class="modal-title"><span>🔄 Сбросить карточку «Голос»?</span><button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:14px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+escapeHTML(s.name)+'</div>'
+      +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">Будет очищена вся карточка «Голос» целиком</div>'
+    +'</div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:14px">Сбросятся до значения «не указано/нет данных»:'
+      +'<ul style="margin:6px 0 0;padding-left:18px">'
+        +'<li>Тип голоса и статус</li>'
+        +'<li>Диапазон «От» / «До» — текущий и желаемый</li>'
+        +'<li>Оба кольца прогресса («Текущий» и «Желаемый»)</li>'
+        +'<li>Режим редактирования вернётся на «Текущий»</li>'
+      +'</ul>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:16px">Это действие нельзя отменить.</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="confirmResetVoiceCard(\''+s.id+'\')">🔄 Сбросить всё</button>'
+    +'</div>';
+}
+
+/* --- Полный сброс карточки "Голос" до дефолта. В отличие от старого
+   поведения (сбрасывались только два кольца прогресса), теперь
+   очищается вся карточка целиком: тип голоса, статус, выбранные
+   (ещё не сохранённые) ноты "От"/"До" в обоих режимах, зафиксированные
+   диапазоны, база для расчёта прогресса и сам режим редактирования. --- */
+function confirmResetVoiceCard(studentId){
   const s = studentById(studentId); if(!s) return;
-  if(!confirm('Сбросить прогресс диапазона? Оба кольца — "Текущий" и "Желаемый" — вернутся к 0% ("нет данных"). Это действие нельзя отменить.')) return;
+  s.voiceType = '';
+  s.status = '';
+  s.rangeFromNote = null;
+  s.rangeToNote = null;
+  s.rangeFrom = null;
+  s.rangeTo = null;
+  s.desiredFromNote = null;
+  s.desiredToNote = null;
   s.voiceRangeBaselineWidth = null;
   s.voiceRangeSavedFrom = null;
   s.voiceRangeSavedTo = null;
   s.desiredSavedFrom = null;
   s.desiredSavedTo = null;
+  s.voiceRangeEditMode = 'current';
+  closeNotePicker();
   saveDB();
+  closeModal();
   renderDetailProfile();
+  if(!document.getElementById('page-students').classList.contains('hidden')) renderStudents();
+  toast('Карточка «Голос» сброшена ✓');
 }
 
 function setSkillMood(studentId, key, mood){
@@ -8193,6 +8278,7 @@ const modalBuilders = {
   deleteSubscription: buildDeleteSubscriptionModal,
   incomeGoal: buildIncomeGoalModal,
   studentDanger: buildStudentDangerModal,
+  voiceReset: buildResetVoiceModal,
   exportChoice: buildExportChoiceModal,
   exportAllChoice: buildExportAllChoiceModal};
 function openModal(type, ctx){
