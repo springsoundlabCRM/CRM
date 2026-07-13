@@ -2345,9 +2345,9 @@
       <div class="topbar"><div class="topbar-title">Задания</div><button class="btn btn-primary" onclick="openModal('homework')">Задать ДЗ</button></div>
       <div class="content">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-          <div><div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:10px" id="hwTodoHead">✗ Не сдано (0)</div><div id="hwTodoList"></div></div>
-          <div><div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:10px" id="hwProgressHead">⏳ В процессе (0)</div><div id="hwProgressList"></div></div>
           <div><div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:10px" id="hwDoneHead">✓ Сдано (0)</div><div id="hwDoneList"></div></div>
+          <div><div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:10px" id="hwProgressHead">⏳ В процессе (0)</div><div id="hwProgressList"></div></div>
+          <div><div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:10px" id="hwTodoHead">✗ Не сдано (0)</div><div id="hwTodoList"></div></div>
         </div>
       </div>
     </div>
@@ -6818,9 +6818,9 @@ function renderHomework(){
   // колонку "Не сдано", чтобы не потеряться из виду.
   all.forEach(h=> (groups[h.status] || groups.todo).push(h));
 
-  document.getElementById('hwTodoHead').textContent = '✗ Не сдано ('+groups.todo.length+')';
-  document.getElementById('hwProgressHead').textContent = '⏳ В процессе ('+groups.progress.length+')';
   document.getElementById('hwDoneHead').textContent = '✓ Сдано ('+groups.done.length+')';
+  document.getElementById('hwProgressHead').textContent = '⏳ В процессе ('+groups.progress.length+')';
+  document.getElementById('hwTodoHead').textContent = '✗ Не сдано ('+groups.todo.length+')';
 
   function row(h){
     const s = studentById(h.studentId);
@@ -6831,9 +6831,9 @@ function renderHomework(){
     // "Задания", без промежуточной кнопки "перемотки" статуса.
     return '<div class="homework-item hw-item-'+st+'" onclick="openStudent(studentById(\''+h.studentId+'\'),\'homework-tab\')"><div class="hw-icon">'+(h.icon||'🎵')+'</div><div class="hw-content"><div class="hw-title">'+escapeHTML(s?s.name:'?')+'</div><div class="hw-sub">'+escapeHTML(h.title)+'</div></div></div>';
   }
-  document.getElementById('hwTodoList').innerHTML = groups.todo.length ? groups.todo.map(row).join('') : '<div class="empty-state">Пусто</div>';
-  document.getElementById('hwProgressList').innerHTML = groups.progress.length ? groups.progress.map(row).join('') : '<div class="empty-state">Пусто</div>';
   document.getElementById('hwDoneList').innerHTML = groups.done.length ? groups.done.map(row).join('') : '<div class="empty-state">Пусто</div>';
+  document.getElementById('hwProgressList').innerHTML = groups.progress.length ? groups.progress.map(row).join('') : '<div class="empty-state">Пусто</div>';
+  document.getElementById('hwTodoList').innerHTML = groups.todo.length ? groups.todo.map(row).join('') : '<div class="empty-state">Пусто</div>';
 }
 
 /* ============================================================
