@@ -31,8 +31,8 @@
     --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--card:#1a1a24;--card2:#22222e;
     --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#ffffff;--text3:#ffffff;
     --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.15);
-    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-bg2:rgba(52,211,153,0.09);--green-glow:rgba(52,211,153,0.4);--green-song-hover:rgba(52,211,153,0.2);
-    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-bg2:rgba(251,191,36,0.09);--amber-glow:rgba(251,191,36,0.4);--amber-song-hover:rgba(251,191,36,0.2);
+    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-glow:rgba(52,211,153,0.4);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-glow:rgba(251,191,36,0.4);
     --red:#f87171;--red-bg:rgba(248,113,113,0.12);--red-glow:rgba(248,113,113,0.4);
     --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);
     --orange:#fb923c;--orange-bg:rgba(251,146,60,0.14);
@@ -45,8 +45,8 @@
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
     --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
     --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
-    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-bg2:rgba(5,150,105,0.2);--green-glow:rgba(5,150,105,0.35);--green-song-hover:rgba(5,150,105,0.35);
-    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-bg2:rgba(217,119,6,0.2);--amber-glow:rgba(217,119,6,0.35);--amber-song-hover:rgba(217,119,6,0.35);
+    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-glow:rgba(5,150,105,0.35);
+    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-glow:rgba(217,119,6,0.35);
     --red:#dc2626;--red-bg:rgba(220,38,38,0.1);--red-glow:rgba(220,38,38,0.35);
     --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
     --orange:#ea580c;--orange-bg:rgba(234,88,12,0.1);
@@ -488,11 +488,20 @@
   .mood-btn.mood-red.active{border-color:var(--red);background:var(--red-bg)}
   .mood-btn.mood-yellow.active{border-color:var(--amber);background:var(--amber-bg)}
   .mood-btn.mood-green.active{border-color:var(--green);background:var(--green-bg)}
-  .homework-item{display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:8px}
-  .hw-icon{font-size:16px;margin-top:1px}
+  /* Карточки на общей странице "Задания" (левое меню) — по высоте такие
+     же, как записи "Истории уроков"/"Финансов" (тот же приём: одинаковый
+     padding + min-height, см. подробный комментарий у .finance-row выше).
+     Слева цветная полоса статуса — как в разделе "Финансы"
+     (.finance-row.is-paid/.is-debt): красная/жёлтая/зелёная в зависимости
+     от текущего статуса задания (см. renderHomework() в JS). */
+  .homework-item{display:flex;align-items:center;gap:10px;padding:16px 14px;background:var(--bg3);border-radius:8px;margin-bottom:10px;min-height:75px;box-sizing:border-box;border-left:3px solid var(--border2)}
+  .homework-item.hw-item-todo{border-left-color:var(--red)}
+  .homework-item.hw-item-progress{border-left-color:var(--amber)}
+  .homework-item.hw-item-done{border-left-color:var(--green)}
+  .hw-icon{font-size:19px;margin-top:1px}
   .hw-content{flex:1;min-width:0}
-  .hw-title{font-size:12px;font-weight:500}
-  .hw-sub{font-size:11px;color:var(--text3);margin-top:2px}
+  .hw-title{font-size:14.5px;font-weight:500}
+  .hw-sub{font-size:12.5px;color:var(--text3);margin-top:2px}
   /* Кликабельные цветные "пилюли" статуса ДЗ.
      В состоянии покоя каждая уже показывает свой цвет (рамка + иконка) —
      так сразу видно, что это за кнопка. При наведении добавляется
@@ -664,39 +673,28 @@
      "Финансов" (#dtab-finance-tab .finance-row): тот же приём — одинаковый
      padding и одинаковая минимальная высота (см. подробный комментарий
      выше, у .finance-row). */
-  .song-item{display:flex;align-items:center;gap:10px;padding:16px 14px;background:var(--bg3);border-radius:8px;margin-bottom:10px;cursor:pointer;transition:all .15s;min-height:75px;box-sizing:border-box}
+  .song-item{display:flex;align-items:center;gap:10px;padding:16px 14px;background:var(--bg3);border-radius:8px;margin-bottom:10px;cursor:pointer;transition:all .15s;min-height:75px;box-sizing:border-box;border-left:3px solid var(--border2)}
   .song-item:hover{background:var(--card2)}
   .song-num{font-size:11px;color:var(--text3);width:18px}
   .song-info{flex:1;min-width:0}
   .song-title{font-size:15px;font-weight:500}
   .song-artist{font-size:13px;color:var(--text3);margin-top:1px}
-  /* Подсветка самой карточки песни по статусу — вместо серого фона внутри
-     карточки лёгкий цветной оттенок (те же полупрозрачные --amber-bg/
-     --green-bg, что и у бейджей "разучиваем"/"готово" в остальной CRM).
-     "На паузе" — это и есть исходный серый фон, отдельный класс не нужен. */
-  .song-item.song-status-progress{background:var(--amber-bg2)}
-  .song-item.song-status-progress:hover{background:var(--amber-song-hover)}
-  .song-item.song-status-done{background:var(--green-bg2)}
-  .song-item.song-status-done:hover{background:var(--green-song-hover)}
-  /* Выпадающий список статуса песни — раньше был обычным <select>,
-     стилизованным отдельно от всей остальной CRM. Теперь это тот же
-     "красивый" кастомный список, что и "Тип голоса"/"Статус" в карточке
-     "Голос" (см. .dd-trigger-btn/.voice-field-dd) — то же самое
-     фиолетовое выделение пункта при наведении вместо системного, тот же
-     фон и рамка. Ширина — по содержимому, а не на всю строку, чтобы
-     аккуратно помещаться рядом с корзиной. */
-  .song-status-trigger.dd-trigger-btn{width:140px;flex-shrink:0;padding:8px 10px;font-size:12.5px;font-weight:500;gap:6px;justify-content:space-between}
-  .song-status-trigger .dd-trigger-name{overflow:visible;text-overflow:clip;white-space:nowrap}
-  /* Подсветка самой кнопки статуса тем же (чуть более ярким) тоном, что и
-     карточка песни — чтобы цвет статуса читался и на самой кнопке, а не
-     только на фоне всей строки. "На паузе" — обычный нейтральный вид
-     кнопки (как и было), отдельного класса не нужно. */
-  .song-status-trigger.song-status-trigger-progress{background:var(--amber-bg2);border-color:rgba(251,191,36,.4);color:var(--amber)}
-  .song-status-trigger.song-status-trigger-progress:hover{border-color:var(--amber)}
-  .song-status-trigger.song-status-trigger-progress .dd-caret{color:var(--amber)}
-  .song-status-trigger.song-status-trigger-done{background:var(--green-bg2);border-color:rgba(52,211,153,.4);color:var(--green)}
-  .song-status-trigger.song-status-trigger-done:hover{border-color:var(--green)}
-  .song-status-trigger.song-status-trigger-done .dd-caret{color:var(--green)}
+  /* Фон карточки песни всегда остаётся нейтральным серым (var(--bg3)) —
+     статус показывает только цветная полоса слева, как в разделе
+     "Финансы" (.finance-row.is-paid/.is-debt). "На паузе" — фиолетовая
+     полоса (var(--accent)), т.к. у неё нет готового цвета среди
+     красный/жёлтый/зелёный, а этот статус смыслово нейтральный/"третий". */
+  .song-item.song-status-progress{border-left-color:var(--amber)}
+  .song-item.song-status-done{border-left-color:var(--green)}
+  .song-item.song-status-paused{border-left-color:var(--accent)}
+  /* Кнопки статуса песни — те же кликабельные цветные "пилюли", что и у
+     статуса домашнего задания (.hw-status-pill: зелёная галочка/жёлтые
+     часики/...), вместо прежнего выпадающего списка. Для "На паузе" своей
+     готовой пилюли у ДЗ нет (там только сдано/в процессе/не сдано) —
+     добавлен новый цвет pill-purple с иконкой паузы. */
+  .song-status-pills{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .hw-status-pill.pill-purple{color:var(--accent)}
+  .hw-status-pill.pill-purple.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
   /* Корзина в "Репертуаре" была слишком мелкой на фоне выросшей карточки —
      увеличиваем до того же размера, что и у корзины в карточках заданий
      (см. .hw-card-footer .btn-delete-icon). */
@@ -6275,11 +6273,26 @@ function setSkillMood(studentId, key, mood){
 }
 
 /* ---------- Репертуар ---------- */
-// Три статуса песни: "разучиваем" (жёлтая подсветка), "готово" (зелёная),
-// "на паузе" (обычный серый фон карточки — как раньше).
+// Три статуса песни: "разучиваем" (жёлтая полоса слева), "готово" (зелёная),
+// "на паузе" (фиолетовая). Фон карточки всегда нейтральный серый — см. CSS
+// .song-item / .song-item.song-status-*.
 const REP_STATUS_OPTIONS = [['разучиваем','Разучиваем'],['готово','Готово'],['на паузе','На паузе']];
 function repStatusClass(status){
-  return status==='готово' ? 'song-status-done' : status==='разучиваем' ? 'song-status-progress' : '';
+  return status==='готово' ? 'song-status-done' : status==='разучиваем' ? 'song-status-progress' : status==='на паузе' ? 'song-status-paused' : '';
+}
+// Кнопки статуса песни — те же цветные "пилюли", что и у статуса ДЗ
+// (зелёная галочка "Готово", жёлтые часики "Разучиваем"), плюс
+// собственная фиолетовая пилюля-пауза для "На паузе" (у ДЗ такого статуса
+// нет, поэтому иконки готовой не было — использована пауза ⏸).
+const REP_STATUS_PILLS = [
+  {key:'готово', cls:'pill-green', icon:'✓', title:'Готово'},
+  {key:'разучиваем', cls:'pill-amber', icon:'⏳', title:'Разучиваем'},
+  {key:'на паузе', cls:'pill-purple', icon:'⏸', title:'На паузе'}
+];
+function repStatusPillsHTML(r){
+  return '<div class="song-status-pills">'+REP_STATUS_PILLS.map(function(p){
+    return '<button type="button" class="hw-status-pill '+p.cls+(r.status===p.key?' active':'')+'" title="'+p.title+'" onclick="event.stopPropagation();updateRepertoireStatus(\''+r.id+'\',\''+p.key+'\')">'+p.icon+'</button>';
+  }).join('')+'</div>';
 }
 function renderRepertoire(){
   const s = studentById(currentStudentId); if(!s) return;
@@ -6287,57 +6300,12 @@ function renderRepertoire(){
   const list = repertoireOfStudent(s.id);
   const rows = list.length ? list.map((r,i)=>
     '<div class="song-item '+repStatusClass(r.status)+'"><div class="song-num">'+(i+1)+'</div><div class="song-info"><div class="song-title">'+escapeHTML(r.title)+'</div><div class="song-artist">'+escapeHTML(r.artist)+'</div></div>'
-    +repStatusTriggerHTML(r)
+    +repStatusPillsHTML(r)
     +'<button class="btn-delete-icon song-delete-icon" title="Удалить" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
   ).join('') : '<div class="empty-state">Репертуар пока пуст</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
     +'<div class="detail-title"><span class="detail-title-label">🎵 Репертуар</span> <button class="btn btn-primary btn-sm song-add-btn" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
     +'<div id="repertoire-list">'+rows+'</div></div>';
-}
-/* Кастомный выпадающий список статуса песни — построен по тому же
-   принципу, что и "Тип голоса"/"Статус" в карточке "Голос" (см.
-   openVoiceFieldPicker/closeVoiceFieldPicker/positionVoiceFieldDD выше):
-   переиспользуем те же функции закрытия/позиционирования и тот же CSS
-   (.dd-trigger-btn, .voice-field-dd, .autocomplete-item) — поэтому список
-   выглядит и ведёт себя абсолютно так же, как остальные такие списки в CRM. */
-let _openRepStatusPicker = null;
-function openRepStatusPicker(repId, btnEl){
-  if(_openRepStatusPicker === repId){ closeVoiceFieldPicker(); _openRepStatusPicker = null; return; }
-  closeVoiceFieldPicker();
-  btnEl.classList.add('open');
-  _openRepStatusPicker = repId;
-  const r = DB.repertoire.find(x=>x.id===repId);
-  const currentVal = r ? r.status : '';
-  const dd = document.createElement('div');
-  dd.className = 'autocomplete-dropdown open voice-field-dd';
-  dd.onclick = function(e){ e.stopPropagation(); };
-  dd.innerHTML = REP_STATUS_OPTIONS.map(function(o){
-    return '<div class="autocomplete-item'+(o[0]===currentVal?' active':'')+'" onmousedown="event.preventDefault();selectRepStatusOption(\''+repId+'\',\''+o[0]+'\')"><span class="autocomplete-name">'+escapeHTML(o[1])+'</span></div>';
-  }).join('');
-  document.body.appendChild(dd);
-  positionVoiceFieldDD(dd, btnEl);
-  window.addEventListener('scroll', closeVoiceFieldPicker, true);
-  window.addEventListener('resize', closeVoiceFieldPicker);
-}
-function selectRepStatusOption(repId, value){
-  updateRepertoireStatus(repId, value);
-  closeVoiceFieldPicker();
-  _openRepStatusPicker = null;
-}
-function repStatusTriggerHTML(r){
-  const found = REP_STATUS_OPTIONS.find(function(o){ return o[0]===r.status; });
-  const label = found ? found[1] : 'Разучиваем';
-  // Кнопка статуса подсвечивается тем же цветом, что и вся карточка песни
-  // (repStatusClass), плюс всегда одинаковой ширины (см. CSS
-  // .song-status-trigger.dd-trigger-btn) — независимо от длины текста
-  // "Готово"/"Разучиваем"/"На паузе".
-  const colorCls = r.status==='готово' ? ' song-status-trigger-done' : r.status==='разучиваем' ? ' song-status-trigger-progress' : '';
-  return '<div class="autocomplete-wrap">'
-    +'<button type="button" class="dd-trigger-btn song-status-trigger'+colorCls+'" onclick="event.stopPropagation();openRepStatusPicker(\''+r.id+'\',this)">'
-      +'<span class="dd-trigger-name">'+escapeHTML(label)+'</span>'
-      +'<span class="dd-caret">▾</span>'
-    +'</button>'
-  +'</div>';
 }
 function updateRepertoireStatus(id, status){
   const r = DB.repertoire.find(x=>x.id===id); if(!r) return;
@@ -6843,7 +6811,8 @@ function renderHomework(){
 
   function row(h){
     const s = studentById(h.studentId);
-    return '<div class="homework-item"><div class="hw-icon">'+(h.icon||'🎵')+'</div><div class="hw-content" style="cursor:pointer" onclick="openStudent(studentById(\''+h.studentId+'\'))"><div class="hw-title">'+escapeHTML(s?s.name:'?')+'</div><div class="hw-sub">'+escapeHTML(h.title)+'</div></div>'
+    const st = groups[h.status] ? h.status : 'todo';
+    return '<div class="homework-item hw-item-'+st+'"><div class="hw-icon">'+(h.icon||'🎵')+'</div><div class="hw-content" style="cursor:pointer" onclick="openStudent(studentById(\''+h.studentId+'\'))"><div class="hw-title">'+escapeHTML(s?s.name:'?')+'</div><div class="hw-sub">'+escapeHTML(h.title)+'</div></div>'
       +'<button class="btn btn-ghost btn-sm" onclick="cycleHomeworkStatus(\''+h.id+'\')">↻</button></div>';
   }
   document.getElementById('hwTodoList').innerHTML = groups.todo.length ? groups.todo.map(row).join('') : '<div class="empty-state">Пусто</div>';
