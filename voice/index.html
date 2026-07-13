@@ -1206,8 +1206,15 @@
       padding:6px 10px!important;height:30px;box-sizing:border-box;
     }
     .cal-head{grid-template-columns:38px repeat(7,1fr)}
-    .cal-body{grid-template-columns:38px repeat(7,1fr)}
-    #calView{overflow-x:hidden}
+    /* Отключаем "пружинение" (эластичный отскок при вытягивании за край)
+       именно у сетки календаря — иначе на iOS даже небольшое вертикальное
+       движение пальца во время свайпа влево/вправо (переключение недели)
+       заставляло весь календарь подпрыгивать. Обычная прокрутка вверх/вниз
+       и pinch-зум (у него своя обработка в JS, см. handleTouchMove) при
+       этом продолжают работать как раньше — только для компьютера это
+       правило не применяется. */
+    .cal-body{grid-template-columns:38px repeat(7,1fr);overscroll-behavior-y:none}
+    #calView{overflow-x:hidden;overscroll-behavior:none}
     .cal-day-hd{padding:5px 1px}
     .cal-day-hd-name{font-size:7.5px;letter-spacing:0}
     .cal-day-hd-num{font-size:12px}
