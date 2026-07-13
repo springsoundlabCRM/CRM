@@ -8938,12 +8938,31 @@ async function initApp(prefetchedDbSnap){
   applyTheme();
   renderSidebar();
   insertHamburgers();
-  // Раньше здесь восстанавливался раздел, в котором человек был до
-  // обновления страницы (см. saveNavState/readNavState выше). По просьбе
-  // это отключено — при каждом заходе в CRM (и на компьютере, и на
-  // телефоне) приложение теперь всегда открывается на дашборде, независимо
-  // от того, где был человек в прошлый раз.
-  showPage('dashboard');
+  // На компьютере при обновлении страницы (F5) человек остаётся в том же
+  // разделе, где был (см. saveNavState/readNavState выше) — если это была
+  // карточка ученика, открывается тот же ученик и та же вкладка. На
+  // телефоне — наоборот, по просьбе всегда открывается дашборд при каждом
+  // заходе в CRM, даже если до этого сидели в другом разделе.
+  const isDesktopStart = window.innerWidth > 768;
+  const nav = isDesktopStart ? readNavState() : null;
+  let restored = false;
+  if(nav && nav.page && document.getElementById('page-'+nav.page)){
+    if(nav.page==='student-detail'){
+      const s = nav.studentId ? studentById(nav.studentId) : null;
+      if(s){
+        currentStudentId = s.id;
+        currentDetailTab = DETAIL_TABS.includes(nav.tab) ? nav.tab : 'profile';
+        document.getElementById('detail-name').textContent = s.name;
+        showPage('student-detail');
+        renderStudentDetailAll();
+        restored = true;
+      }
+    } else {
+      showPage(nav.page);
+      restored = true;
+    }
+  }
+  if(!restored) showPage('dashboard');
   adaptScheduleTopbar();
   isMobileDevice = window.innerWidth <= 768;
 
