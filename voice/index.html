@@ -1321,6 +1321,17 @@
   .fin-goal-bar-row{display:flex;align-items:center;gap:10px}
   .fin-goal-bar-row .fin-goal-bar{flex:1;margin:0}
   .fin-goal-pct{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;min-width:32px;text-align:right}
+  /* Крупнее заголовок "Цель по доходу" и цифры под ним — но ТОЛЬКО на
+     компьютерной версии (на телефоне карточка и так узкая, там прежний
+     размер остаётся, см. правило .goal-card-left .kpi-ring-title и
+     соседние в @media (max-width:880px) ниже, которое эту карточку не
+     трогает — .fin-goal-* туда никогда не попадали). Порог 881px —
+     ровно следующее значение после мобильного брейкпоинта 880px. */
+  @media (min-width:881px){
+    .fin-goal-title{font-size:16px}
+    .fin-goal-amount{font-size:22px}
+    .fin-goal-pct{font-size:15px;min-width:40px}
+  }
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
@@ -6817,37 +6828,58 @@ function renderFinances(){
 
   // "Доход (месяц)": всегда за текущий реальный календарный месяц (не зависит
   // от просматриваемого периода financeMonthOffset) — перенесено с дашборда.
-  // Карточка "Доход (месяц)" убрана из верхней строки Финансов, но realPaid
-  // всё равно нужен ниже — от него считается кольцо "Цель по доходу".
   const realNow = new Date();
-  const {paid:realPaid} = monthIncome(realNow.getFullYear(), realNow.getMonth());
 
   // "Цель по доходу" — горизонтальный progress bar (тот же стиль, что и у
-  // абонементов в карточке ученика), тоже считается за текущий реальный месяц.
+  // абонементов в карточке ученика). ВАЖНО: цель и прогресс считаются за
+  // ПРОСМАТРИВАЕМЫЙ месяц (тот же "now", что и всё остальное на странице
+  // Финансов, с учётом стрелок переключения месяца financeMonthOffset), а
+  // не всегда за реальный сегодняшний месяц — иначе при перелистывании на
+  // предыдущий месяц карточка продолжала бы показывать цель и прогресс
+  // текущего месяца, что и было багом. Каждый месяц хранит свою цель
+  // отдельно (teacher.incomeGoals[год-месяц]) и свой прогресс (paid,
+  // фактически оплаченное за именно этот просматриваемый месяц).
   const teacher = getCurrentTeacher();
-  const goalKey = realNow.getFullYear()+'-'+realNow.getMonth();
+  const goalKey = now.getFullYear()+'-'+now.getMonth();
   const incomeGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || 0;
-  const goalPctRaw = incomeGoal>0 ? Math.round(realPaid/incomeGoal*100) : 0;
+  const goalPctRaw = incomeGoal>0 ? Math.round(paid/incomeGoal*100) : 0;
+  const isViewingCurrentMonth = financeMonthOffset===0;
   const goalFill = document.getElementById('finGoalFill');
   if(goalFill) goalFill.style.width = Math.min(100, goalPctRaw)+'%';
   document.getElementById('ringPaymentsVal').textContent = incomeGoal>0 ? goalPctRaw+'%' : '—';
-  document.getElementById('ringPaymentsSub').textContent = incomeGoal>0 ? money(realPaid)+' из '+money(incomeGoal) : 'Нажмите, чтобы задать цель';
+  document.getElementById('ringPaymentsSub').textContent = incomeGoal>0
+    ? money(paid)+' из '+money(incomeGoal)
+    : (isViewingCurrentMonth ? 'Нажмите, чтобы задать цель' : 'Цель не была поставлена');
   const goalExtraHost = document.getElementById('ringGoalExtra');
   if(incomeGoal>0){
-    const remaining = Math.max(0, incomeGoal-realPaid);
-    const realMonthLessons = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===realNow.getFullYear() && d.getMonth()===realNow.getMonth(); });
-    const paidDoneLessons = realMonthLessons.filter(l=>l.status==='done' && !l.viaSubscription && Number(l.paid||0)>0);
-    const avgPrice = paidDoneLessons.length
-      ? paidDoneLessons.reduce((sum,l)=>sum+Number(l.paid||0),0)/paidDoneLessons.length
-      : ((DB.settings && DB.settings.defaultLessonPrice) || 0);
-    const lessonsLeft = remaining<=0 ? 0 : (avgPrice>0 ? Math.ceil(remaining/avgPrice) : null);
-    const daysLeft = new Date(realNow.getFullYear(), realNow.getMonth()+1, 0).getDate()-realNow.getDate();
-    goalExtraHost.innerHTML =
-      '<div class="kpi-ring-extra-row"><span>Осталось уроков</span><span class="v">'+(remaining<=0?'Цель выполнена 🎉':(lessonsLeft===null?'—':lessonsLeft))+'</span></div>'
-      +'<div class="kpi-ring-extra-row"><span>Осталось заработать</span><span class="v">'+money(remaining)+'</span></div>'
-      +'<div class="kpi-ring-extra-row"><span>До конца месяца</span><span class="v">'+daysLeft+' дн.</span></div>';
+    const remaining = Math.max(0, incomeGoal-paid);
+    if(isViewingCurrentMonth){
+      // Смотрим текущий реальный месяц — можно строить прогноз (сколько
+      // уроков и дней осталось до конца месяца, чтобы добрать цель).
+      const curMonthLessons = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); });
+      const paidDoneLessons = curMonthLessons.filter(l=>l.status==='done' && !l.viaSubscription && Number(l.paid||0)>0);
+      const avgPrice = paidDoneLessons.length
+        ? paidDoneLessons.reduce((sum,l)=>sum+Number(l.paid||0),0)/paidDoneLessons.length
+        : ((DB.settings && DB.settings.defaultLessonPrice) || 0);
+      const lessonsLeft = remaining<=0 ? 0 : (avgPrice>0 ? Math.ceil(remaining/avgPrice) : null);
+      const daysLeft = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()-now.getDate();
+      goalExtraHost.innerHTML =
+        '<div class="kpi-ring-extra-row"><span>Осталось уроков</span><span class="v">'+(remaining<=0?'Цель выполнена 🎉':(lessonsLeft===null?'—':lessonsLeft))+'</span></div>'
+        +'<div class="kpi-ring-extra-row"><span>Осталось заработать</span><span class="v">'+money(remaining)+'</span></div>'
+        +'<div class="kpi-ring-extra-row"><span>До конца месяца</span><span class="v">'+daysLeft+' дн.</span></div>';
+    } else {
+      // Смотрим прошлый месяц — прогноз "осталось дней/уроков" смысла не
+      // имеет (месяц уже закрыт), вместо этого показываем итог: цель,
+      // сколько фактически достигнуто и был ли план выполнен.
+      goalExtraHost.innerHTML =
+        '<div class="kpi-ring-extra-row"><span>Цель</span><span class="v">'+money(incomeGoal)+'</span></div>'
+        +'<div class="kpi-ring-extra-row"><span>Достигнуто</span><span class="v">'+money(paid)+'</span></div>'
+        +'<div class="kpi-ring-extra-row"><span>Итог</span><span class="v">'+(remaining<=0?'Цель выполнена 🎉':'−'+money(remaining))+'</span></div>';
+    }
   } else {
-    goalExtraHost.innerHTML = '<div class="kpi-ring-extra-row" style="white-space:normal">Кликните и задайте желаемый доход — появится прогресс</div>';
+    goalExtraHost.innerHTML = isViewingCurrentMonth
+      ? '<div class="kpi-ring-extra-row" style="white-space:normal">Кликните и задайте желаемый доход — появится прогресс</div>'
+      : '<div class="kpi-ring-extra-row" style="white-space:normal">Цель на этот месяц не была поставлена</div>';
   }
 
   // "Доход за год": суммарный оплаченный доход учителя за текущий календарный год
@@ -7891,21 +7923,29 @@ function saveSubscriptionForm(){
 
 /* ---------- Цель по доходу за месяц (дашборд) ---------- */
 function buildIncomeGoalModal(){
-  const now = new Date();
+  // Открывается кликом по карточке "Цель по доходу" на вкладке "Финансы",
+  // которая уже показывает ПРОСМАТРИВАЕМЫЙ месяц (с учётом стрелок
+  // переключения financeMonthOffset) — модалка обязана ставить/редактировать
+  // цель ровно для этого же месяца, а не всегда для сегодняшнего.
+  const today = new Date();
+  const now = new Date(today.getFullYear(), today.getMonth()+(financeMonthOffset||0), 1);
   const teacher = getCurrentTeacher();
   const goalKey = now.getFullYear()+'-'+now.getMonth();
   const currentGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || '';
+  const isPast = (financeMonthOffset||0) !== 0;
+  const monthPhrase = MN[now.getMonth()].toLowerCase()+' '+now.getFullYear();
   return '<div class="modal-title">Цель по доходу — '+MN[now.getMonth()]+' '+now.getFullYear()+' <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div class="input-group"><label class="input-label">Сколько хотите заработать в этом месяце (₽)</label>'
+    +'<div class="input-group"><label class="input-label">Сколько хотите заработать '+(isPast ? ('в '+monthPhrase) : 'в этом месяце')+' (₽)</label>'
       +'<input class="input" id="f-goal-amount" type="number" min="0" step="500" placeholder="Например, 50000" value="'+currentGoal+'" autofocus>'
     +'</div>'
-    +'<div style="font-size:11px;color:var(--text3);margin:2px 0 12px">Цель считается только за текущий месяц. В новом месяце прогресс начнётся заново — можно будет поставить новую сумму.</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin:2px 0 12px">Цель считается отдельно для каждого месяца — у '+(isPast?'этого месяца':'нового месяца')+' свой собственный прогресс, изменение суммы не затронет другие месяцы.</div>'
     +'<button class="btn btn-primary" style="width:100%;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveIncomeGoalForm()">Сохранить цель</button>';
 }
 function saveIncomeGoalForm(){
   const amount = Number(document.getElementById('f-goal-amount').value)||0;
   if(amount<=0){ toast('Укажите сумму цели','red'); return; }
-  const now = new Date();
+  const today = new Date();
+  const now = new Date(today.getFullYear(), today.getMonth()+(financeMonthOffset||0), 1);
   const teacher = getCurrentTeacher();
   teacher.incomeGoals = teacher.incomeGoals || {};
   teacher.incomeGoals[now.getFullYear()+'-'+now.getMonth()] = amount;
