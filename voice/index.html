@@ -1307,21 +1307,20 @@
   /* --- Финансы: верхняя строка из 3 блоков (Оплачено / Цель по доходу / Доход за год) --- */
   .fin-top-row{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:14px;margin-bottom:24px;align-items:stretch}
   .fin-top-row .stat-card.fin-top-side{display:flex;flex-direction:column;justify-content:center}
-  .fin-top-row .fin-goal-card.fin-top-center{margin:0}
+  .fin-top-row .kpi-ring-card.fin-top-center{margin:0}
 
-  /* --- Финансы: карточка "Цель по доходу" — горизонтальный progress bar,
-     точно такой же тонкий/фиолетовый, как у абонементов на вкладке "Ученики"
-     (переиспользуем классы .progress-bar/.progress-fill без изменений). --- */
-  .fin-goal-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;
-    cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column;justify-content:center}
-  .fin-goal-card:hover{border-color:var(--green)}
-  .fin-goal-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px}
-  .fin-goal-amount{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px}
-  .fin-goal-bar-row{display:flex;align-items:center;gap:12px}
+  /* --- Финансы: левая половина карточки "Цель по доходу" — вместо кольца
+     теперь заголовок + сумма + горизонтальный progress bar. Карточка в целом
+     осталась той же (kpi-ring-card.goal-card, деление пополам с разделителем
+     как и раньше) — переиспользуем .progress-bar/.progress-fill без
+     изменений, это тот же тонкий фиолетовый бар, что и у абонементов на
+     вкладке "Ученики". */
+  .fin-goal-left{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:6px}
+  .fin-goal-title{font-size:12px;font-weight:600;color:var(--text)}
+  .fin-goal-amount{font-size:13px;font-weight:600;color:var(--text)}
+  .fin-goal-bar-row{display:flex;align-items:center;gap:10px}
   .fin-goal-bar-row .fin-goal-bar{flex:1;margin:0}
-  .fin-goal-pct{font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;min-width:34px;text-align:right}
-  .fin-goal-extra{display:flex;flex-direction:column;gap:0;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
-  .fin-goal-extra .kpi-ring-extra-row{font-size:11.5px}
+  .fin-goal-pct{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;min-width:32px;text-align:right}
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
@@ -2331,14 +2330,16 @@
              "Долги" убраны по просьбе — раньше были в общем .stat-grid из 4 карточек. -->
         <div class="fin-top-row">
           <div class="stat-card green fin-top-side fin-top-paid"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
-          <div class="fin-goal-card fin-top-center" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
-            <div class="fin-goal-title">Цель по доходу</div>
-            <div class="fin-goal-amount" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
-            <div class="fin-goal-bar-row">
-              <div class="progress-bar fin-goal-bar"><div class="progress-fill" id="finGoalFill" style="width:0%;background:var(--accent)"></div></div>
-              <div class="fin-goal-pct" id="ringPaymentsVal">—</div>
+          <div class="kpi-ring-card goal-card fin-top-center" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
+            <div class="goal-card-left fin-goal-left">
+              <div class="fin-goal-title">Цель по доходу</div>
+              <div class="fin-goal-amount" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
+              <div class="fin-goal-bar-row">
+                <div class="progress-bar fin-goal-bar"><div class="progress-fill" id="finGoalFill" style="width:0%;background:var(--accent)"></div></div>
+                <div class="fin-goal-pct" id="ringPaymentsVal">—</div>
+              </div>
             </div>
-            <div class="fin-goal-extra" id="ringGoalExtra"></div>
+            <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
           <div class="stat-card amber fin-top-side fin-top-year"><div class="stat-label">Доход за год</div><div class="stat-value" id="finYearIncome">0₽</div><div class="stat-delta" id="finYearIncomeSub" style="color:var(--text3)">—</div></div>
         </div>
