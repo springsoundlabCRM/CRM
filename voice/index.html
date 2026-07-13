@@ -6310,53 +6310,74 @@ function selectNote(studentId, field, o, i){
   renderDetailProfile();
 }
 
-/* --- Сохранение диапазона. В режиме "Текущий" фиксирует базовую точку
-   100% при самом первом сохранении, далее пересчитывает рост/уменьшение
-   относительно неё. В режиме "Желаемый" просто фиксирует цель — она
-   используется, чтобы посчитать, сколько процентов желаемого диапазона
-   уже перекрыто текущим. --- */
+/* --- Сохранение диапазона(ов). ВАЖНО: кнопка "Сохранить" одна на всю
+   карточку и должна одинаково срабатывать независимо от того, в каком
+   режиме сейчас открыта карточка ("Текущий" или "Желаемый") — раньше
+   она сохраняла ТОЛЬКО диапазон активного режима, из-за чего, например,
+   сохранение из режима "Желаемый" никак не фиксировало ещё не сохранённый
+   "Текущий" диапазон, и кольца прогресса продолжали показывать "нет
+   данных" до тех пор, пока пользователь не переключался на "Текущий" и
+   не нажимал "Сохранить" ещё раз. Теперь при каждом нажатии проверяются
+   ОБА диапазона: если для какого-то из них выбраны обе ноты ("От" и
+   "До") — он сохраняется, независимо от того, какой режим сейчас активен
+   на экране. В режиме "Текущий" первое сохранение дополнительно
+   фиксирует базовую точку 100% для кольца роста; "Желаемый" просто
+   фиксирует цель — она используется, чтобы посчитать, сколько процентов
+   желаемого диапазона уже перекрыто текущим. --- */
 function saveVoiceRange(studentId){
   const s = studentById(studentId); if(!s) return;
   ensureVoiceFields(s);
 
-  if(s.voiceRangeEditMode==='desired'){
-    const dFrom = s.desiredFromNote, dTo = s.desiredToNote;
-    if(!dFrom || !dTo){
-      alert('Сначала выберите обе ноты желаемого диапазона — «От» и «До».');
-      return;
-    }
-    if(noteAbs(dTo) - noteAbs(dFrom) <= 0){
-      alert('Верхняя нота желаемого диапазона должна быть выше нижней.');
-      return;
-    }
-    s.desiredSavedFrom = dFrom;
-    s.desiredSavedTo = dTo;
-    saveDB();
-    renderDetailProfile();
+  const cFrom = s.rangeFromNote, cTo = s.rangeToNote;
+  const dFrom = s.desiredFromNote, dTo = s.desiredToNote;
+  const hasCurrentPair = !!(cFrom && cTo);
+  const hasDesiredPair = !!(dFrom && dTo);
+
+  if(!hasCurrentPair && !hasDesiredPair){
+    alert('Сначала выберите обе ноты диапазона — «От» и «До» (текущего или желаемого).');
     return;
   }
 
-  const from = s.rangeFromNote, to = s.rangeToNote;
-  if(!from || !to){
-    alert('Сначала выберите обе ноты диапазона — «От» и «До».');
-    return;
+  const errors = [];
+  let savedSomething = false;
+
+  if(hasCurrentPair){
+    const width = noteAbs(cTo) - noteAbs(cFrom);
+    if(width <= 0){
+      errors.push('Верхняя нота текущего диапазона должна быть выше нижней.');
+    } else {
+      if(s.voiceRangeBaselineWidth == null){
+        // Первое сохранение — это отправная точка, всегда 100%
+        s.voiceRangeBaselineWidth = width;
+      }
+      s.voiceRangeSavedFrom = cFrom;
+      s.voiceRangeSavedTo = cTo;
+      // Поддерживаем старые текстовые поля для обратной совместимости
+      s.rangeFrom = formatNote(cFrom, s.voiceLang);
+      s.rangeTo = formatNote(cTo, s.voiceLang);
+      savedSomething = true;
+    }
   }
-  const width = noteAbs(to) - noteAbs(from);
-  if(width <= 0){
-    alert('Верхняя нота диапазона должна быть выше нижней.');
-    return;
+
+  if(hasDesiredPair){
+    const width = noteAbs(dTo) - noteAbs(dFrom);
+    if(width <= 0){
+      errors.push('Верхняя нота желаемого диапазона должна быть выше нижней.');
+    } else {
+      s.desiredSavedFrom = dFrom;
+      s.desiredSavedTo = dTo;
+      savedSomething = true;
+    }
   }
-  if(s.voiceRangeBaselineWidth == null){
-    // Первое сохранение — это отправная точка, всегда 100%
-    s.voiceRangeBaselineWidth = width;
+
+  if(savedSomething){
+    saveDB();
+    renderDetailProfile();
+    toast('Диапазон сохранён ✓');
   }
-  s.voiceRangeSavedFrom = from;
-  s.voiceRangeSavedTo = to;
-  // Поддерживаем старые текстовые поля для обратной совместимости
-  s.rangeFrom = formatNote(from, s.voiceLang);
-  s.rangeTo = formatNote(to, s.voiceLang);
-  saveDB();
-  renderDetailProfile();
+  if(errors.length){
+    alert(errors.join('\n'));
+  }
 }
 
 /* --- Стилизованное pop-up окно подтверждения полного сброса карточки
