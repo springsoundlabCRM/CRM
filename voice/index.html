@@ -697,13 +697,13 @@
   /* Кнопки статуса песни и корзина рядом с ними были слишком мелкими на
      фоне выросшей карточки — увеличены (крупнее, чем в футере карточки
      задания, т.к. тут это единственные кнопки в строке). */
-  .song-status-pills .hw-status-pill{width:38px;height:34px;font-size:16px}
+  .song-status-pills .hw-status-pill{width:32px;height:29px;font-size:14px}
   .hw-status-pill.pill-purple{color:var(--accent)}
   .hw-status-pill.pill-purple.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
   /* Корзина в "Репертуаре" была слишком мелкой на фоне выросшей карточки —
      увеличиваем до того же размера, что и у корзины в карточках заданий
      (см. .hw-card-footer .btn-delete-icon). */
-  .song-delete-icon{width:38px;height:38px;font-size:16px}
+  .song-delete-icon{width:34px;height:34px;font-size:15px}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
   .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
   #modal-content.modal-danger{border-color:var(--red)}
@@ -6306,7 +6306,7 @@ function renderRepertoire(){
   const rows = list.length ? list.map((r,i)=>
     '<div class="song-item '+repStatusClass(r.status)+'"><div class="song-num">'+(i+1)+'</div><div class="song-info"><div class="song-title">'+escapeHTML(r.title)+'</div><div class="song-artist">'+escapeHTML(r.artist)+'</div></div>'
     +repStatusPillsHTML(r)
-    +'<button class="btn-delete-icon song-delete-icon" title="Удалить" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
+    +'<button class="btn-delete-icon song-delete-icon" title="Удалить" onclick="confirmDeleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
   ).join('') : '<div class="empty-state">Репертуар пока пуст</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
     +'<div class="detail-title"><span class="detail-title-label">🎵 Репертуар</span> <button class="btn btn-primary btn-sm song-add-btn" onclick="openModal(\'repertoire\',{studentId:\''+s.id+'\'})">Добавить песню</button></div>'
@@ -6317,9 +6317,19 @@ function updateRepertoireStatus(id, status){
   r.status = status;
   saveDB(); renderRepertoire();
 }
+// Раньше песня удалялась сразу по клику на корзину — теперь, как и у
+// заданий (см. confirmDeleteHomework/buildDeleteHomeworkModal), сначала
+// открывается модалка "Удалить песню?" с подтверждением, чтобы случайный
+// клик по корзине не удалял песню без спроса.
+function confirmDeleteRepertoire(id){
+  openModal('deleteRepertoire', {repId:id});
+}
 function deleteRepertoire(id){
   DB.repertoire = DB.repertoire.filter(x=>x.id!==id);
-  saveDB(); renderRepertoire();
+  saveDB();
+  closeModal();
+  toast('Песня удалена ✓');
+  renderRepertoire();
 }
 
 /* ---------- Домашние задания (карточка ученика) ---------- */
@@ -8093,6 +8103,22 @@ function buildDeleteHomeworkModal(ctx){
     +'</div>';
 }
 
+function buildDeleteRepertoireModal(ctx){
+  ctx = ctx||{};
+  const r = DB.repertoire.find(x=>x.id===ctx.repId);
+  if(!r) return '<div class="modal-title">Песня не найдена <button class="modal-close" onclick="closeModal()">×</button></div>';
+  return '<div class="modal-title">🗑 Удалить песню? <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+escapeHTML(r.title)+'</div>'
+      +'<div style="font-size:12.5px;color:var(--text2);margin-top:4px;line-height:1.4">'+escapeHTML(r.artist||'')+'</div>'
+    +'</div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Это действие нельзя отменить.</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="deleteRepertoire(\''+r.id+'\')">🗑 Удалить</button>'
+    +'</div>';
+}
+
 /* ============================================================
    ДИСПЕТЧЕР МОДАЛЬНЫХ ОКОН
    ============================================================ */
@@ -8112,6 +8138,7 @@ const modalBuilders = {
   deleteLesson: buildDeleteLessonModal,
   deleteLessonConfirm: buildDeleteLessonConfirmModal,
   deleteHomework: buildDeleteHomeworkModal,
+  deleteRepertoire: buildDeleteRepertoireModal,
   deleteSubscription: buildDeleteSubscriptionModal,
   incomeGoal: buildIncomeGoalModal,
   studentDanger: buildStudentDangerModal,
