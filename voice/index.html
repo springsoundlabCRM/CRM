@@ -2622,7 +2622,7 @@ const TRIAL_DAYS = 7;
 // там же, отдельно на каждого пользователя (по currentUid), и при следующей
 // загрузке сверяем: если локальная копия свежее той, что успела дойти до
 // Firestore — используем её и сразу же дошлём на сервер.
-function localCacheKey(){ return STORAGE_KEY+'_'+(currentUid||'anon'); }
+function localCacheKey(forUid){ return STORAGE_KEY+'_'+(forUid||currentUid||'anon'); }
 function writeLocalCache(){
   try{ localStorage.setItem(localCacheKey(), JSON.stringify({ payload: JSON.stringify(DB), updatedAt: Date.now() })); }
   catch(e){ /* приватный режим браузера и т.п. — не критично, просто нет доп. подстраховки */ }
@@ -2632,6 +2632,15 @@ function readLocalCache(){
     const raw = localStorage.getItem(localCacheKey());
     return raw ? JSON.parse(raw) : null;
   }catch(e){ return null; }
+}
+// Удаляет локальный кэш CRM-данных конкретного аккаунта. Вызывается при
+// любом выходе из аккаунта (см. onAuthStateChanged ниже) — без этого на
+// общем/публичном компьютере полная копия базы (имена, контакты, платежи
+// учеников) оставалась бы читаемой в localStorage сколь угодно долго после
+// выхода: любой человек с доступом к этому браузеру мог открыть DevTools
+// и увидеть данные без какого-либо пароля.
+function clearLocalCache(forUid){
+  try{ localStorage.removeItem(localCacheKey(forUid)); }catch(e){ /* не критично */ }
 }
 
 async function loadDB(prefetchedSnap){
@@ -9092,6 +9101,12 @@ window.addEventListener('fb-ready', function(){
       }
       await checkSubscriptionAndRoute();
     } else {
+      // Выход из аккаунта — по кнопке "Выйти", по истечении сессии или
+      // после "полного сброса". В любом из этих случаев чистим локальный
+      // кэш именно ТОГО аккаунта, из которого вышли (currentUid ещё не
+      // сброшен на этой строке), чтобы данные учеников не оставались в
+      // localStorage браузера после выхода.
+      if(currentUid) clearLocalCache(currentUid);
       currentUid = null;
       appEl.style.display = 'none';
       paywallScreen.style.display = 'none';
