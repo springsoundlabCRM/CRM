@@ -239,7 +239,7 @@
   .stat-delta{font-size:11px;margin-top:6px}
   .delta-up{color:var(--green)}
   .delta-down{color:var(--red)}
-  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;position:relative}
   .section-title{font-size:14px;font-weight:600}
   /* Ссылка-переключатель "Все"/"Свернуть" в шапке блока "Сегодня" на дашборде —
      обычный текст (не кнопка в рамке), справа от заголовка. */
@@ -248,9 +248,14 @@
   .section-link i{font-size:8px;margin-left:4px;transition:transform .15s}
   /* Сегментированный переключатель "1 / 3 / Все" — режим отображения списка
      "Сегодня" на мобильной версии дашборда, появляется в шапке блока только
-     пока включена настройка раздела (через нижнюю кнопку "Настройки"). */
-  .dash-mode-picker{display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:2px;flex-shrink:0}
-  .dash-mode-btn{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;cursor:pointer;color:var(--text2);user-select:none;white-space:nowrap;transition:all .15s}
+     пока включена настройка раздела (через нижнюю кнопку "Настройки").
+     Позиционируется абсолютно строго по центру шапки блока (а не как обычный
+     flex-элемент между заголовком и ссылкой "Развернуть") — иначе при выборе
+     режима "Все" ссылка справа исчезает, и обычный flex со space-between
+     перепрыгнул бы переключатель в правый край. Так он всегда остаётся
+     ровно посередине независимо от того, видна ли ссылка "Развернуть". */
+  .dash-mode-picker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:5px;background:var(--bg3);border-radius:10px;padding:3px;flex-shrink:0}
+  .dash-mode-btn{font-size:13.5px;font-weight:600;padding:6px 16px;border-radius:8px;cursor:pointer;color:var(--text2);user-select:none;white-space:nowrap;transition:all .15s}
   .dash-mode-btn.active{background:var(--accent);color:#fff}
   .dash-mode-btn:hover:not(.active){background:var(--card2)}
   .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:1fr;gap:12px;margin-bottom:24px;align-items:stretch}
