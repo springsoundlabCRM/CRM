@@ -1763,6 +1763,33 @@
     .kpi-ring-extra-row .v{font-size:10.5px}
     .an-row-3{grid-template-columns:1fr 1fr!important}
     .an-row-3 .an-card:first-child{grid-column:1/-1}
+
+    /* ---------- Тумблер "Обычный"/"Компактный" (KPI-кольца на дашборде) ----------
+       Появляется над блоком трёх колец (Посещаемость / Выполнение ДЗ /
+       Активные ученики) только пока открыта шторка настройки раздела
+       (та же кнопка "Настройки" в нижнем меню, что и для блока "Сегодня") —
+       см. JS: enterDashTodaySettingsMode/saveDashTodayDisplayMode/
+       cancelDashTodayDisplayMode, applyDashKpiCompactMode. Только мобильная
+       версия — на десктопе этот тумблер и класс .compact не применяются. */
+    .dash-kpi-mode-row{display:none;justify-content:flex-end;margin:-2px 0 10px}
+    .dash-kpi-mode-row.show{display:flex}
+    .dash-kpi-mode-picker{display:flex;gap:4px;background:var(--bg3);border-radius:9px;padding:2px}
+
+    /* Компактный вид: три кольца, объединённые в одну карточку — как единый
+       блок вместо трёх отдельных карточек друг под другом/парами. */
+    .kpi-ring-grid.compact{display:flex;background:var(--card);border:1px solid var(--border);
+      border-radius:var(--r2);padding:12px 4px;gap:2px}
+    .kpi-ring-grid.compact .kpi-ring-card{background:transparent;border:none;padding:2px;
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+      flex:1;min-width:0}
+    .kpi-ring-grid.compact .kpi-ring-card:hover{border-color:transparent}
+    .kpi-ring-grid.compact .goal-card-left{flex-direction:column;gap:5px;padding-right:0;text-align:center}
+    .kpi-ring-grid.compact .kpi-ring{width:46px;height:46px}
+    .kpi-ring-grid.compact .kpi-ring-val{font-size:11px}
+    .kpi-ring-grid.compact .kpi-ring-info{text-align:center}
+    .kpi-ring-grid.compact .kpi-ring-title{font-size:9.5px;margin-bottom:0;white-space:normal;line-height:1.2}
+    .kpi-ring-grid.compact .kpi-ring-sub{display:none}
+    .kpi-ring-grid.compact .kpi-ring-extra{display:none}
   }
   @media (max-width:600px){
     .kpi-ring-grid{grid-template-columns:1fr;gap:10px}
@@ -2234,7 +2261,10 @@
           <div class="stat-card amber"><div class="stat-label">Уроков сегодня</div><div class="stat-value" id="dLessonsToday">0</div><div class="stat-delta" id="dNextLesson" style="color:var(--text3)">нет уроков</div></div>
           <div class="stat-card blue"><div class="stat-label">Новых учеников за месяц</div><div class="stat-value" id="dNewStudentsWeek">0</div><div class="stat-delta" id="dNewStudentsWeekSub" style="color:var(--text3)">за месяц</div></div>
         </div>
-        <div class="kpi-ring-grid">
+        <div class="dash-kpi-mode-row" id="dashKpiModeRow">
+          <div class="dash-kpi-mode-picker" id="dashKpiModePicker"></div>
+        </div>
+        <div class="kpi-ring-grid" id="dashKpiRingGrid">
           <div class="kpi-ring-card split-card" id="ringAttendanceCard">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
@@ -4183,10 +4213,27 @@ let _dashTodayModeLoaded = false; // подтягиваем сохранённо
 let dashTodayEditMode = false; // включена ли сейчас шторка настройки (тогда показан сегментированный переключатель)
 let _dashTodayCardsModeBeforeEdit = null; // на случай нажатия "Отмена" в шторке настройки
 
+/* ---------- Режим отображения блока KPI-колец на мобильной версии ----------
+   Тот же принцип и та же шторка настройки, что и у "Сегодня" выше (открывается
+   одной и той же кнопкой "Настройки" нижнего меню, пока человек на дашборде).
+   Значения: 'normal' — как сейчас, три отдельные карточки колец
+   (Посещаемость / Выполнение ДЗ / Активные ученики); 'compact' — все три
+   кольца объединены в одну карточку (см. CSS .kpi-ring-grid.compact).
+   Тумблер появляется НАД блоком колец, в правом верхнем углу, только пока
+   открыта шторка настройки. Сохраняется в DB.settings.dashKpiCompact. */
+let dashKpiCompactMode = 'normal';
+let _dashKpiModeLoaded = false;
+let _dashKpiCompactModeBeforeEdit = null;
+
 function loadDashTodayCardsModeOnce(){
   if(_dashTodayModeLoaded) return;
   _dashTodayModeLoaded = true;
   if(DB && DB.settings && DB.settings.dashTodayCards) dashTodayCardsMode = String(DB.settings.dashTodayCards);
+}
+function loadDashKpiCompactModeOnce(){
+  if(_dashKpiModeLoaded) return;
+  _dashKpiModeLoaded = true;
+  if(DB && DB.settings && DB.settings.dashKpiCompact) dashKpiCompactMode = String(DB.settings.dashKpiCompact);
 }
 
 function dashTodaySettingsIsOn(){ return dashTodayEditMode; }
@@ -4194,11 +4241,13 @@ function dashTodaySettingsIsOn(){ return dashTodayEditMode; }
 function enterDashTodaySettingsMode(){
   dashTodayEditMode = true;
   _dashTodayCardsModeBeforeEdit = dashTodayCardsMode;
+  _dashKpiCompactModeBeforeEdit = dashKpiCompactMode;
   syncDashColumnHeights();
 }
 function saveDashTodayDisplayMode(){
   DB.settings = DB.settings || {};
   DB.settings.dashTodayCards = dashTodayCardsMode;
+  DB.settings.dashKpiCompact = dashKpiCompactMode;
   saveDB();
   dashTodayEditMode = false;
   syncDashColumnHeights();
@@ -4206,11 +4255,16 @@ function saveDashTodayDisplayMode(){
 }
 function cancelDashTodayDisplayMode(){
   dashTodayCardsMode = _dashTodayCardsModeBeforeEdit || String(MOBILE_VISIBLE_CARDS_DEFAULT);
+  dashKpiCompactMode = _dashKpiCompactModeBeforeEdit || 'normal';
   dashTodayEditMode = false;
   syncDashColumnHeights();
 }
 function setDashTodayCardsMode(mode){
   dashTodayCardsMode = mode;
+  syncDashColumnHeights();
+}
+function setDashKpiCompactMode(mode){
+  dashKpiCompactMode = mode;
   syncDashColumnHeights();
 }
 
@@ -4227,6 +4281,27 @@ function renderDashTodayModePicker(){
   }).join('');
 }
 
+// Рисует (или прячет) строку с тумблером "Обычный"/"Компактный" над блоком
+// KPI-колец и применяет сам компактный вид (класс .compact на сетке колец).
+// Виден/активен только на мобильной версии — на десктопе строка скрыта, а
+// класс .compact ничего визуально не меняет (см. CSS, он объявлен внутри
+// медиа-запроса max-width:880px).
+function renderDashKpiModePicker(){
+  const row = document.getElementById('dashKpiModeRow');
+  const picker = document.getElementById('dashKpiModePicker');
+  const grid = document.getElementById('dashKpiRingGrid');
+  if(!row || !picker || !grid) return;
+
+  grid.classList.toggle('compact', dashKpiCompactMode === 'compact');
+
+  if(!dashTodayEditMode){ row.classList.remove('show'); return; }
+  row.classList.add('show');
+  const opts = [['normal','Обычный'],['compact','Компактный']];
+  picker.innerHTML = opts.map(function(o){
+    return '<span class="dash-mode-btn'+(dashKpiCompactMode===o[0]?' active':'')+'" onclick="setDashKpiCompactMode(\''+o[0]+'\')">'+o[1]+'</span>';
+  }).join('');
+}
+
 function toggleTodayExpand(){
   dashTodayExpanded = !dashTodayExpanded;
   syncDashColumnHeights();
@@ -4237,6 +4312,9 @@ function syncDashColumnHeights(){
   const notif = document.getElementById('notifList');
   const bday = document.getElementById('bdayList');
   if(!today || !notif || !bday) return;
+
+  loadDashKpiCompactModeOnce();
+  renderDashKpiModePicker();
 
   loadDashTodayCardsModeOnce();
   const todayToggleBtn = document.getElementById('todayToggleBtn');
@@ -5984,7 +6062,7 @@ function trySectionSettingsAction(){
     if(dashTodaySettingsIsOn()) return true; // режим уже включён — шторка сверху уже открыта, повторный тап ничего не делает
     enterDashTodaySettingsMode();
     showSettingsEditBar(
-      'Настройка отображения «Сегодня»',
+      'Настройка отображения дашборда',
       function(){ saveDashTodayDisplayMode(); updateSectionSettingsIndicator(); },
       function(){ cancelDashTodayDisplayMode(); updateSectionSettingsIndicator(); }
     );
