@@ -1387,6 +1387,7 @@
      изменений, это тот же тонкий фиолетовый бар, что и у абонементов на
      вкладке "Ученики". */
   .fin-goal-left{display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;gap:6px}
+  .fin-goal-main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:4px}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-amount{font-size:17px;font-weight:700;color:var(--text)}
   .fin-goal-bar-row{display:flex;align-items:center;gap:10px}
@@ -2465,8 +2466,10 @@
           <div class="stat-card green fin-top-side fin-top-paid"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
           <div class="kpi-ring-card goal-card fin-top-center" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
             <div class="goal-card-left fin-goal-left">
-              <div class="fin-goal-title">Цель по доходу</div>
-              <div class="fin-goal-amount" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
+              <div class="fin-goal-main">
+                <div class="fin-goal-title">Цель по доходу</div>
+                <div class="fin-goal-amount" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
+              </div>
               <div class="fin-goal-bar-row">
                 <div class="progress-bar fin-goal-bar"><div class="progress-fill" id="finGoalFill" style="width:0%;background:var(--accent)"></div></div>
                 <div class="fin-goal-pct" id="ringPaymentsVal">—</div>
