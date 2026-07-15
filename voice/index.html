@@ -1837,27 +1837,30 @@
        любой ширине, когда JS его показывает. */
 
     /* Компактный вид: три кольца, объединённые в одну карточку — как единый
-       блок вместо трёх отдельных карточек друг под другом/парами. */
+       блок вместо трёх отдельных карточек друг под другом/парами. Размер
+       увеличен так, чтобы карточка визуально была того же масштаба, что и
+       карточки уроков в блоке "Сегодня" (.lesson-slot: padding 8px 10px) —
+       раньше эта карточка была заметно мельче их. */
     .kpi-ring-grid.compact{display:flex;background:var(--card);border:1px solid var(--border);
-      border-radius:var(--r2);padding:12px 4px;gap:2px;cursor:pointer}
+      border-radius:var(--r2);padding:18px 8px;gap:2px;cursor:pointer}
     .kpi-ring-grid.compact .kpi-ring-card{background:transparent;border:none;padding:2px;
       display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
       flex:1;min-width:0;cursor:pointer}
     .kpi-ring-grid.compact .kpi-ring-card:hover{border-color:transparent}
-    .kpi-ring-grid.compact .goal-card-left{flex-direction:column;gap:5px;padding-right:0;text-align:center}
-    .kpi-ring-grid.compact .kpi-ring{width:46px;height:46px}
+    .kpi-ring-grid.compact .goal-card-left{flex-direction:column;gap:8px;padding-right:0;text-align:center}
+    .kpi-ring-grid.compact .kpi-ring{width:60px;height:60px}
     /* Внутренний "просвет" кольца (::before) в обычном режиме занимает inset:8px
        при диаметре 74px — толщина цветной дуги ~10.8% от диаметра. Раньше в
        компактном режиме inset оставался теми же 8px, но при диаметре 46px это
        давало уже ~17.4% толщины — внутренний просвет становился слишком
        маленьким (30px), и процент физически не помещался, вылезая на саму
-       дугу. Уменьшаем inset пропорционально новому размеру (5px ≈ те же
-       ~10.8%), чтобы просвет был такой же по пропорциям, как в обычном
-       режиме, и текст снова помещался целиком внутри него. */
-    .kpi-ring-grid.compact .kpi-ring::before{inset:5px}
-    .kpi-ring-grid.compact .kpi-ring-val{font-size:10.5px;white-space:nowrap}
+       дугу. Уменьшаем inset пропорционально новому размеру (6.5px ≈ те же
+       ~10.8% от 60px), чтобы просвет был такой же по пропорциям, как в
+       обычном режиме, и текст снова помещался целиком внутри него. */
+    .kpi-ring-grid.compact .kpi-ring::before{inset:6.5px}
+    .kpi-ring-grid.compact .kpi-ring-val{font-size:13px;white-space:nowrap}
     .kpi-ring-grid.compact .kpi-ring-info{text-align:center}
-    .kpi-ring-grid.compact .kpi-ring-title{font-size:9.5px;margin-bottom:0;white-space:normal;line-height:1.2}
+    .kpi-ring-grid.compact .kpi-ring-title{font-size:11.5px;margin-bottom:0;white-space:normal;line-height:1.25}
     .kpi-ring-grid.compact .kpi-ring-sub{display:none}
     .kpi-ring-grid.compact .kpi-ring-extra{display:none}
   }
