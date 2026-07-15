@@ -1386,23 +1386,17 @@
      как и раньше) — переиспользуем .progress-bar/.progress-fill без
      изменений, это тот же тонкий фиолетовый бар, что и у абонементов на
      вкладке "Ученики". */
-  .fin-goal-left{display:flex;flex-direction:column;align-items:stretch;gap:0}
-  .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:2px 0 10px}
+  .fin-goal-left{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:10px}
+  .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-target{font-size:17px;font-weight:700;color:var(--text)}
   /* Горизонтальная тонкая полоса — тот же цвет и толщина, что у вертикального
      разделителя справа (border-left:1px solid var(--border) у .kpi-ring-extra),
-     просто развёрнута горизонтально, отделяет цифру цели от прогресс-бара. */
+     просто развёрнута горизонтально. */
   .fin-goal-divider{height:1px;background:var(--border);flex-shrink:0}
-  /* Сам прогресс-бар теперь высокий и заполняется снизу вверх (а не слева
-     направо, как раньше) — занимает всё оставшееся место внизу левой
-     половины карточки. Внутри заполненной части показывается текущая
-     заработанная сумма, под баром — процент выполнения цели. */
-  .fin-goal-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:56px;padding-top:10px}
-  .fin-goal-bar-vert{position:relative;width:100%;max-width:120px;flex:1;min-height:44px;background:var(--bg3);border-radius:8px;overflow:hidden}
-  .fin-goal-bar-vert-fill{position:absolute;left:0;right:0;bottom:0;min-height:20px;border-radius:8px 8px 0 0;transition:height .3s;display:flex;align-items:flex-start;justify-content:center;padding-top:4px}
-  .fin-goal-current{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);white-space:nowrap}
-  .fin-goal-pct{font-size:13px;font-weight:700;color:var(--text)}
+  .fin-goal-current-block{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+  .fin-goal-current{font-size:17px;font-weight:700;color:var(--text)}
+  .fin-goal-current-label{font-size:11px;color:var(--text3)}
   /* Только ЛЕВАЯ половина карточки "Цель по доходу" (заголовок + сумма + бар)
      растягивается на всю высоту строки — правая половина (kpi-ring-extra:
      "Осталось уроков/Осталось заработать/До конца месяца") НЕ трогается и
@@ -2481,13 +2475,9 @@
                 <div class="fin-goal-target" id="finGoalTarget">Нажмите, чтобы задать цель</div>
               </div>
               <div class="fin-goal-divider"></div>
-              <div class="fin-goal-bar-wrap">
-                <div class="fin-goal-bar-vert" id="finGoalBarVert">
-                  <div class="fin-goal-bar-vert-fill" id="finGoalFill" style="height:0%;background:var(--accent)">
-                    <div class="fin-goal-current" id="finGoalCurrent">0₽</div>
-                  </div>
-                </div>
-                <div class="fin-goal-pct" id="ringPaymentsVal">—</div>
+              <div class="fin-goal-current-block">
+                <div class="fin-goal-current" id="finGoalCurrent">0₽</div>
+                <div class="fin-goal-current-label">Текущий доход</div>
               </div>
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
@@ -7245,9 +7235,6 @@ function renderFinances(){
   const incomeGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || 0;
   const goalPctRaw = incomeGoal>0 ? Math.round(paid/incomeGoal*100) : 0;
   const isViewingCurrentMonth = financeMonthOffset===0;
-  const goalFill = document.getElementById('finGoalFill');
-  if(goalFill) goalFill.style.height = Math.min(100, goalPctRaw)+'%';
-  document.getElementById('ringPaymentsVal').textContent = incomeGoal>0 ? goalPctRaw+'%' : '—';
   const finGoalCurrentEl = document.getElementById('finGoalCurrent');
   if(finGoalCurrentEl) finGoalCurrentEl.textContent = money(paid);
   document.getElementById('finGoalTarget').textContent = incomeGoal>0
