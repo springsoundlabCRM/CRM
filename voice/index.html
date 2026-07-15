@@ -4694,7 +4694,7 @@ function renderNotifications(){
 function renderBirthdays(){
   const host=document.getElementById('bdayList');
   const myStudents = studentsOfTeacher().filter(s=>s.birthday);
-  const withDays = myStudents.map(s=>({s, d:daysUntilBirthday(s.birthday)})).filter(x=>x.d!==null && x.d<=60).sort((a,b)=>a.d-b.d);
+  const withDays = myStudents.map(s=>({s, d:daysUntilBirthday(s.birthday)})).filter(x=>x.d!==null && x.d<=30).sort((a,b)=>a.d-b.d);
   if(!withDays.length){ host.innerHTML='<div class="empty-state">Ближайших дней рождения нет</div>'; return; }
   host.innerHTML = withDays.slice(0,6).map(x=>{
     const label = x.d===0?'сегодня🎉': x.d===1?'завтра': 'через '+x.d+' дн.';
