@@ -258,6 +258,30 @@
   .dash-mode-btn{font-size:12px;font-weight:600;padding:4px 11px;border-radius:7px;cursor:pointer;color:var(--text2);user-select:none;white-space:nowrap;transition:all .15s}
   .dash-mode-btn.active{background:var(--accent);color:#fff}
   .dash-mode-btn:hover:not(.active){background:var(--card2)}
+  /* ---------- Тумблер "Обычный"/"Компактный" (KPI-кольца на дашборде) ----------
+     ВАЖНО: правило display:none объявлено здесь, ГЛОБАЛЬНО (не внутри
+     @media max-width:880px), а не так, как было раньше. Раньше базовое
+     display:none лежало ТОЛЬКО внутри медиа-запроса max-width:880px —
+     а значит на широких экранах (>880px) для .dash-kpi-mode-row вообще не
+     было ни одного применимого CSS-правила, и div откатывался к
+     стандартному display:block браузера. Из-за этого если человек хоть раз
+     открывал шторку настройки на узком экране (телефон/DevTools), список
+     "Обычный/Компактный" (см. renderDashKpiModePicker в JS) успевал
+     отрисоваться в разметке — а renderDashKpiModePicker() при закрытии
+     шторки лишь снимает класс .show (не отображаемый на >880px), не
+     очищая сам HTML. Стоило потом развернуть окно шире 880px (или закрыть
+     DevTools) — и эта уже неактуальная надпись оставалась висеть НАД
+     кольцом посещаемости сама по себе, без крестика и без реакции на
+     клик по нужному месту (сами кнопки-пункты технически кликабельны и
+     меняют dashKpiCompactMode, но т.к. режим редактирования уже выключен,
+     JS не перерисовывает список — визуально ничего не меняется, что и
+     выглядело как "не кликается"). Теперь display:none всегда в силе по
+     умолчанию, а .show просто переключает display:flex — независимо от
+     ширины экрана, как и должно быть у любого элемента, который прячется/
+     показывается через JS, а не через media-query. */
+  .dash-kpi-mode-row{display:none;justify-content:flex-end;margin:-2px 0 10px}
+  .dash-kpi-mode-row.show{display:flex}
+  .dash-kpi-mode-picker{display:flex;gap:4px;background:var(--bg3);border-radius:9px;padding:2px}
   .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:1fr;gap:12px;margin-bottom:24px;align-items:stretch}
   .student-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px;cursor:pointer;transition:all .2s;position:relative;display:flex;flex-direction:column;height:100%;box-sizing:border-box;min-width:0;overflow:hidden}
   .student-card:hover{border-color:var(--border2);background:var(--card2)}
@@ -1785,16 +1809,12 @@
     .an-row-3{grid-template-columns:1fr 1fr!important}
     .an-row-3 .an-card:first-child{grid-column:1/-1}
 
-    /* ---------- Тумблер "Обычный"/"Компактный" (KPI-кольца на дашборде) ----------
-       Появляется над блоком трёх колец (Посещаемость / Выполнение ДЗ /
-       Активные ученики) только пока открыта шторка настройки раздела
-       (та же кнопка "Настройки" в нижнем меню, что и для блока "Сегодня") —
-       см. JS: enterDashTodaySettingsMode/saveDashTodayDisplayMode/
-       cancelDashTodayDisplayMode, applyDashKpiCompactMode. Только мобильная
-       версия — на десктопе этот тумблер и класс .compact не применяются. */
-    .dash-kpi-mode-row{display:none;justify-content:flex-end;margin:-2px 0 10px}
-    .dash-kpi-mode-row.show{display:flex}
-    .dash-kpi-mode-picker{display:flex;gap:4px;background:var(--bg3);border-radius:9px;padding:2px}
+    /* Тумблер "Обычный"/"Компактный" (KPI-кольца на дашборде) — сам show/hide
+       и раскладка вынесены в глобальный CSS выше (см. .dash-kpi-mode-row /
+       .dash-kpi-mode-picker рядом с .dash-mode-btn), чтобы не зависеть от
+       ширины экрана. Здесь остаётся только правило, специфичное именно для
+       узкого экрана — но такого не требуется, тумблер и так одинаков на
+       любой ширине, когда JS его показывает. */
 
     /* Компактный вид: три кольца, объединённые в одну карточку — как единый
        блок вместо трёх отдельных карточек друг под другом/парами. */
@@ -4324,7 +4344,7 @@ function renderDashKpiModePicker(){
 
   grid.classList.toggle('compact', dashKpiCompactMode === 'compact');
 
-  if(!dashTodayEditMode){ row.classList.remove('show'); return; }
+  if(!dashTodayEditMode){ row.classList.remove('show'); picker.innerHTML = ''; return; }
   row.classList.add('show');
   const opts = [['normal','Обычный'],['compact','Компактный']];
   picker.innerHTML = opts.map(function(o){
