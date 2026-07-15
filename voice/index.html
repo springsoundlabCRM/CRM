@@ -1140,6 +1140,15 @@
     .fin-top-row .fin-top-paid{order:1}
     .fin-top-row .fin-top-year{order:2}
     .fin-top-row .fin-top-center{order:3;grid-column:1/-1}
+    /* Левая половина карточки "Цель по доходу" на мобильном занимает
+       заметно больше места (вся карточка на всю ширину экрана), поэтому
+       заголовок и сумма увеличены — иначе между текстом и вертикальным
+       разделителем оставался большой пустой промежуток. Меняем только
+       .fin-goal-title/.fin-goal-amount (левая половина) — .kpi-ring-extra
+       (правая половина: "Осталось уроков/Осталось заработать/До конца
+       месяца") этим правилом никак не затрагивается. */
+    .fin-goal-title{font-size:15px}
+    .fin-goal-amount{font-size:21px}
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
     .detail-panel{grid-template-columns:1fr}
