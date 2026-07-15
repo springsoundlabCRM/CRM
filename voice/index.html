@@ -1144,11 +1144,11 @@
        заметно больше места (вся карточка на всю ширину экрана), поэтому
        заголовок и сумма увеличены — иначе между текстом и вертикальным
        разделителем оставался большой пустой промежуток. Меняем только
-       .fin-goal-title/.fin-goal-amount (левая половина) — .kpi-ring-extra
+       .fin-goal-title/.fin-goal-target (левая половина) — .kpi-ring-extra
        (правая половина: "Осталось уроков/Осталось заработать/До конца
        месяца") этим правилом никак не затрагивается. */
     .fin-goal-title{font-size:15px}
-    .fin-goal-amount{font-size:21px}
+    .fin-goal-target{font-size:21px}
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
     .detail-panel{grid-template-columns:1fr}
@@ -1386,13 +1386,23 @@
      как и раньше) — переиспользуем .progress-bar/.progress-fill без
      изменений, это тот же тонкий фиолетовый бар, что и у абонементов на
      вкладке "Ученики". */
-  .fin-goal-left{display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;gap:6px}
-  .fin-goal-main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:4px}
+  .fin-goal-left{display:flex;flex-direction:column;align-items:stretch;gap:0}
+  .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:2px 0 10px}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
-  .fin-goal-amount{font-size:17px;font-weight:700;color:var(--text)}
-  .fin-goal-bar-row{display:flex;align-items:center;gap:10px}
-  .fin-goal-bar-row .fin-goal-bar{flex:1;margin:0}
-  .fin-goal-pct{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;min-width:32px;text-align:right}
+  .fin-goal-target{font-size:17px;font-weight:700;color:var(--text)}
+  /* Горизонтальная тонкая полоса — тот же цвет и толщина, что у вертикального
+     разделителя справа (border-left:1px solid var(--border) у .kpi-ring-extra),
+     просто развёрнута горизонтально, отделяет цифру цели от прогресс-бара. */
+  .fin-goal-divider{height:1px;background:var(--border);flex-shrink:0}
+  /* Сам прогресс-бар теперь высокий и заполняется снизу вверх (а не слева
+     направо, как раньше) — занимает всё оставшееся место внизу левой
+     половины карточки. Внутри заполненной части показывается текущая
+     заработанная сумма, под баром — процент выполнения цели. */
+  .fin-goal-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:56px;padding-top:10px}
+  .fin-goal-bar-vert{position:relative;width:100%;max-width:120px;flex:1;min-height:44px;background:var(--bg3);border-radius:8px;overflow:hidden}
+  .fin-goal-bar-vert-fill{position:absolute;left:0;right:0;bottom:0;min-height:20px;border-radius:8px 8px 0 0;transition:height .3s;display:flex;align-items:flex-start;justify-content:center;padding-top:4px}
+  .fin-goal-current{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);white-space:nowrap}
+  .fin-goal-pct{font-size:13px;font-weight:700;color:var(--text)}
   /* Только ЛЕВАЯ половина карточки "Цель по доходу" (заголовок + сумма + бар)
      растягивается на всю высоту строки — правая половина (kpi-ring-extra:
      "Осталось уроков/Осталось заработать/До конца месяца") НЕ трогается и
@@ -2468,10 +2478,15 @@
             <div class="goal-card-left fin-goal-left">
               <div class="fin-goal-main">
                 <div class="fin-goal-title">Цель по доходу</div>
-                <div class="fin-goal-amount" id="ringPaymentsSub">Нажмите, чтобы задать цель</div>
+                <div class="fin-goal-target" id="finGoalTarget">Нажмите, чтобы задать цель</div>
               </div>
-              <div class="fin-goal-bar-row">
-                <div class="progress-bar fin-goal-bar"><div class="progress-fill" id="finGoalFill" style="width:0%;background:var(--accent)"></div></div>
+              <div class="fin-goal-divider"></div>
+              <div class="fin-goal-bar-wrap">
+                <div class="fin-goal-bar-vert" id="finGoalBarVert">
+                  <div class="fin-goal-bar-vert-fill" id="finGoalFill" style="height:0%;background:var(--accent)">
+                    <div class="fin-goal-current" id="finGoalCurrent">0₽</div>
+                  </div>
+                </div>
                 <div class="fin-goal-pct" id="ringPaymentsVal">—</div>
               </div>
             </div>
@@ -7231,10 +7246,12 @@ function renderFinances(){
   const goalPctRaw = incomeGoal>0 ? Math.round(paid/incomeGoal*100) : 0;
   const isViewingCurrentMonth = financeMonthOffset===0;
   const goalFill = document.getElementById('finGoalFill');
-  if(goalFill) goalFill.style.width = Math.min(100, goalPctRaw)+'%';
+  if(goalFill) goalFill.style.height = Math.min(100, goalPctRaw)+'%';
   document.getElementById('ringPaymentsVal').textContent = incomeGoal>0 ? goalPctRaw+'%' : '—';
-  document.getElementById('ringPaymentsSub').textContent = incomeGoal>0
-    ? money(paid)+' из '+money(incomeGoal)
+  const finGoalCurrentEl = document.getElementById('finGoalCurrent');
+  if(finGoalCurrentEl) finGoalCurrentEl.textContent = money(paid);
+  document.getElementById('finGoalTarget').textContent = incomeGoal>0
+    ? money(incomeGoal)
     : (isViewingCurrentMonth ? 'Нажмите, чтобы задать цель' : 'Цель не была поставлена');
   const goalExtraHost = document.getElementById('ringGoalExtra');
   if(incomeGoal>0){
