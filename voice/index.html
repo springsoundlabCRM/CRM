@@ -1778,14 +1778,23 @@
     /* Компактный вид: три кольца, объединённые в одну карточку — как единый
        блок вместо трёх отдельных карточек друг под другом/парами. */
     .kpi-ring-grid.compact{display:flex;background:var(--card);border:1px solid var(--border);
-      border-radius:var(--r2);padding:12px 4px;gap:2px}
+      border-radius:var(--r2);padding:12px 4px;gap:2px;cursor:pointer}
     .kpi-ring-grid.compact .kpi-ring-card{background:transparent;border:none;padding:2px;
       display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-      flex:1;min-width:0}
+      flex:1;min-width:0;cursor:pointer}
     .kpi-ring-grid.compact .kpi-ring-card:hover{border-color:transparent}
     .kpi-ring-grid.compact .goal-card-left{flex-direction:column;gap:5px;padding-right:0;text-align:center}
     .kpi-ring-grid.compact .kpi-ring{width:46px;height:46px}
-    .kpi-ring-grid.compact .kpi-ring-val{font-size:11px}
+    /* Внутренний "просвет" кольца (::before) в обычном режиме занимает inset:8px
+       при диаметре 74px — толщина цветной дуги ~10.8% от диаметра. Раньше в
+       компактном режиме inset оставался теми же 8px, но при диаметре 46px это
+       давало уже ~17.4% толщины — внутренний просвет становился слишком
+       маленьким (30px), и процент физически не помещался, вылезая на саму
+       дугу. Уменьшаем inset пропорционально новому размеру (5px ≈ те же
+       ~10.8%), чтобы просвет был такой же по пропорциям, как в обычном
+       режиме, и текст снова помещался целиком внутри него. */
+    .kpi-ring-grid.compact .kpi-ring::before{inset:5px}
+    .kpi-ring-grid.compact .kpi-ring-val{font-size:10.5px;white-space:nowrap}
     .kpi-ring-grid.compact .kpi-ring-info{text-align:center}
     .kpi-ring-grid.compact .kpi-ring-title{font-size:9.5px;margin-bottom:0;white-space:normal;line-height:1.2}
     .kpi-ring-grid.compact .kpi-ring-sub{display:none}
@@ -2264,7 +2273,7 @@
         <div class="dash-kpi-mode-row" id="dashKpiModeRow">
           <div class="dash-kpi-mode-picker" id="dashKpiModePicker"></div>
         </div>
-        <div class="kpi-ring-grid" id="dashKpiRingGrid">
+        <div class="kpi-ring-grid" id="dashKpiRingGrid" onclick="handleDashKpiRingGridClick(event)">
           <div class="kpi-ring-card split-card" id="ringAttendanceCard">
             <div class="goal-card-left">
               <div class="kpi-ring" id="ringAttendance"><span class="kpi-ring-val" id="ringAttendanceVal">—</span></div>
@@ -4300,6 +4309,22 @@ function renderDashKpiModePicker(){
   picker.innerHTML = opts.map(function(o){
     return '<span class="dash-mode-btn'+(dashKpiCompactMode===o[0]?' active':'')+'" onclick="setDashKpiCompactMode(\''+o[0]+'\')">'+o[1]+'</span>';
   }).join('');
+}
+
+// Клик по блоку KPI-колец на дашборде. В обычном режиме ничего не делает
+// (карточки внутри не кликабельны сами по себе). В компактном режиме — по
+// нажатию в ЛЮБОЕ место блока открывает попап (модалку) с развёрнутым видом,
+// идентичным обычному режиму (см. buildKpiRingsExpandModal).
+function handleDashKpiRingGridClick(){
+  const grid = document.getElementById('dashKpiRingGrid');
+  if(!grid || !grid.classList.contains('compact')) return;
+  // Класс .compact визуально работает только в медиа-запросе max-width:880px
+  // (см. CSS) — на десктопе он ничего не меняет, даже если в DB сохранён
+  // компактный режим (настроен ранее с телефона). Поэтому дополнительно
+  // проверяем реальную ширину экрана, чтобы попап не всплывал на десктопе,
+  // где блок и так выглядит как обычный, разворачивать нечего.
+  if(window.innerWidth > 880) return;
+  openModal('kpiRingsExpand');
 }
 
 function toggleTodayExpand(){
@@ -8151,6 +8176,28 @@ function saveSubscriptionForm(){
   refreshAllVisible();
 }
 
+/* ---------- Развёрнутый попап KPI-колец (дашборд, компактный режим) ----------
+   Открывается по клику на блок трёх колец, когда включён компактный вид
+   (см. handleDashKpiRingGridClick). Показывает те же три карточки, что и
+   обычный режим, — просто в модальном окне, поверх компактного блока.
+   Берём текущую разметку прямо из #dashKpiRingGrid (она уже отрисована и
+   актуальна — значения, цвета и заполненность колец через CSS-переменные
+   --ring-color/--ring-pct выставлены inline-стилями в setRing()), поэтому
+   просто клонируем её как есть: снимаем класс compact, чтобы применились
+   обычные (не компактные) правила, и переименовываем все id, чтобы не
+   получить дубликаты id в документе (оригинальный блок остаётся на странице
+   под попапом). */
+function buildKpiRingsExpandModal(){
+  const grid = document.getElementById('dashKpiRingGrid');
+  if(!grid) return '<div class="modal-title">Нет данных <button class="modal-close" onclick="closeModal()">×</button></div>';
+  let html = grid.outerHTML
+    .replace(/\bcompact\b/g, '')
+    .replace(/ onclick="handleDashKpiRingGridClick\(event\)"/, '')
+    .replace(/ id="([^"]+)"/g, ' id="modalKpi-$1"');
+  return '<div class="modal-title"><span>KPI дашборда</span><button class="modal-close" onclick="closeModal()">×</button></div>'
+    + html;
+}
+
 /* ---------- Цель по доходу за месяц (дашборд) ---------- */
 function buildIncomeGoalModal(){
   // Открывается кликом по карточке "Цель по доходу" на вкладке "Финансы",
@@ -8568,6 +8615,7 @@ const modalBuilders = {
   deleteRepertoire: buildDeleteRepertoireModal,
   deleteSubscription: buildDeleteSubscriptionModal,
   incomeGoal: buildIncomeGoalModal,
+  kpiRingsExpand: buildKpiRingsExpandModal,
   studentDanger: buildStudentDangerModal,
   voiceReset: buildResetVoiceModal,
   exportChoice: buildExportChoiceModal,
