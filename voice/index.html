@@ -1854,7 +1854,7 @@
        как в прошлый раз. Дальнейшее уменьшение для очень узких телефонов
        (iPhone SE и т.п.) — см. @media (max-width:380px) ниже. */
     .kpi-ring-grid.compact{display:flex;background:var(--card);border:1px solid var(--border);
-      border-radius:var(--r2);padding:14px 6px;gap:2px;position:relative}
+      border-radius:var(--r2);padding:14px 6px;gap:6px;position:relative}
     .kpi-ring-grid.compact .kpi-ring-card{background:transparent;border:none;padding:2px;
       display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
       flex:1;min-width:0;cursor:pointer}
@@ -1871,19 +1871,29 @@
     .kpi-ring-grid.compact .kpi-ring-info{text-align:center}
     .kpi-ring-grid.compact .kpi-ring-title{font-size:10.5px;margin-bottom:0;white-space:normal;line-height:1.2}
     .kpi-ring-grid.compact .kpi-ring-sub{display:none}
-    /* Список показателей конкретного кольца (Пришли/Не пришли/Отменились
-       и т.п.) — в компактном режиме по умолчанию скрыт, разворачивается
-       ПОД СВОИМ кольцом по клику именно на эту карточку (не на весь блок
-       и не отдельным клоном сетки с кольцами слева — см. toggleKpiRingCard
-       в JS). Каждая из трёх карточек разворачивается независимо. */
+    /* Детализация показателей (Пришли/Не пришли/Отменились и т.п.) — в
+       компактном режиме по умолчанию скрыта у всех трёх колец разом.
+       Клик по ЛЮБОЙ из трёх карточек (см. toggleKpiRingCard в JS) разворачивает
+       ВСЕ ТРИ детализации одновременно — они рисуются под своим кольцом
+       у каждой из трёх карточек, а благодаря общему flex-родителю
+       (.kpi-ring-grid.compact) визуально выстраиваются в три ровные колонки
+       под кольцами, строка в строку. Повторный клик по любой из карточек
+       сворачивает все три обратно (единое состояние на весь блок). */
     .kpi-ring-grid.compact .kpi-ring-extra{display:none}
     .kpi-ring-grid.compact .kpi-ring-card.kpi-card-expanded .kpi-ring-extra{
-      display:flex;flex-direction:column;align-items:stretch;gap:5px;
-      width:100%;margin-top:10px;padding:9px 0 0;border-left:none;
+      display:flex;flex-direction:column;align-items:stretch;gap:4px;
+      width:100%;margin-top:9px;padding:8px 5px 0;border-left:none;
       border-top:1px solid var(--border);animation:kpiRingDetailIn .18s ease}
-    .kpi-ring-grid.compact .kpi-ring-extra-row{min-width:0;gap:4px;font-size:9.5px;flex-wrap:wrap;justify-content:space-between}
-    .kpi-ring-grid.compact .kpi-ring-extra-row:not(:last-child){padding-bottom:5px}
-    .kpi-ring-grid.compact .kpi-ring-extra-row .v{font-size:10px}
+    /* Тонкие вертикальные полоски между тремя колонками детализации — того же
+       цвета и толщины, что и горизонтальный border-top выше. Ставятся только
+       у 2-й и 3-й карточек (первой разделять не с чем слева), и только пока
+       блок реально развёрнут — чтобы линия не "торчала" в свёрнутом виде. */
+    .kpi-ring-grid.compact .kpi-ring-card:not(:first-child).kpi-card-expanded .kpi-ring-extra{
+      border-left:1px solid var(--border);padding-left:8px}
+    .kpi-ring-grid.compact .kpi-ring-extra-row{min-width:0;gap:3px;font-size:8.3px;flex-wrap:nowrap;justify-content:space-between;white-space:nowrap}
+    .kpi-ring-grid.compact .kpi-ring-extra-row span:first-child{overflow:hidden;text-overflow:ellipsis}
+    .kpi-ring-grid.compact .kpi-ring-extra-row:not(:last-child){padding-bottom:4px}
+    .kpi-ring-grid.compact .kpi-ring-extra-row .v{font-size:8.8px}
   }
   @media (max-width:600px){
     .kpi-ring-grid{grid-template-columns:1fr;gap:10px}
@@ -4403,12 +4413,13 @@ function renderDashKpiModePicker(){
 
 // Клик по ОДНОЙ карточке кольца на дашборде (Посещаемость / ДЗ / Активные).
 // В обычном режиме ничего не делает — карточки не кликабельны сами по себе.
-// В компактном режиме — клик по конкретной карточке разворачивает список
-// её показателей ПРЯМО ПОД ЭТИМ КОЛЬЦОМ (тот же .kpi-ring-extra, что справа
-// от кольца в обычном режиме, — см. CSS .kpi-ring-grid.compact .kpi-card-expanded).
-// Никакого отдельного клона всей сетки с кольцами не рисуется. Каждая из
-// трёх карточек разворачивается независимо от других, повторный клик по
-// ней же — сворачивает обратно.
+// В компактном режиме — клик по ЛЮБОЙ из трёх карточек разворачивает списки
+// показателей ПРЯМО ПОД ВСЕМИ ТРЕМЯ КОЛЬЦАМИ разом (тот же .kpi-ring-extra,
+// что справа от кольца в обычном режиме, — см. CSS
+// .kpi-ring-grid.compact .kpi-card-expanded). Никакого отдельного клона всей
+// сетки с кольцами не рисуется. Состояние общее на весь блок: если хотя бы
+// одна карточка развёрнута — клик по любой из трёх сворачивает все три;
+// если все свёрнуты — клик по любой разворачивает все три вместе.
 function toggleKpiRingCard(event, key){
   const grid = document.getElementById('dashKpiRingGrid');
   if(!grid || !grid.classList.contains('compact')) return;
@@ -4419,9 +4430,11 @@ function toggleKpiRingCard(event, key){
   // на десктопе, где блок и так выглядит как обычный, разворачивать нечего.
   if(window.innerWidth > 880) return;
   if(event) event.stopPropagation();
-  const card = document.getElementById('ring'+key+'Card');
-  if(!card) return;
-  card.classList.toggle('kpi-card-expanded');
+  const ids = ['ringAttendanceCard','ringHomeworkCard','ringActiveCard'];
+  const cards = ids.map(function(id){ return document.getElementById(id); }).filter(Boolean);
+  if(!cards.length) return;
+  const anyExpanded = cards.some(function(c){ return c.classList.contains('kpi-card-expanded'); });
+  cards.forEach(function(c){ c.classList.toggle('kpi-card-expanded', !anyExpanded); });
 }
 
 // Сворачивает все раскрытые списки под кольцами разом — при выходе из
