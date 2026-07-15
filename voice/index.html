@@ -4683,7 +4683,7 @@ function renderNotifications(){
     const debt = studentDebtNotifiable(s.id);
     if(debt>0) items.push({color:'red', text:'Долг '+money(debt)+' — '+escapeHTML(s.name)});
     const dleft = daysUntilBirthday(s.birthday);
-    if(dleft!==null && dleft<=2) items.push({color:'pink', text:'🎂 День рождения у '+escapeHTML(s.name)+' '+(dleft===0?'сегодня!':dleft===1?'завтра':'через '+dleft+' дн.')});
+    if(dleft!==null && dleft<=3) items.push({color:'pink', text:'🎂 День рождения у '+escapeHTML(s.name)+' '+(dleft===0?'сегодня!':dleft===1?'завтра':'через '+dleft+' дн.')});
   });
   if(!items.length){ host.innerHTML='<div class="empty-state">Нет новых уведомлений</div>'; return; }
   host.innerHTML = items.slice(0,6).map(it=>
