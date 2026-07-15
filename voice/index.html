@@ -1385,6 +1385,13 @@
   .kpi-ring-card.goal-card,.kpi-ring-card.split-card{display:grid;grid-template-columns:1fr 1fr;align-items:center;column-gap:0}
   .kpi-ring-card.goal-card{cursor:pointer}
   .kpi-ring-card.goal-card:hover{border-color:var(--green)}
+  .kpi-ring-grid-arrow{display:none}
+  /* Подробный отчёт, разворачивающийся под компактным блоком колец на
+     мобильной версии (замена всплывающего окна KPI dashboard) — см.
+     expandDashKpiRingDetail/collapseDashKpiRingDetail в JS. */
+  .kpi-ring-detail{display:none}
+  .kpi-ring-detail.show{display:block;margin:-14px 0 10px;animation:kpiRingDetailIn .18s ease}
+  @keyframes kpiRingDetailIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
 
   /* --- Финансы: верхняя строка из 3 блоков (Оплачено / Цель по доходу / Доход за год) --- */
@@ -1853,7 +1860,11 @@
        как в прошлый раз. Дальнейшее уменьшение для очень узких телефонов
        (iPhone SE и т.п.) — см. @media (max-width:380px) ниже. */
     .kpi-ring-grid.compact{display:flex;background:var(--card);border:1px solid var(--border);
-      border-radius:var(--r2);padding:14px 6px;gap:2px;cursor:pointer}
+      border-radius:var(--r2);padding:14px 6px;gap:2px;cursor:pointer;position:relative}
+    .kpi-ring-grid.compact .kpi-ring-grid-arrow{display:block;position:absolute;right:8px;bottom:6px;
+      font-size:10px;color:var(--text3);transition:transform .2s}
+    .kpi-ring-grid.compact.expanded .kpi-ring-grid-arrow{transform:rotate(180deg)}
+    .kpi-ring-grid.compact.expanded{border-color:var(--border2)}
     .kpi-ring-grid.compact .kpi-ring-card{background:transparent;border:none;padding:2px;
       display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
       flex:1;min-width:0;cursor:pointer}
@@ -2367,7 +2378,9 @@
             </div>
             <div class="kpi-ring-extra" id="ringActiveExtra"></div>
           </div>
+          <i class="fa-solid fa-chevron-down kpi-ring-grid-arrow"></i>
         </div>
+        <div class="kpi-ring-detail" id="dashKpiRingDetail"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
           <div>
             <div class="section-head"><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div><div class="dash-mode-picker" id="dashTodayModePicker" style="display:none"></div><span class="section-link" id="todayToggleBtn" onclick="toggleTodayExpand()" style="display:none">Развернуть <i class="fa-solid fa-chevron-down"></i></span></div>
@@ -4376,7 +4389,9 @@ function renderDashKpiModePicker(){
   const grid = document.getElementById('dashKpiRingGrid');
   if(!row || !picker || !grid) return;
 
-  grid.classList.toggle('compact', dashKpiCompactMode === 'compact');
+  const isCompact = dashKpiCompactMode === 'compact';
+  grid.classList.toggle('compact', isCompact);
+  if(!isCompact) collapseDashKpiRingDetail();
 
   if(!dashTodayEditMode){ row.classList.remove('show'); picker.innerHTML = ''; return; }
   row.classList.add('show');
@@ -4388,18 +4403,55 @@ function renderDashKpiModePicker(){
 
 // Клик по блоку KPI-колец на дашборде. В обычном режиме ничего не делает
 // (карточки внутри не кликабельны сами по себе). В компактном режиме — по
-// нажатию в ЛЮБОЕ место блока открывает попап (модалку) с развёрнутым видом,
-// идентичным обычному режиму (см. buildKpiRingsExpandModal).
+// нажатию в ЛЮБОЕ место блока разворачивает подробный отчёт прямо под
+// блоком (без всплывающего окна), повторный клик сворачивает его обратно
+// (см. expandDashKpiRingDetail/collapseDashKpiRingDetail).
+let dashKpiRingExpanded = false;
+
 function handleDashKpiRingGridClick(){
   const grid = document.getElementById('dashKpiRingGrid');
   if(!grid || !grid.classList.contains('compact')) return;
   // Класс .compact визуально работает только в медиа-запросе max-width:880px
   // (см. CSS) — на десктопе он ничего не меняет, даже если в DB сохранён
   // компактный режим (настроен ранее с телефона). Поэтому дополнительно
-  // проверяем реальную ширину экрана, чтобы попап не всплывал на десктопе,
-  // где блок и так выглядит как обычный, разворачивать нечего.
+  // проверяем реальную ширину экрана, чтобы разворачивание не срабатывало
+  // на десктопе, где блок и так выглядит как обычный, разворачивать нечего.
   if(window.innerWidth > 880) return;
-  openModal('kpiRingsExpand');
+  if(dashKpiRingExpanded) collapseDashKpiRingDetail();
+  else expandDashKpiRingDetail();
+}
+
+// Разворачивает подробный отчёт под компактным блоком колец. Берём текущую
+// разметку прямо из #dashKpiRingGrid (она уже отрисована и актуальна —
+// значения, цвета и заполненность колец через CSS-переменные
+// --ring-color/--ring-pct выставлены inline-стилями в setRing()), поэтому
+// просто клонируем её как есть: снимаем класс compact, чтобы применились
+// обычные (не компактные) правила, и переименовываем все id, чтобы не
+// получить дубликаты id в документе (оригинальный компактный блок остаётся
+// на странице над развёрнутым отчётом).
+function expandDashKpiRingDetail(){
+  const grid = document.getElementById('dashKpiRingGrid');
+  const detail = document.getElementById('dashKpiRingDetail');
+  if(!grid || !detail) return;
+  dashKpiRingExpanded = true;
+  grid.classList.add('expanded');
+  let html = grid.outerHTML
+    .replace(/\bcompact\b/g, '')
+    .replace(/\bexpanded\b/g, '')
+    .replace(/ onclick="handleDashKpiRingGridClick\(event\)"/, '')
+    .replace(/ id="([^"]+)"/g, ' id="dashKpiDetail-$1"');
+  detail.innerHTML = html;
+  detail.classList.add('show');
+}
+
+// Сворачивает подробный отчёт обратно (повторный клик по блоку, переключение
+// в обычный режим или выход из компактного режима — см. renderDashKpiModePicker).
+function collapseDashKpiRingDetail(){
+  dashKpiRingExpanded = false;
+  const grid = document.getElementById('dashKpiRingGrid');
+  const detail = document.getElementById('dashKpiRingDetail');
+  if(grid) grid.classList.remove('expanded');
+  if(detail){ detail.classList.remove('show'); detail.innerHTML = ''; }
 }
 
 function toggleTodayExpand(){
@@ -8324,28 +8376,6 @@ function saveSubscriptionForm(){
   refreshAllVisible();
 }
 
-/* ---------- Развёрнутый попап KPI-колец (дашборд, компактный режим) ----------
-   Открывается по клику на блок трёх колец, когда включён компактный вид
-   (см. handleDashKpiRingGridClick). Показывает те же три карточки, что и
-   обычный режим, — просто в модальном окне, поверх компактного блока.
-   Берём текущую разметку прямо из #dashKpiRingGrid (она уже отрисована и
-   актуальна — значения, цвета и заполненность колец через CSS-переменные
-   --ring-color/--ring-pct выставлены inline-стилями в setRing()), поэтому
-   просто клонируем её как есть: снимаем класс compact, чтобы применились
-   обычные (не компактные) правила, и переименовываем все id, чтобы не
-   получить дубликаты id в документе (оригинальный блок остаётся на странице
-   под попапом). */
-function buildKpiRingsExpandModal(){
-  const grid = document.getElementById('dashKpiRingGrid');
-  if(!grid) return '<div class="modal-title">Нет данных <button class="modal-close" onclick="closeModal()">×</button></div>';
-  let html = grid.outerHTML
-    .replace(/\bcompact\b/g, '')
-    .replace(/ onclick="handleDashKpiRingGridClick\(event\)"/, '')
-    .replace(/ id="([^"]+)"/g, ' id="modalKpi-$1"');
-  return '<div class="modal-title"><span>KPI дашборда</span><button class="modal-close" onclick="closeModal()">×</button></div>'
-    + html;
-}
-
 /* ---------- Цель по доходу за месяц (дашборд) ---------- */
 function buildIncomeGoalModal(){
   // Открывается кликом по карточке "Цель по доходу" на вкладке "Финансы",
@@ -8763,7 +8793,6 @@ const modalBuilders = {
   deleteRepertoire: buildDeleteRepertoireModal,
   deleteSubscription: buildDeleteSubscriptionModal,
   incomeGoal: buildIncomeGoalModal,
-  kpiRingsExpand: buildKpiRingsExpandModal,
   studentDanger: buildStudentDangerModal,
   voiceReset: buildResetVoiceModal,
   exportChoice: buildExportChoiceModal,
