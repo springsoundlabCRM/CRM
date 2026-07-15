@@ -1327,6 +1327,16 @@
     .cal-head{grid-template-columns:32px repeat(7,1fr)}
     .cal-body{grid-template-columns:32px repeat(7,1fr)}
     .cal-time-label{font-size:7.5px;right:0;left:0;text-align:center}
+    /* Компактная карточка "Посещаемость/ДЗ/Активные" на самых узких экранах
+       (iPhone SE и подобные) — три кольца в ряд буквально не помещаются с
+       теми же отступами/размерами, что и на более широких телефонах, поэтому
+       здесь всё немного компактнее, чтобы ничего не налезало и не переносилось. */
+    .kpi-ring-grid.compact{padding:10px 2px;gap:0}
+    .kpi-ring-grid.compact .goal-card-left{gap:4px}
+    .kpi-ring-grid.compact .kpi-ring{width:42px;height:42px}
+    .kpi-ring-grid.compact .kpi-ring::before{inset:4.5px}
+    .kpi-ring-grid.compact .kpi-ring-val{font-size:9.5px}
+    .kpi-ring-grid.compact .kpi-ring-title{font-size:8.5px;line-height:1.15}
   }
 
   /* ---------- Сенсорные улучшения (применяются везде на тач-устройствах) ---------- */
@@ -1838,29 +1848,27 @@
 
     /* Компактный вид: три кольца, объединённые в одну карточку — как единый
        блок вместо трёх отдельных карточек друг под другом/парами. Размер
-       увеличен так, чтобы карточка визуально была того же масштаба, что и
-       карточки уроков в блоке "Сегодня" (.lesson-slot: padding 8px 10px) —
-       раньше эта карточка была заметно мельче их. */
+       чуть увеличен по сравнению с исходным (было 46px/12px 4px) — совсем
+       немного крупнее карточек уроков в блоке "Сегодня", а не вдвое больше,
+       как в прошлый раз. Дальнейшее уменьшение для очень узких телефонов
+       (iPhone SE и т.п.) — см. @media (max-width:380px) ниже. */
     .kpi-ring-grid.compact{display:flex;background:var(--card);border:1px solid var(--border);
-      border-radius:var(--r2);padding:18px 8px;gap:2px;cursor:pointer}
+      border-radius:var(--r2);padding:14px 6px;gap:2px;cursor:pointer}
     .kpi-ring-grid.compact .kpi-ring-card{background:transparent;border:none;padding:2px;
       display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
       flex:1;min-width:0;cursor:pointer}
     .kpi-ring-grid.compact .kpi-ring-card:hover{border-color:transparent}
-    .kpi-ring-grid.compact .goal-card-left{flex-direction:column;gap:8px;padding-right:0;text-align:center}
-    .kpi-ring-grid.compact .kpi-ring{width:60px;height:60px}
+    .kpi-ring-grid.compact .goal-card-left{flex-direction:column;gap:6px;padding-right:0;text-align:center}
+    .kpi-ring-grid.compact .kpi-ring{width:50px;height:50px}
     /* Внутренний "просвет" кольца (::before) в обычном режиме занимает inset:8px
-       при диаметре 74px — толщина цветной дуги ~10.8% от диаметра. Раньше в
-       компактном режиме inset оставался теми же 8px, но при диаметре 46px это
-       давало уже ~17.4% толщины — внутренний просвет становился слишком
-       маленьким (30px), и процент физически не помещался, вылезая на саму
-       дугу. Уменьшаем inset пропорционально новому размеру (6.5px ≈ те же
-       ~10.8% от 60px), чтобы просвет был такой же по пропорциям, как в
-       обычном режиме, и текст снова помещался целиком внутри него. */
-    .kpi-ring-grid.compact .kpi-ring::before{inset:6.5px}
-    .kpi-ring-grid.compact .kpi-ring-val{font-size:13px;white-space:nowrap}
+       при диаметре 74px — толщина цветной дуги ~10.8% от диаметра. Пересчитано
+       пропорционально новому диаметру 50px (5.4px ≈ те же ~10.8%), чтобы
+       просвет был такой же по пропорциям, как в обычном режиме, и текст
+       снова помещался целиком внутри него. */
+    .kpi-ring-grid.compact .kpi-ring::before{inset:5.4px}
+    .kpi-ring-grid.compact .kpi-ring-val{font-size:11.5px;white-space:nowrap}
     .kpi-ring-grid.compact .kpi-ring-info{text-align:center}
-    .kpi-ring-grid.compact .kpi-ring-title{font-size:11.5px;margin-bottom:0;white-space:normal;line-height:1.25}
+    .kpi-ring-grid.compact .kpi-ring-title{font-size:10.5px;margin-bottom:0;white-space:normal;line-height:1.2}
     .kpi-ring-grid.compact .kpi-ring-sub{display:none}
     .kpi-ring-grid.compact .kpi-ring-extra{display:none}
   }
