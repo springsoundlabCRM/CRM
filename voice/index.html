@@ -714,17 +714,38 @@
      часики/...), вместо прежнего выпадающего списка. Для "На паузе" своей
      готовой пилюли у ДЗ нет (там только сдано/в процессе/не сдано) —
      добавлен новый цвет pill-purple с иконкой паузы. */
-  .song-status-pills{display:flex;align-items:center;gap:8px;flex-shrink:0}
   /* Кнопки статуса песни и корзина рядом с ними были слишком мелкими на
      фоне выросшей карточки — увеличены (крупнее, чем в футере карточки
      задания, т.к. тут это единственные кнопки в строке). */
-  .song-status-pills .hw-status-pill{width:32px;height:29px;font-size:14px}
+  .song-status-select .hw-status-pill{width:32px;height:29px;font-size:14px}
   .hw-status-pill.pill-purple{color:var(--accent)}
   .hw-status-pill.pill-purple.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
   /* Корзина в "Репертуаре" была слишком мелкой на фоне выросшей карточки —
      увеличиваем до того же размера, что и у корзины в карточках заданий
      (см. .hw-card-footer .btn-delete-icon). */
   .song-delete-icon{width:34px;height:34px;font-size:15px}
+  /* ===== Статус песни в "Репертуаре" — раньше было три отдельные кнопки-пилюли
+     (Готово/Разучиваем/На паузе), теперь одна кнопка того же размера, что и
+     раньше была ОДНА пилюля (см. .song-status-select .hw-status-pill выше —
+     32x29px), показывающая только текущий статус. Клик по ней открывает
+     выпадающий список всех трёх статусов (тот же визуальный приём и та же
+     JS-механика позиционирования/закрытия, что и у "Тип голоса"/"Статус" в
+     карточке "Голос" — см. openRepStatusPicker/positionRepStatusDD ниже):
+     список — отдельный position:fixed элемент в document.body (чтобы не
+     обрезаться overflow карточки), выбор любого пункта сразу применяет
+     статус и закрывает список, клик мимо — просто закрывает список без
+     изменений. Работает одинаково на компьютере и на телефоне. */
+  .song-status-select{position:relative;flex-shrink:0}
+  .rep-status-dd .autocomplete-item{gap:10px}
+  .rep-status-item-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:6px;font-size:12px;flex-shrink:0;
+  }
+  .rep-status-item-icon.pill-green{color:var(--green);background:var(--green-bg)}
+  .rep-status-item-icon.pill-amber{color:var(--amber);background:var(--amber-bg)}
+  .rep-status-item-icon.pill-purple{color:var(--accent);background:var(--accent-glow)}
+  .rep-status-dd .autocomplete-item.active{background:var(--accent);color:#fff}
+  .rep-status-dd .autocomplete-item.active .autocomplete-name{color:#fff}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
   .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
   #modal-content.modal-danger{border-color:var(--red)}
@@ -6728,10 +6749,11 @@ const REP_STATUS_PILLS = [
   {key:'разучиваем', cls:'pill-amber', icon:'⏳', title:'Разучиваем'},
   {key:'на паузе', cls:'pill-purple', icon:'⏸', title:'На паузе'}
 ];
-function repStatusPillsHTML(r){
-  return '<div class="song-status-pills">'+REP_STATUS_PILLS.map(function(p){
-    return '<button type="button" class="hw-status-pill '+p.cls+(r.status===p.key?' active':'')+'" title="'+p.title+'" onclick="event.stopPropagation();updateRepertoireStatus(\''+r.id+'\',\''+p.key+'\')">'+p.icon+'</button>';
-  }).join('')+'</div>';
+function repStatusTriggerHTML(r){
+  const cur = REP_STATUS_PILLS.find(function(p){ return p.key===r.status; }) || REP_STATUS_PILLS[0];
+  return '<div class="song-status-select">'
+    +'<button type="button" class="hw-status-pill song-status-trigger '+cur.cls+' active" title="'+cur.title+'" onclick="event.stopPropagation();openRepStatusPicker(\''+r.id+'\',this)">'+cur.icon+'</button>'
+  +'</div>';
 }
 function renderRepertoire(){
   const s = studentById(currentStudentId); if(!s) return;
@@ -6739,7 +6761,7 @@ function renderRepertoire(){
   const list = repertoireOfStudent(s.id);
   const rows = list.length ? list.map((r,i)=>
     '<div class="song-item '+repStatusClass(r.status)+'"><div class="song-num">'+(i+1)+'</div><div class="song-info"><div class="song-title">'+escapeHTML(r.title)+'</div><div class="song-artist">'+escapeHTML(r.artist)+'</div></div>'
-    +repStatusPillsHTML(r)
+    +repStatusTriggerHTML(r)
     +'<button class="btn-delete-icon song-delete-icon" title="Удалить" onclick="confirmDeleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash"></i></button></div>'
   ).join('') : '<div class="empty-state">Репертуар пока пуст</div>';
   host.innerHTML = '<div class="detail-card full-width" style="background:var(--card);border:1px solid var(--border)">'
@@ -6751,6 +6773,79 @@ function updateRepertoireStatus(id, status){
   r.status = status;
   saveDB(); renderRepertoire();
 }
+
+/* ---------- Выпадающий список статуса песни (замена трём отдельным
+   кнопкам-пилюлям) ----------
+   По тому же принципу, что и openVoiceFieldPicker (поле "Тип голоса"/
+   "Статус" в карточке "Голос"): список — отдельный position:fixed элемент
+   в document.body (карточка "Репертуар" не должна его обрезать), клик по
+   любому пункту сразу применяет статус и закрывает список, клик мимо —
+   просто закрывает список без изменений. Повторный клик по уже открытой
+   кнопке-триггеру закрывает список без выбора (как и обычный выпадающий
+   список). */
+let _openRepStatusPicker = null;
+function closeRepStatusPicker(e){
+  // Игнорируем scroll-события ВНУТРИ самого списка (см. подробный
+  // комментарий у closeVoiceFieldPicker) — иначе прокрутка длинного списка
+  // статусов мгновенно закрывала бы его же.
+  if(e && e.target && e.target.closest && e.target.closest('.rep-status-dd')) return;
+  document.querySelectorAll('.rep-status-dd').forEach(d=>d.remove());
+  document.querySelectorAll('.song-status-trigger.open').forEach(b=>b.classList.remove('open'));
+  _openRepStatusPicker = null;
+  window.removeEventListener('scroll', closeRepStatusPicker, true);
+  window.removeEventListener('resize', closeRepStatusPicker);
+}
+function openRepStatusPicker(repId, btnEl){
+  if(_openRepStatusPicker === repId){ closeRepStatusPicker(); return; }
+  closeRepStatusPicker();
+  btnEl.classList.add('open');
+  _openRepStatusPicker = repId;
+  const r = DB.repertoire.find(x=>x.id===repId);
+  const currentVal = r ? r.status : '';
+  const dd = document.createElement('div');
+  dd.className = 'autocomplete-dropdown open rep-status-dd';
+  dd.onclick = function(e){ e.stopPropagation(); };
+  dd.innerHTML = REP_STATUS_PILLS.map(function(p){
+    return '<div class="autocomplete-item'+(p.key===currentVal?' active':'')+'" onmousedown="event.preventDefault();selectRepStatusOption(\''+repId+'\',\''+p.key+'\')">'
+      +'<span class="rep-status-item-icon '+p.cls+'">'+p.icon+'</span>'
+      +'<span class="autocomplete-name">'+p.title+'</span>'
+    +'</div>';
+  }).join('');
+  document.body.appendChild(dd);
+  positionRepStatusDD(dd, btnEl);
+  window.addEventListener('scroll', closeRepStatusPicker, true);
+  window.addEventListener('resize', closeRepStatusPicker);
+}
+// Кнопка-триггер компактная (32px, только иконка), а список должен быть
+// достаточно широким для текста статусов — поэтому, в отличие от
+// positionVoiceFieldDD (где ширина списка = ширине поля-триггера), тут
+// задаём собственную фиксированную ширину и прижимаем список ПРАВЫМ краем
+// к правому краю кнопки (список открывается влево от неё), чтобы он не
+// вылезал за правый край экрана на телефоне, где кнопка обычно у самого
+// края карточки.
+function positionRepStatusDD(dd, btnEl){
+  const rect = btnEl.getBoundingClientRect();
+  const ddWidth = Math.min(180, window.innerWidth - 16);
+  dd.style.width = ddWidth+'px';
+  let left = rect.right - ddWidth;
+  left = Math.max(8, Math.min(left, window.innerWidth - ddWidth - 8));
+  dd.style.left = left+'px';
+  const estHeight = Math.min(230, dd.scrollHeight || 150);
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  if(spaceBelow < estHeight + 12 && spaceAbove > spaceBelow){
+    dd.style.top = 'auto';
+    dd.style.bottom = (window.innerHeight - rect.top + 6)+'px';
+  } else {
+    dd.style.bottom = 'auto';
+    dd.style.top = (rect.bottom + 6)+'px';
+  }
+}
+function selectRepStatusOption(repId, status){
+  closeRepStatusPicker();
+  updateRepertoireStatus(repId, status);
+}
+
 // Раньше песня удалялась сразу по клику на корзину — теперь, как и у
 // заданий (см. confirmDeleteHomework/buildDeleteHomeworkModal), сначала
 // открывается модалка "Удалить песню?" с подтверждением, чтобы случайный
@@ -9535,10 +9630,11 @@ document.addEventListener('click', function(e){
   // Клик вне "красивых" выпадающих списков (выбор ученика с аватаркой в
   // модалках "Абонемент"/"Платёж"/"Задать ДЗ", а также "Тип голоса"/
   // "Статус" в карточке "Голос") — закрыть их тоже.
-  const isDropdownUI = e.target.closest && e.target.closest('.dd-trigger-btn, .student-picker-dd, .voice-field-dd');
+  const isDropdownUI = e.target.closest && e.target.closest('.dd-trigger-btn, .student-picker-dd, .voice-field-dd, .song-status-trigger, .rep-status-dd');
   if (!isDropdownUI){
     if (typeof closeStudentPicker === 'function') closeStudentPicker();
     if (typeof closeVoiceFieldPicker === 'function') closeVoiceFieldPicker();
+    if (typeof closeRepStatusPicker === 'function') closeRepStatusPicker();
   }
 });
 
