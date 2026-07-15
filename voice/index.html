@@ -1377,27 +1377,23 @@
      как и раньше) — переиспользуем .progress-bar/.progress-fill без
      изменений, это тот же тонкий фиолетовый бар, что и у абонементов на
      вкладке "Ученики". */
-  .fin-goal-left{display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;gap:6px}
+  .fin-goal-left{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:6px}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-amount{font-size:17px;font-weight:700;color:var(--text)}
   .fin-goal-bar-row{display:flex;align-items:center;gap:10px}
   .fin-goal-bar-row .fin-goal-bar{flex:1;margin:0}
   .fin-goal-pct{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;min-width:32px;text-align:right}
-  /* Только ЛЕВАЯ половина карточки "Цель по доходу" (заголовок + сумма + бар)
-     растягивается на всю высоту строки — правая половина (kpi-ring-extra:
-     "Осталось уроков/Осталось заработать/До конца месяца") НЕ трогается и
-     остаётся ровно такой же, как раньше: именно её естественная высота
-     (обычно больше, чем у левого блока) по-прежнему определяет высоту всей
-     карточки — мы её не увеличиваем и не меняем.
-     Раньше .fin-goal-left был вертикально ЦЕНТРИРОВАН как короткий столбик
-     внутри уже готовой высоты строки, из-за чего сверху и снизу оставались
-     пустые поля. Теперь сам блок растягивается на всю эту (не изменившуюся)
-     высоту через grid align-items:stretch на карточке, а 3 строки внутри
-     него (заголовок / сумма / бар) равномерно распределяются по всей этой
-     высоте через justify-content:space-between — заполняя именно ту пустоту,
-     что была помечена. Шрифты и отступы не меняем, чтобы общая высота
-     карточки осталась прежней. */
-  .fin-top-row .kpi-ring-card.fin-top-center{align-items:stretch}
+  /* Крупнее заголовок "Цель по доходу" и цифры под ним — но ТОЛЬКО на
+     компьютерной версии (на телефоне карточка и так узкая, там прежний
+     размер остаётся, см. правило .goal-card-left .kpi-ring-title и
+     соседние в @media (max-width:880px) ниже, которое эту карточку не
+     трогает — .fin-goal-* туда никогда не попадали). Порог 881px —
+     ровно следующее значение после мобильного брейкпоинта 880px. */
+  @media (min-width:881px){
+    .fin-goal-title{font-size:16px}
+    .fin-goal-amount{font-size:22px}
+    .fin-goal-pct{font-size:15px;min-width:40px}
+  }
 
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
