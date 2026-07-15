@@ -821,20 +821,9 @@
   }
   .btn-delete-icon:hover{background:var(--red);color:#fff}
   .btn-delete-icon:active{transform:scale(.94)}
-  .input-group{margin-bottom:14px;min-width:0}
+  .input-group{margin-bottom:14px}
   .input-label{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.4px}
-  .input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s;box-sizing:border-box;min-width:0}
-  /* Нативные поля "дата"/"время" (<input type="date"/"time">) в iOS Safari
-     всегда рендерятся своим системным виджетом, ширина которого зависит от
-     локали/формата даты и НЕ подчиняется обычным правилам сжатия текста.
-     Если родительская grid-колонка не ограничена явно (см. .input-row ниже
-     — раньше было "1fr 1fr" без minmax), браузер разрешает такому полю
-     "раздуть" свою колонку под свой предпочитаемый размер — из-за этого на
-     некоторых айфонах (например, iPhone 16 Pro Max) поля "Дата" и "Время"
-     в модалке урока наезжали друг на друга. min-width:0 здесь — подстраховка
-     на случай, если сам браузер попробует растянуть инпут ещё раз поверх
-     уже ограниченной колонки. */
-  .input[type="date"],.input[type="time"]{min-width:0;-webkit-min-logical-width:0}
+  .input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s}
   /* Стрелочка у <select> — раньше это была "родная" браузерная стрелка,
      прижатая вплотную к самому краю поля (не туда же, куда браузер ставит
      иконки даты/времени). Теперь рисуем свою стрелку с тем же отступом
@@ -848,14 +837,7 @@
     background-position:right 12px center;
   }
   .input:focus{border-color:var(--accent)}
-  /* grid-template-columns:1fr 1fr БЕЗ minmax(0, ...) — классическая ловушка
-     CSS Grid: у track'а по умолчанию min-width:auto, т.е. колонка не может
-     стать УЖЕ, чем содержимое внутри просит по минимуму. Нативный виджет
-     даты/времени в iOS Safari как раз просит больше, чем половина строки —
-     и вместо переноса/сжатия одна из колонок реально раздувается шире 50%,
-     наезжая на соседнюю. minmax(0,1fr) снимает это правило и гарантирует
-     ровно равные колонки на любом экране/устройстве. */
-  .input-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+  .input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .topup-row{align-items:start}
   .topup-row .input-label{font-size:9.5px;letter-spacing:.2px;white-space:nowrap;margin-bottom:8px}
   .topup-row .input-group{display:flex;flex-direction:column}
@@ -1172,7 +1154,7 @@
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
     .detail-panel{grid-template-columns:1fr}
-    .input-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    .input-row{grid-template-columns:1fr 1fr}
   }
 
   /* ================= ТЕЛЕФОН (≤600px) ================= */
@@ -1240,16 +1222,11 @@
     .detail-card{padding:12px}
 
     /* Формы внутри модалок — поля друг под другом */
-    .input-row{grid-template-columns:minmax(0,1fr)!important;gap:0}
+    .input-row{grid-template-columns:1fr!important;gap:0}
     /* Модалка "Запланировать урок" — Дата/Время, Длительность/Формат
        и Статус оплаты/Сумма оплаты должны на телефоне выглядеть
-       так же, как на компьютере: в два столбца, а не друг под другом.
-       minmax(0, ...) — обязателен: без него на некоторых айфонах
-       (например, iPhone 16 Pro Max) нативный виджет поля "дата"/"время"
-       просит больше половины строки и реально раздувает свою колонку —
-       из-за этого "Дата" и "Время" наезжали друг на друга. С minmax(0,1fr)
-       колонки всегда строго равны, независимо от устройства. */
-    .input-row.lesson-modal-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important}
+       так же, как на компьютере: в два столбца, а не друг под другом. */
+    .input-row.lesson-modal-row{grid-template-columns:1fr 1fr!important;gap:8px!important}
     /* Поп-ап окна на телефоне — отдельное всплывающее окно ПО ЦЕНТРУ экрана,
        не касается боковых/нижнего краёв (раньше было прилипающее к низу
        окно на всю ширину экрана — "bottom sheet"). Это касается ВСЕХ
@@ -1324,12 +1301,6 @@
 
   /* ================= УЗКИЙ ТЕЛЕФОН (≤380px) ================= */
   @media (max-width:380px){
-    /* Доп. подстраховка для полей "Дата"/"Время" в модалке урока — на самых
-       узких экранах (iPhone SE и т.п.) чуть уменьшаем шрифт и внутренние
-       отступы, чтобы нативный виджет точно помещался в половину строки
-       и не заходил на соседнее поле. */
-    .input-row.lesson-modal-row .input[type="date"],
-    .input-row.lesson-modal-row .input[type="time"]{font-size:12px;padding:9px 8px}
     .content{padding:10px}
     #page-student-detail .content{padding-bottom:0}
     #page-student-detail .content::after{height:10px}
@@ -1952,6 +1923,88 @@
     .an-row-3.reorder-mode{grid-template-columns:1fr!important}
     .an-row-3.reorder-mode > .an-card{grid-column:auto!important}
   }
+
+  /* ============================================================
+     ОБУЧЕНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ (интерактивный тур)
+     ============================================================ */
+  .tour-overlay{position:fixed;inset:0;z-index:9990;display:block}
+  .tour-overlay.hidden{display:none}
+  .tour-dim{position:fixed;inset:0;background:rgba(6,6,10,.72);z-index:9991;transition:opacity .2s}
+  .tour-spot{position:fixed;z-index:9992;border-radius:14px;
+    box-shadow:0 0 0 6px rgba(167,139,250,.22),0 0 0 2000px rgba(6,6,10,.72),0 0 24px rgba(167,139,250,.35);
+    border:2px solid var(--accent);pointer-events:none;
+    transition:top .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1),width .28s cubic-bezier(.4,0,.2,1),height .28s cubic-bezier(.4,0,.2,1),opacity .2s}
+  .tour-spot.tour-spot-hidden{opacity:0;box-shadow:0 0 0 2000px rgba(6,6,10,.72)}
+  .tour-card{position:fixed;z-index:9993;width:320px;max-width:calc(100vw - 24px);
+    background:var(--card);border:1px solid var(--border2);border-radius:16px;
+    padding:18px 18px 14px;box-shadow:0 18px 50px rgba(0,0,0,.45);
+    font-family:var(--font);color:var(--text);
+    transition:top .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1)}
+  .tour-card-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;
+    letter-spacing:.5px;text-transform:uppercase;color:var(--accent);background:var(--accent-glow);
+    padding:3px 9px;border-radius:20px;margin-bottom:10px}
+  .tour-card-title{font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.3}
+  .tour-card-text{font-size:12.5px;line-height:1.55;color:var(--text2);margin-bottom:14px}
+  .tour-card-text b{color:var(--text)}
+  .tour-card-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .tour-dots{display:flex;gap:5px}
+  .tour-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:background .2s,width .2s}
+  .tour-dot.active{background:var(--accent);width:16px;border-radius:4px}
+  .tour-card-btns{display:flex;gap:8px}
+  .tour-btn{font-family:var(--font);font-size:12.5px;font-weight:600;border-radius:9px;padding:8px 14px;
+    cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s}
+  .tour-btn:hover{background:var(--border2)}
+  .tour-btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff}
+  .tour-btn-primary:hover{filter:brightness(1.08)}
+  .tour-skip{position:fixed;z-index:9993;top:calc(16px + env(safe-area-inset-top,0px));right:16px;
+    font-family:var(--font);font-size:12px;font-weight:600;color:#fff;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:7px 14px;cursor:pointer;backdrop-filter:blur(6px)}
+  .tour-skip:hover{background:rgba(255,255,255,.16)}
+  .tour-final-actions{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+  .tour-final-btn{width:100%;text-align:left;display:flex;align-items:center;gap:10px;font-family:var(--font);
+    font-size:12.5px;font-weight:600;border-radius:10px;padding:10px 12px;cursor:pointer;
+    border:1px solid var(--border2);background:var(--bg3);color:var(--text);transition:all .15s}
+  .tour-final-btn:hover{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
+  @media (max-width:520px){
+    .tour-card{width:calc(100vw - 24px)}
+  }
+
+  /* ---------- Плавающая кнопка "Помощь" ---------- */
+  .help-fab{position:fixed;right:18px;bottom:calc(22px + var(--bottom-nav-h,0px));z-index:850;
+    width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;
+    box-shadow:0 6px 18px rgba(124,58,237,.4);cursor:pointer;border:none;transition:transform .15s}
+  .help-fab:hover{transform:scale(1.06)}
+  .help-fab.hidden{display:none}
+  .help-menu{position:fixed;right:18px;bottom:calc(74px + var(--bottom-nav-h,0px));z-index:851;
+    background:var(--card);border:1px solid var(--border2);border-radius:14px;overflow:hidden;
+    box-shadow:0 14px 40px rgba(0,0,0,.4);min-width:220px}
+  .help-menu.hidden{display:none}
+  .help-menu-item{display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:12.5px;font-weight:500;
+    color:var(--text);cursor:pointer;transition:background .15s}
+  .help-menu-item:hover{background:var(--bg3)}
+  .help-menu-item+.help-menu-item{border-top:1px solid var(--border)}
+
+  /* ---------- Раздел "Справка" ---------- */
+  .help-hero{background:linear-gradient(135deg,var(--accent-glow),transparent);border:1px solid var(--border);
+    border-radius:var(--r2);padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;
+    justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .help-hero-title{font-size:15px;font-weight:700;margin-bottom:4px}
+  .help-hero-sub{font-size:12px;color:var(--text3);max-width:480px}
+  .help-acc{border:1px solid var(--border);border-radius:var(--r2);background:var(--card);margin-bottom:10px;overflow:hidden}
+  .help-acc-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+  .help-acc-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+  .help-acc-title{font-size:13.5px;font-weight:600;flex:1}
+  .help-acc-chevron{font-size:12px;color:var(--text3);transition:transform .2s}
+  .help-acc.open .help-acc-chevron{transform:rotate(180deg)}
+  .help-acc-body{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .help-acc.open .help-acc-body{max-height:900px}
+  .help-acc-body-in{padding:0 16px 16px 52px;font-size:12.5px;line-height:1.65;color:var(--text2)}
+  .help-acc-body-in ul{margin:6px 0 10px 18px}
+  .help-acc-body-in li{margin-bottom:5px}
+  .help-acc-body-in b{color:var(--text)}
+  .help-step-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+    border-radius:50%;background:var(--accent-glow);color:var(--accent);font-size:10px;font-weight:700;margin-right:6px}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -2363,6 +2416,7 @@
       <div class="nav-item" data-page="homework" onclick="showPage('homework')"><span class="icon">📝</span> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
       <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><span class="icon">📊</span> Аналитика</div>
       <div class="nav-item" data-page="settings" onclick="showPage('settings')"><span class="icon">⚙️</span> Настройки</div>
+      <div class="nav-item" data-page="help" onclick="showPage('help')"><span class="icon">📖</span> Справка</div>
     </nav>
     <div class="sidebar-footer">
       <div class="sb-user-block" onclick="doLogout()" title="Выйти из аккаунта">
@@ -2732,6 +2786,24 @@
         </div>
 
         <div class="settings-section">
+          <div class="settings-section-title">Обучение</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Интерактивный тур по программе</div>
+              <div class="settings-row-sub">Пошаговые подсказки по всем разделам — дашборд, расписание, ученики, финансы и остальное</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="startOnboardingTour(true)">🔄 Пройти заново</button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Раздел «Справка»</div>
+              <div class="settings-row-sub">Полный текстовый мануал по каждому разделу программы</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('help')">📖 Открыть</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <div class="settings-section-title">Аккаунт</div>
           <button class="logout-btn" onclick="doLogout()">
             <span style="font-size:16px">⎋</span> Выйти из аккаунта
@@ -2740,7 +2812,173 @@
 
       </div>
     </div>
+
+    <!-- HELP / СПРАВКА -->
+    <div id="page-help" class="hidden">
+      <div class="topbar">
+        <div class="topbar-title">Справка <span class="topbar-subtitle">как пользоваться VoiceLoft CRM</span></div>
+      </div>
+      <div class="content">
+
+        <div class="help-hero">
+          <div>
+            <div class="help-hero-title">👋 Полный мануал по разделам</div>
+            <div class="help-hero-sub">Здесь собрано подробное описание каждого раздела программы. Если хотите пройти обучение ещё раз в формате пошаговых подсказок — нажмите кнопку справа.</div>
+          </div>
+          <button class="btn btn-primary" onclick="startOnboardingTour(true)">🔄 Пройти обучение заново</button>
+        </div>
+
+        <div class="help-acc open" id="helpAcc-start">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">🚀</span>
+            <span class="help-acc-title">Быстрый старт (что сделать в первую очередь)</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            <div><span class="help-step-num">1</span>Зайдите в раздел <b>«Ученики»</b> и нажмите <b>«Добавить»</b> — заполните имя, возраст, тип голоса, контакты и цель занятий.</div>
+            <div style="margin-top:8px"><span class="help-step-num">2</span>Откройте карточку ученика и поставьте его на первый урок кнопкой <b>«Поставить на урок»</b>, либо сделайте это из раздела <b>«Расписание»</b>.</div>
+            <div style="margin-top:8px"><span class="help-step-num">3</span>После урока отмечайте посещаемость, задавайте домашнее задание и фиксируйте оплату — тогда «Дашборд» и «Аналитика» начнут показывать реальную картину.</div>
+            <div style="margin-top:8px"><span class="help-step-num">4</span>Загляните в <b>«Настройки»</b> — заполните своё имя, специализацию и фото, они отображаются в боковом меню.</div>
+          </div></div>
+        </div>
+
+        <div class="help-acc" id="helpAcc-dashboard">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">🏠</span>
+            <span class="help-acc-title">Дашборд</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            Главный экран — сводка по всей студии на сегодня.
+            <ul>
+              <li><b>Карточки сверху</b> — количество учеников, время ближайшего урока, сколько уроков сегодня и сколько новых учеников за месяц.</li>
+              <li><b>Кольца-показатели</b> — посещаемость, выполнение домашних заданий и доля активных учеников.</li>
+              <li><b>«Сегодня»</b> — список уроков на сегодняшний день с быстрым переходом к ученику.</li>
+              <li><b>«Уведомления»</b> — долги, просроченные задания и другие вещи, требующие внимания.</li>
+              <li><b>«Дни рождения»</b> — у кого из учеников скоро день рождения.</li>
+              <li>Кнопки <b>«Урок»</b> и <b>«Ученик»</b> сверху справа — быстрое создание урока или нового ученика прямо с дашборда.</li>
+            </ul>
+          </div></div>
+        </div>
+
+        <div class="help-acc" id="helpAcc-schedule">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">📅</span>
+            <span class="help-acc-title">Расписание</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            Календарь занятий на неделю.
+            <ul>
+              <li><b>Клик по пустой ячейке</b> — создать новый урок на это время.</li>
+              <li><b>Клик по уроку</b> — открыть/отредактировать урок (перенести время, изменить ученика, отменить).</li>
+              <li>Кнопки <b>«+» / «–»</b> слева сверху — масштаб сетки (крупнее/мельче).</li>
+              <li>Стрелки и кнопка с датой сверху справа — переключение недель и выбор конкретного периода, кнопка «Сбросить» возвращает к текущей неделе.</li>
+              <li>На телефоне раздел открывается через кнопку «Меню» в верхнем углу.</li>
+            </ul>
+          </div></div>
+        </div>
+
+        <div class="help-acc" id="helpAcc-students">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">🎓</span>
+            <span class="help-acc-title">Ученики и карточка ученика</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            <b>Список учеников:</b>
+            <ul>
+              <li>Кнопка <b>«Добавить»</b> сверху — создать нового ученика.</li>
+              <li>Поиск и вкладки-фильтры — «Все», «Активные», «На паузе», «Пробный урок», «Неактивные».</li>
+              <li>Кнопка <b>«Выгрузить базу»</b> — скачать всех учеников в Excel или PDF.</li>
+            </ul>
+            <b>Внутри карточки ученика — 5 вкладок:</b>
+            <ul>
+              <li><b>Профиль</b> — контакты, цель занятий, заметки, тип и диапазон голоса, навыки (дыхание, интонация, микс, диапазон, сцена).</li>
+              <li><b>Репертуар</b> — список песен ученика со статусом разучивания.</li>
+              <li><b>Задания</b> — домашние задания именно этого ученика.</li>
+              <li><b>История уроков</b> — все прошедшие занятия и посещаемость.</li>
+              <li><b>Финансы</b> — платежи и абонементы конкретного ученика.</li>
+            </ul>
+            Сверху карточки — кнопки <b>«Поставить на урок»</b>, <b>«Заметка»</b>, а также «Скачать отчёт» и «Удалить клиента».
+          </div></div>
+        </div>
+
+        <div class="help-acc" id="helpAcc-finances">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">💰</span>
+            <span class="help-acc-title">Финансы</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            <ul>
+              <li>Кнопка <b>«Платёж»</b> — зафиксировать оплату от ученика.</li>
+              <li>Кнопка <b>«Абонемент»</b> — оформить абонемент на пакет занятий.</li>
+              <li>Кольцо по центру — <b>цель по доходу</b> на месяц (нажмите, чтобы задать сумму) и текущий прогресс.</li>
+              <li>Вкладки-фильтры — «Все», «Оплачено», «Долги», «Абонементы»; кнопка с иконкой календаря — выбор периода.</li>
+              <li>Список ниже — все платежи и долги по всем ученикам за выбранный период.</li>
+            </ul>
+          </div></div>
+        </div>
+
+        <div class="help-acc" id="helpAcc-homework">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">📝</span>
+            <span class="help-acc-title">Задания</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            Доска домашних заданий по всем ученикам сразу, в три колонки: <b>«Сдано»</b>, <b>«В процессе»</b> и <b>«Не сдано»</b>. Кнопка <b>«Задать ДЗ»</b> сверху — назначить новое задание любому ученику.
+          </div></div>
+        </div>
+
+        <div class="help-acc" id="helpAcc-analytics">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">📊</span>
+            <span class="help-acc-title">Аналитика</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            Полная картина по студии:
+            <ul>
+              <li><b>Воронка учеников</b> — путь от пробного урока до активного ученика.</li>
+              <li><b>Удержание учеников</b> — доля активных от всех, кто когда-либо был.</li>
+              <li><b>Лидерборд прогресса</b> — у кого из учеников лучший прогресс.</li>
+              <li><b>Средний уровень навыков</b> и <b>«Требуют внимания»</b> — кому нужно уделить время.</li>
+              <li><b>Сводка месяца</b> и <b>Доход по месяцам</b> — динамика по сравнению с прошлым месяцем.</li>
+              <li>Значок ⚙️ рядом с вкладками карточки «Профиль» позволяет менять порядок карточек аналитики перетаскиванием.</li>
+            </ul>
+          </div></div>
+        </div>
+
+        <div class="help-acc" id="helpAcc-settings">
+          <div class="help-acc-head" onclick="toggleHelpAcc(this)">
+            <span class="help-acc-icon">⚙️</span>
+            <span class="help-acc-title">Настройки</span>
+            <span class="help-acc-chevron">▾</span>
+          </div>
+          <div class="help-acc-body"><div class="help-acc-body-in">
+            <ul>
+              <li><b>Профиль</b> — ваше имя, специализация и аватар, которые видны в боковом меню.</li>
+              <li><b>Резервные копии</b> — скачать всю базу данных в файл или восстановить из ранее сохранённого файла.</li>
+              <li><b>Мобильное меню</b> — выбрать любые 5 разделов и их порядок для нижней панели на телефоне.</li>
+              <li><b>Внешний вид</b> — переключение тёмной/светлой темы.</li>
+              <li><b>Обучение</b> — повторный запуск интерактивного тура в любой момент.</li>
+              <li><b>Аккаунт</b> — выход из аккаунта.</li>
+            </ul>
+          </div></div>
+        </div>
+
+      </div>
+    </div>
   </main>
+</div>
+
+<!-- Плавающая кнопка помощи -->
+<button class="help-fab hidden" id="helpFab" onclick="toggleHelpMenu()" title="Помощь">?</button>
+<div class="help-menu hidden" id="helpMenu">
+  <div class="help-menu-item" onclick="closeHelpMenu();startOnboardingTour(true)"><span>🎯</span> Пройти обучение</div>
+  <div class="help-menu-item" onclick="closeHelpMenu();showPage('help')"><span>📖</span> Открыть справку</div>
 </div>
 
 <!-- НИЖНЕЕ "БЫСТРОЕ МЕНЮ" (только мобильные, настраиваемое) -->
@@ -2754,6 +2992,14 @@
 </div>
 
 <!-- MODAL -->
+<!-- ОБУЧЕНИЕ: интерактивный тур -->
+<div class="tour-overlay hidden" id="tourOverlay">
+  <div class="tour-dim" id="tourDim"></div>
+  <div class="tour-spot tour-spot-hidden" id="tourSpot"></div>
+  <button class="tour-skip" id="tourSkipBtn" onclick="skipOnboardingTour()">Пропустить ✕</button>
+  <div class="tour-card" id="tourCard"></div>
+</div>
+
 <div class="modal-bg hidden" id="modal-bg" onmousedown="handleModalBgMouseDown(event)" onclick="closeModal(event)">
   <div class="modal" id="modal-content"></div>
 </div>
@@ -3046,7 +3292,10 @@ function toast(msg, color){
 // только пустой профиль преподавателя, без тестовых учеников/уроков.
 function seedEmptyTeacher(){
   const teacherId = uid('t');
-  DB.teachers.push({ id:teacherId, name:'', role:'', initials:'', avatar:GRADIENTS[0] });
+  // onboardingDone:false — новый аккаунт ещё не проходил обучающий тур
+  // (см. startOnboardingTour). Флаг хранится в самой БД педагога, поэтому
+  // переживает выход из аккаунта и вход с другого устройства.
+  DB.teachers.push({ id:teacherId, name:'', role:'', initials:'', avatar:GRADIENTS[0], onboardingDone:false });
   DB.currentTeacherId = teacherId;
 }
 
@@ -4723,7 +4972,7 @@ function renderNotifications(){
 function renderBirthdays(){
   const host=document.getElementById('bdayList');
   const myStudents = studentsOfTeacher().filter(s=>s.birthday);
-  const withDays = myStudents.map(s=>({s, d:daysUntilBirthday(s.birthday)})).filter(x=>x.d!==null && x.d<=60).sort((a,b)=>a.d-b.d);
+  const withDays = myStudents.map(s=>({s, d:daysUntilBirthday(s.birthday)})).filter(x=>x.d!==null && x.d<=30).sort((a,b)=>a.d-b.d);
   if(!withDays.length){ host.innerHTML='<div class="empty-state">Ближайших дней рождения нет</div>'; return; }
   host.innerHTML = withDays.slice(0,6).map(x=>{
     const label = x.d===0?'сегодня🎉': x.d===1?'завтра': 'через '+x.d+' дн.';
@@ -5045,7 +5294,7 @@ function showPage(name){
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
   document.getElementById('page-'+name).classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-  const navMap={dashboard:'dashboard',schedule:'schedule',students:'students','student-detail':'students',finances:'finances',homework:'homework',analytics:'analytics',settings:'settings'};
+  const navMap={dashboard:'dashboard',schedule:'schedule',students:'students','student-detail':'students',finances:'finances',homework:'homework',analytics:'analytics',settings:'settings',help:'help'};
   const navName=navMap[name];
   document.querySelectorAll('.nav-item').forEach(i=>{ if(i.getAttribute('data-page')===navName) i.classList.add('active'); });
   if(name==='dashboard') renderDashboard();
@@ -9252,6 +9501,10 @@ async function handleAuthSubmit(){
       // Профиль педагога создастся автоматически внутри initApp()/seedDB(),
       // но имя из формы регистрации сразу прокинем в DB после загрузки.
       window.__pendingRegisterName = name;
+      // Флаг "это только что созданный аккаунт" — по нему сразу после
+      // первого успешного initApp() автоматически запустится обучающий
+      // тур (см. блок ниже в checkSubscriptionAndRoute и startOnboardingTour).
+      window.__freshRegistration = true;
     } else {
       await withAuthTimeout(
         window.__fb.signInWithEmailAndPassword(window.__fb.auth, email, pass), 15000
@@ -9304,6 +9557,7 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
     // Настоящий разлогин (не сетевой сбой) — здесь действительно нужна форма.
     console.error('checkSubscriptionAndRoute: currentUid не установлен');
     appEl.style.display = 'none';
+    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
     setAuthScreenMode('form');
@@ -9384,6 +9638,7 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
   if(sessionReallyDead || (!window.__fb.auth.currentUser && (subSnap === null || dbSnap === null))){
     currentUid = null;
     appEl.style.display = 'none';
+    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
     setAuthScreenMode('form');
@@ -9398,6 +9653,7 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
     // сессия при этом жива (см. проверку выше) — это временный сбой связи.
     // Сессию НЕ трогаем и НЕ показываем форму логина/пароля.
     appEl.style.display = 'none';
+    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
     setAuthScreenMode('reconnect');
@@ -9444,6 +9700,8 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
     authScreen.style.display = 'none';
     paywallScreen.style.display = 'none';
     appEl.style.display = 'flex';
+    const helpFabEl = document.getElementById('helpFab');
+    if(helpFabEl) helpFabEl.classList.remove('hidden');
     await initApp(dbSnap);
     if(window.__pendingRegisterName){
       const t = DB.teachers.find(t=>t.id===DB.currentTeacherId);
@@ -9451,9 +9709,17 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
       window.__pendingRegisterName = null;
     }
     renderTrialBanner();
+    // Автозапуск обучающего тура сразу после РЕАЛЬНОЙ первой регистрации
+    // (не при обычном входе и не при фоновых проверках — см. флаг выше).
+    // Небольшая задержка нужна, чтобы дашборд и сайдбар успели отрисоваться.
+    if(window.__freshRegistration){
+      window.__freshRegistration = false;
+      setTimeout(function(){ startOnboardingTour(false); }, 700);
+    }
   } else {
     authScreen.style.display = 'none';
     appEl.style.display = 'none';
+    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'flex';
     const titleEl = document.getElementById('paywallTitle');
     const subEl = document.getElementById('paywallSubtitle');
@@ -9541,6 +9807,7 @@ window.addEventListener('fb-ready', function(){
       // пустыми полями — человек уже залогинен (сессия сохранена), просто
       // идёт тихая проверка перед открытием приложения.
       appEl.style.display = 'none';
+      const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
       paywallScreen.style.display = 'none';
       authScreen.style.display = 'flex';
       setAuthScreenMode('loading');
@@ -9575,6 +9842,7 @@ window.addEventListener('fb-ready', function(){
       if(currentUid) clearLocalCache(currentUid);
       currentUid = null;
       appEl.style.display = 'none';
+      const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
       paywallScreen.style.display = 'none';
       authScreen.style.display = 'flex';
       setAuthScreenMode('form');
@@ -9760,6 +10028,259 @@ document.addEventListener('click', function(e){
 /* Приложение теперь запускается не сразу, а из onAuthStateChanged
    (см. блок window.addEventListener('fb-ready', ...) выше) —
    initApp() вызывается там только после подтверждённого входа. */
+
+/* ================================================================
+   ОБУЧЕНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ: интерактивный тур + раздел «Справка»
+   ================================================================
+   Тур подсвечивает реальные элементы интерфейса на реальных страницах
+   (не рисует макет поверх) — на каждом шаге мы вызываем showPage(),
+   ждём кадр отрисовки и подсвечиваем нужный элемент рамкой + подписью.
+   Прогресс хранится в DB.teachers[...].onboardingDone, поэтому тур не
+   показывается повторно ни на этом, ни на другом устройстве после
+   первого прохождения — если только пользователь не запустит его сам
+   из Настроек или раздела «Справка».
+   ================================================================ */
+
+const ONBOARDING_STEPS = [
+  {
+    id:'welcome', center:true,
+    title:'Добро пожаловать в VoiceLoft CRM! 👋',
+    text:'Это ваша программа для управления студией вокала: ученики, расписание, оплаты и прогресс — всё в одном месте. Сейчас пройдём короткий тур по всем разделам — это займёт около минуты. Тур можно пропустить в любой момент и позже открыть заново в Настройках → «Обучение».'
+  },
+  {
+    id:'dashboard', page:'dashboard', selector:'.dash-actions',
+    title:'🏠 Дашборд',
+    text:'Это ваш главный экран. Сверху — сводка: сколько учеников, когда ближайший урок, сколько занятий сегодня. Ниже — показатели посещаемости и ДЗ, список уроков на сегодня, уведомления о долгах и днях рождения учеников. Кнопками <b>«Урок»</b> и <b>«Ученик»</b> справа можно быстро создать урок или добавить ученика прямо отсюда.'
+  },
+  {
+    id:'schedule', page:'schedule', selector:'#calView',
+    title:'📅 Расписание',
+    text:'Календарь занятий на неделю. <b>Нажмите на пустую ячейку</b>, чтобы запланировать урок, или на уже стоящий урок — чтобы его отредактировать или отменить. Кнопками «+»/«–» сверху слева меняется масштаб сетки, а справа — переключение недель и возврат к сегодняшней дате.'
+  },
+  {
+    id:'students', page:'students', selector:'#page-students .topbar .btn-primary',
+    title:'🎓 Ученики — добавляем первого',
+    text:'Здесь список всех учеников. Нажмите <b>«Добавить»</b>, чтобы завести карточку нового ученика: имя, возраст, тип голоса, контакты и цель занятий. Вкладки ниже фильтруют по статусу («Активные», «На паузе» и т.д.), а поиск сверху ищет по имени.'
+  },
+  {
+    id:'student-card', page:'students', selector:'#page-students .content',
+    title:'Карточка ученика',
+    text:'Кликнув по карточке ученика, вы откроете его профиль с 5 вкладками: <b>Профиль</b> (контакты, цель, навыки), <b>Репертуар</b> (песни), <b>Задания</b> (домашние задания), <b>История уроков</b> и <b>Финансы</b> — платежи именно этого ученика. Сверху всегда доступны кнопки «Поставить на урок» и «Заметка».'
+  },
+  {
+    id:'finances', page:'finances', selector:'#page-finances .topbar',
+    title:'💰 Финансы',
+    text:'Кнопка <b>«Платёж»</b> фиксирует оплату от ученика, <b>«Абонемент»</b> — оформляет пакет занятий. По центру — кольцо цели по доходу за месяц (нажмите на него, чтобы задать сумму). Ниже — фильтры «Оплачено» / «Долги» / «Абонементы» и список всех операций.'
+  },
+  {
+    id:'homework', page:'homework', selector:'#page-homework .topbar',
+    title:'📝 Задания',
+    text:'Доска домашних заданий по всем ученикам сразу — три колонки: «Сдано», «В процессе», «Не сдано». Кнопкой <b>«Задать ДЗ»</b> назначаете новое задание любому ученику, не заходя в его карточку.'
+  },
+  {
+    id:'analytics', page:'analytics', selector:'#page-analytics .pill-row',
+    title:'📊 Аналитика',
+    text:'Полная картина по студии: воронка учеников, удержание, лидерборд прогресса, средний уровень навыков, кто «требует внимания» и доход по месяцам. Карточки можно переставлять местами через значок ⚙️ в карточке ученика (вкладка «Профиль»).'
+  },
+  {
+    id:'settings', page:'settings', selector:'#page-settings .settings-avatar-block',
+    title:'⚙️ Настройки',
+    text:'Укажите своё имя, специализацию и фото — они появятся в боковом меню. Здесь же: резервное копирование базы, настройка нижнего меню на телефоне, светлая/тёмная тема и раздел <b>«Обучение»</b>, где можно в любой момент запустить этот тур заново.'
+  },
+  {
+    id:'help', page:'help', selector:'#page-help .help-hero',
+    title:'📖 Справка — если что-то забудется',
+    text:'В этом разделе — полный текстовый мануал по каждой странице программы, всегда под рукой. А кнопка <b>«?»</b> в правом нижнем углу экрана открывает быстрый доступ к справке и к повторному запуску тура из любого раздела.'
+  },
+  {
+    id:'finish', center:true,
+    title:'Готово! Вы освоили VoiceLoft CRM 🎉',
+    text:'Теперь вы знаете, что где находится. Самое время добавить первого ученика или сразу запланировать урок — либо просто начните работать, а справка всегда под рукой.',
+    final:true
+  }
+];
+
+let __tourActive = false;
+let __tourStep = 0;
+let __tourResizeHandler = null;
+
+function currentTeacherRef(){
+  try{ return DB.teachers.find(t=>t.id===DB.currentTeacherId) || null; }catch(e){ return null; }
+}
+
+async function startOnboardingTour(manualLaunch){
+  if(typeof DB === 'undefined' || !DB || !DB.teachers){ return; }
+  __tourActive = true;
+  __tourStep = 0;
+  closeHelpMenu();
+  closeMobileSidebar();
+  document.getElementById('tourOverlay').classList.remove('hidden');
+  await renderTourStep();
+  if(!__tourResizeHandler){
+    __tourResizeHandler = function(){ if(__tourActive) positionTourSpot(); };
+    window.addEventListener('resize', __tourResizeHandler);
+  }
+}
+
+function skipOnboardingTour(){
+  finishOnboardingTour();
+}
+
+async function tourGoNext(){
+  if(__tourStep >= ONBOARDING_STEPS.length - 1){ finishOnboardingTour(); return; }
+  __tourStep++;
+  await renderTourStep();
+}
+function tourGoPrev(){
+  if(__tourStep <= 0) return;
+  __tourStep--;
+  renderTourStep();
+}
+
+function finishOnboardingTour(){
+  __tourActive = false;
+  document.getElementById('tourOverlay').classList.add('hidden');
+  const t = currentTeacherRef();
+  if(t && !t.onboardingDone){
+    t.onboardingDone = true;
+    if(typeof saveDB === 'function') saveDB();
+  }
+}
+
+// Шаг с финальной кнопкой "Добавить ученика" / "Запланировать урок" —
+// закрывает тур и сразу открывает нужную модалку, чтобы человек не терял
+// импульс сразу же попробовать программу в деле.
+function tourFinishAndOpen(kind){
+  finishOnboardingTour();
+  setTimeout(function(){
+    if(kind === 'student') openModal('student');
+    else if(kind === 'lesson') openModal('lesson');
+  }, 150);
+}
+
+async function renderTourStep(){
+  const step = ONBOARDING_STEPS[__tourStep];
+  if(!step) return;
+
+  // Переключаемся на нужную страницу перед подсветкой элемента на ней.
+  if(step.page && typeof showPage === 'function' && currentPageName !== step.page){
+    showPage(step.page);
+  }
+  // Ждём кадр, чтобы DOM/лэйаут страницы успели обновиться перед замером.
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+  const card = document.getElementById('tourCard');
+  const isFirst = __tourStep === 0;
+  const isLast = __tourStep === ONBOARDING_STEPS.length - 1;
+
+  const dotsHtml = ONBOARDING_STEPS.map((s,i)=>'<span class="tour-dot'+(i===__tourStep?' active':'')+'"></span>').join('');
+
+  let footerBtns = '';
+  if(step.final){
+    footerBtns = '<button class="tour-btn tour-btn-primary" onclick="finishOnboardingTour()">Готово</button>';
+  } else {
+    footerBtns =
+      (isFirst ? '' : '<button class="tour-btn" onclick="tourGoPrev()">Назад</button>')
+      + '<button class="tour-btn tour-btn-primary" onclick="tourGoNext()">'+(isLast?'Завершить':'Далее')+'</button>';
+  }
+
+  let extra = '';
+  if(step.final){
+    extra = '<div class="tour-final-actions">'
+      + '<button class="tour-final-btn" onclick="tourFinishAndOpen(\'student\')"><span>🎓</span> Добавить первого ученика</button>'
+      + '<button class="tour-final-btn" onclick="tourFinishAndOpen(\'lesson\')"><span>📅</span> Запланировать урок</button>'
+      + '</div>';
+  }
+
+  card.innerHTML =
+      '<div class="tour-card-badge">Шаг '+(__tourStep+1)+' из '+ONBOARDING_STEPS.length+'</div>'
+    + '<div class="tour-card-title">'+step.title+'</div>'
+    + '<div class="tour-card-text">'+step.text+'</div>'
+    + extra
+    + '<div class="tour-card-footer">'
+    +   '<div class="tour-dots">'+dotsHtml+'</div>'
+    +   '<div class="tour-card-btns">'+footerBtns+'</div>'
+    + '</div>';
+
+  positionTourSpot();
+}
+
+function positionTourSpot(){
+  const step = ONBOARDING_STEPS[__tourStep];
+  const spot = document.getElementById('tourSpot');
+  const card = document.getElementById('tourCard');
+  if(!step || !spot || !card) return;
+
+  if(step.center || !step.selector){
+    spot.classList.add('tour-spot-hidden');
+    // Центрируем карточку по экрану.
+    const cw = card.offsetWidth || 320, ch = card.offsetHeight || 220;
+    card.style.left = Math.max(12, (window.innerWidth - cw)/2) + 'px';
+    card.style.top = Math.max(12, (window.innerHeight - ch)/2) + 'px';
+    return;
+  }
+
+  const target = document.querySelector(step.selector);
+  if(!target){
+    // Элемент не найден (например, узкий экран скрыл блок) — просто
+    // центрируем карточку, не подсвечивая ничего, чтобы тур не завис.
+    spot.classList.add('tour-spot-hidden');
+    const cw = card.offsetWidth || 320, ch = card.offsetHeight || 220;
+    card.style.left = Math.max(12, (window.innerWidth - cw)/2) + 'px';
+    card.style.top = Math.max(12, (window.innerHeight - ch)/2) + 'px';
+    return;
+  }
+
+  const r = target.getBoundingClientRect();
+  const pad = 8;
+  spot.classList.remove('tour-spot-hidden');
+  spot.style.left = Math.max(4, r.left - pad) + 'px';
+  spot.style.top = Math.max(4, r.top - pad) + 'px';
+  spot.style.width = (r.width + pad*2) + 'px';
+  spot.style.height = (r.height + pad*2) + 'px';
+
+  // Карточку ставим под подсвеченным элементом, а если снизу не хватает
+  // места — над ним. По горизонтали стараемся выровнять по левому краю
+  // элемента, не вылезая за экран.
+  const cw = card.offsetWidth || 320;
+  const spaceBelow = window.innerHeight - r.bottom;
+  const ch = card.offsetHeight || 220;
+  let top;
+  if(spaceBelow > ch + 24){ top = r.bottom + pad + 10; }
+  else if(r.top > ch + 24){ top = r.top - ch - pad - 10; }
+  else { top = Math.max(12, (window.innerHeight - ch)/2); }
+  let left = r.left;
+  if(left + cw > window.innerWidth - 12) left = window.innerWidth - cw - 12;
+  if(left < 12) left = 12;
+
+  card.style.top = top + 'px';
+  card.style.left = left + 'px';
+}
+
+/* ---------- Плавающая кнопка помощи ---------- */
+function toggleHelpMenu(){
+  const m = document.getElementById('helpMenu');
+  if(!m) return;
+  m.classList.toggle('hidden');
+}
+function closeHelpMenu(){
+  const m = document.getElementById('helpMenu');
+  if(m) m.classList.add('hidden');
+}
+document.addEventListener('click', function(e){
+  const menu = document.getElementById('helpMenu');
+  const fab = document.getElementById('helpFab');
+  if(!menu || menu.classList.contains('hidden')) return;
+  if(e.target.closest && (e.target.closest('#helpMenu') || e.target.closest('#helpFab'))) return;
+  closeHelpMenu();
+});
+
+/* ---------- Раздел «Справка»: аккордеон ---------- */
+function toggleHelpAcc(headEl){
+  const acc = headEl.closest('.help-acc');
+  if(!acc) return;
+  acc.classList.toggle('open');
+}
 
 </script>
 </body>
