@@ -4065,21 +4065,9 @@ function renderDashboard(){
 
   const todayHost=document.getElementById('todayLessons');
   todayHost.innerHTML = todayLessons.length ? todayLessons.map(l=>lessonCardHTML(l)).join('') : '<div class="empty-state">Сегодня уроков нет</div>';
-
-  // Кнопка "Все"/"Свернуть" в шапке блока "Сегодня": показываем только если
-  // карточек больше, чем помещается по умолчанию (DASH_VISIBLE_CARDS) — иначе
-  // разворачивать нечего. Если после перерендера карточек стало <= лимита
-  // (например, урок удалили), сбрасываем состояние "развёрнуто" обратно.
-  const todayToggleBtn = document.getElementById('todayToggleBtn');
-  if(todayToggleBtn){
-    if(todayLessons.length > DASH_VISIBLE_CARDS){
-      todayToggleBtn.style.display = '';
-      todayToggleBtn.textContent = dashTodayExpanded ? 'Свернуть' : 'Все';
-    } else {
-      todayToggleBtn.style.display = 'none';
-      dashTodayExpanded = false;
-    }
-  }
+  // Видимость/подпись кнопки "Все"/"Свернуть" и сворачивание списка целиком
+  // решает syncDashColumnHeights (см. ниже) — она же зависит от того,
+  // десктоп сейчас или мобильная ширина экрана.
 
   renderNotifications();
   renderBirthdays();
@@ -4154,13 +4142,18 @@ window.addEventListener('focus', function(){
    колонкам "Уведомления"/"Дни рождения", чтобы их нижняя граница никогда
    не уезжала ниже границы колонки "Сегодня" — все три всегда вровень. */
 const DASH_DESKTOP_MIN_WIDTH = 881; // совпадает с общим брейкпоинтом десктоп/мобайл в остальной вёрстке
-const DASH_VISIBLE_CARDS = 3; // сколько карточек показываем в "Сегодня" по умолчанию (свёрнуто), до нажатия "Все"
+const DASH_VISIBLE_CARDS = 5; // сколько карточек показываем в "Сегодня" на ДЕСКТОПЕ до появления внутренней прокрутки (как было изначально)
 const DASH_CARD_GAP = 8; // совпадает с margin-bottom у .lesson-slot в CSS — запасной вариант, если на сегодня всего 1 урок
 
-// Развёрнут ли сейчас список "Сегодня" (кнопка "Все" / "Свернуть" в шапке
-// блока). По умолчанию — свёрнут, видно только DASH_VISIBLE_CARDS карточек.
-// Разворачивание НЕ открывает отдельное окно/модалку — список просто
-// раскрывается на месте, внутри той же колонки на дашборде.
+// Кнопка "Все"/"Свернуть" и сворачивание списка "Сегодня" до нескольких
+// карточек — ТОЛЬКО для мобильной версии (см. syncDashColumnHeights). На
+// десктопе колонка ведёт себя как раньше: показывает DASH_VISIBLE_CARDS
+// карточек с фиксированной высотой и внутренней прокруткой, без кнопки.
+const MOBILE_VISIBLE_CARDS = 3; // сколько карточек показываем в "Сегодня" на МОБИЛЬНОЙ версии по умолчанию (свёрнуто)
+
+// Развёрнут ли сейчас список "Сегодня" на мобильной версии. По умолчанию —
+// свёрнут, видно только MOBILE_VISIBLE_CARDS карточек. Разворачивание НЕ
+// открывает отдельное окно/модалку — список просто раскрывается на месте.
 let dashTodayExpanded = false;
 
 function toggleTodayExpand(){
@@ -4176,46 +4169,57 @@ function syncDashColumnHeights(){
   const bday = document.getElementById('bdayList');
   if(!today || !notif || !bday) return;
 
-  // Прячем/показываем сами карточки в зависимости от состояния "развёрнуто":
-  // в свёрнутом виде видно только первые DASH_VISIBLE_CARDS, остальные скрыты
-  // (не удалены из DOM — просто display:none), поэтому разворачивание работает
-  // мгновенно, без повторного рендера карточек.
+  const todayToggleBtn = document.getElementById('todayToggleBtn');
   const cards = Array.from(today.querySelectorAll('.lesson-slot'));
-  cards.forEach((c,i)=>{ c.style.display = (!dashTodayExpanded && i>=DASH_VISIBLE_CARDS) ? 'none' : ''; });
 
-  // На мобильных версиях фиксированная высота колонок не нужна — сбрасываем,
-  // если она вдруг осталась от предыдущей (десктопной) ширины экрана. На
-  // мобильных страница и так скроллится целиком как обычно, поэтому список
+  // ===== МОБИЛЬНАЯ ВЕРСИЯ =====
+  // Показываем по умолчанию только MOBILE_VISIBLE_CARDS карточек, кнопка
+  // "Все"/"Свернуть" в шапке разворачивает/сворачивает список прямо на
+  // месте (без отдельного окна). Фиксированную высоту в px не проставляем —
+  // на мобильном страница и так скроллится целиком как обычно, список
   // просто занимает столько места, сколько нужно видимым карточкам.
   if(window.innerWidth < DASH_DESKTOP_MIN_WIDTH){
+    cards.forEach((c,i)=>{ c.style.display = (!dashTodayExpanded && i>=MOBILE_VISIBLE_CARDS) ? 'none' : ''; });
     today.style.height = ''; notif.style.height = ''; bday.style.height = '';
+    if(todayToggleBtn){
+      const showToggle = cards.length > MOBILE_VISIBLE_CARDS;
+      todayToggleBtn.style.display = showToggle ? '' : 'none';
+      todayToggleBtn.textContent = dashTodayExpanded ? 'Свернуть' : 'Все';
+      if(!showToggle) dashTodayExpanded = false;
+    }
     return;
   }
 
-  // Считаем "естественную" высоту блока "Сегодня" по фактически видимым
-  // сейчас карточкам (скрытые в расчёт не входят, т.к. display:none).
-  today.style.height = '';
-  const naturalH = today.scrollHeight;
+  // ===== ДЕСКТОП (как было изначально, без изменений) =====
+  // Кнопка "Все"/"Свернуть" на десктопе не используется — прячем её и
+  // показываем все карточки, высота колонки фиксирована ровно под
+  // DASH_VISIBLE_CARDS карточек, остальное — внутренняя прокрутка.
+  if(todayToggleBtn) todayToggleBtn.style.display = 'none';
+  cards.forEach(c=>{ c.style.display = ''; });
 
-  if(!naturalH){
+  let h = 0;
+  if(cards.length >= DASH_VISIBLE_CARDS){
+    // Самый точный вариант: реальное расстояние от верха 1-й до низа 5-й карточки.
+    const top = cards[0].getBoundingClientRect().top;
+    const bottom = cards[DASH_VISIBLE_CARDS-1].getBoundingClientRect().bottom;
+    h = Math.round(bottom - top);
+  } else if(cards.length >= 2){
+    // Уроков сегодня меньше пяти, но хотя бы 2 — считаем по фактическому шагу
+    // между карточками (высота карточки + отступ между ними).
+    const step = cards[1].getBoundingClientRect().top - cards[0].getBoundingClientRect().top;
+    const firstH = cards[0].getBoundingClientRect().height;
+    h = Math.round(step*(DASH_VISIBLE_CARDS-1) + firstH);
+  } else if(cards.length === 1){
+    // Всего 1 урок на сегодня — берём его высоту + стандартный отступ из CSS.
+    const firstH = cards[0].getBoundingClientRect().height;
+    h = Math.round((firstH+DASH_CARD_GAP)*(DASH_VISIBLE_CARDS-1) + firstH);
+  }
+
+  if(!h){
     // Уроков на сегодня нет вообще (пустая заглушка) — фиксированную высоту
     // посчитать не из чего, оставляем колонки как есть (по естественной высоте).
-    notif.style.height = ''; bday.style.height = '';
+    today.style.height = ''; notif.style.height = ''; bday.style.height = '';
     return;
-  }
-
-  let h = naturalH;
-  if(dashTodayExpanded){
-    // В развёрнутом виде карточек может оказаться больше, чем помещается по
-    // высоте на экране (страница дашборда на десктопе принципиально не
-    // скроллится целиком). Поэтому ограничиваем высоту колонки видимым
-    // пространством до низа экрана — если весь список не помещается,
-    // появляется внутренняя прокрутка (overflow-y:auto уже задан в CSS для
-    // #todayLessons/#notifList/#bdayList), сама страница по-прежнему
-    // статична, никакое отдельное окно не открывается.
-    const top = today.getBoundingClientRect().top;
-    const maxAvail = Math.max(window.innerHeight - top - 16, 60);
-    h = Math.min(naturalH, maxAvail);
   }
 
   today.style.height = h+'px';
