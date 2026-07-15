@@ -245,6 +245,14 @@
      обычный текст (не кнопка в рамке), справа от заголовка. */
   .section-link{font-size:12.5px;font-weight:600;color:var(--accent);cursor:pointer;user-select:none;flex-shrink:0;white-space:nowrap}
   .section-link:hover{color:var(--accent2);text-decoration:underline}
+  .section-link i{font-size:8px;margin-left:4px;transition:transform .15s}
+  /* Сегментированный переключатель "1 / 3 / Все" — режим отображения списка
+     "Сегодня" на мобильной версии дашборда, появляется в шапке блока только
+     пока включена настройка раздела (через нижнюю кнопку "Настройки"). */
+  .dash-mode-picker{display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:2px;flex-shrink:0}
+  .dash-mode-btn{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;cursor:pointer;color:var(--text2);user-select:none;white-space:nowrap;transition:all .15s}
+  .dash-mode-btn.active{background:var(--accent);color:#fff}
+  .dash-mode-btn:hover:not(.active){background:var(--card2)}
   .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:1fr;gap:12px;margin-bottom:24px;align-items:stretch}
   .student-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px;cursor:pointer;transition:all .2s;position:relative;display:flex;flex-direction:column;height:100%;box-sizing:border-box;min-width:0;overflow:hidden}
   .student-card:hover{border-color:var(--border2);background:var(--card2)}
@@ -2246,7 +2254,7 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
           <div>
-            <div class="section-head"><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div><span class="section-link" id="todayToggleBtn" onclick="toggleTodayExpand()" style="display:none">Все</span></div>
+            <div class="section-head"><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div><div class="dash-mode-picker" id="dashTodayModePicker" style="display:none"></div><span class="section-link" id="todayToggleBtn" onclick="toggleTodayExpand()" style="display:none">Развернуть <i class="fa-solid fa-chevron-down"></i></span></div>
             <div id="todayLessons"></div>
           </div>
           <div>
@@ -4145,21 +4153,77 @@ const DASH_DESKTOP_MIN_WIDTH = 881; // совпадает с общим брей
 const DASH_VISIBLE_CARDS = 5; // сколько карточек показываем в "Сегодня" на ДЕСКТОПЕ до появления внутренней прокрутки (как было изначально)
 const DASH_CARD_GAP = 8; // совпадает с margin-bottom у .lesson-slot в CSS — запасной вариант, если на сегодня всего 1 урок
 
-// Кнопка "Все"/"Свернуть" и сворачивание списка "Сегодня" до нескольких
-// карточек — ТОЛЬКО для мобильной версии (см. syncDashColumnHeights). На
-// десктопе колонка ведёт себя как раньше: показывает DASH_VISIBLE_CARDS
+// Кнопка "Развернуть"/"Свернуть" и сворачивание списка "Сегодня" до
+// нескольких карточек — ТОЛЬКО для мобильной версии (см. syncDashColumnHeights).
+// На десктопе колонка ведёт себя как раньше: показывает DASH_VISIBLE_CARDS
 // карточек с фиксированной высотой и внутренней прокруткой, без кнопки.
-const MOBILE_VISIBLE_CARDS = 3; // сколько карточек показываем в "Сегодня" на МОБИЛЬНОЙ версии по умолчанию (свёрнуто)
+const MOBILE_VISIBLE_CARDS_DEFAULT = 3; // сколько карточек показываем на МОБИЛЬНОЙ версии по умолчанию, если настройка ещё не сохранялась
 
 // Развёрнут ли сейчас список "Сегодня" на мобильной версии. По умолчанию —
-// свёрнут, видно только MOBILE_VISIBLE_CARDS карточек. Разворачивание НЕ
-// открывает отдельное окно/модалку — список просто раскрывается на месте.
+// свёрнут, видно только столько карточек, сколько задано в dashTodayCardsMode.
+// Разворачивание НЕ открывает отдельное окно/модалку — список просто
+// раскрывается на месте.
 let dashTodayExpanded = false;
+
+/* ---------- Режим отображения списка "Сегодня" на мобильной версии ----------
+   Настраивается через нижнюю кнопку "Настройки" (см. trySectionSettingsAction),
+   которая открывает шторку "Настройка отображения «Сегодня»" сверху экрана и
+   показывает в шапке блока сегментированный переключатель "1 / 3 / Все".
+   Значения: '1' — только 1 карточка по умолчанию, '3' — 3 карточки (значение
+   "из коробки"), 'all' — сразу все карточки, без кнопки "Развернуть" вообще
+   (разворачивать уже нечего). Сохраняется в DB.settings.dashTodayCards и
+   переживает перезагрузку страницы. */
+let dashTodayCardsMode = String(MOBILE_VISIBLE_CARDS_DEFAULT);
+let _dashTodayModeLoaded = false; // подтягиваем сохранённое значение из DB один раз при первом рендере дашборда
+let dashTodayEditMode = false; // включена ли сейчас шторка настройки (тогда показан сегментированный переключатель)
+let _dashTodayCardsModeBeforeEdit = null; // на случай нажатия "Отмена" в шторке настройки
+
+function loadDashTodayCardsModeOnce(){
+  if(_dashTodayModeLoaded) return;
+  _dashTodayModeLoaded = true;
+  if(DB && DB.settings && DB.settings.dashTodayCards) dashTodayCardsMode = String(DB.settings.dashTodayCards);
+}
+
+function dashTodaySettingsIsOn(){ return dashTodayEditMode; }
+
+function enterDashTodaySettingsMode(){
+  dashTodayEditMode = true;
+  _dashTodayCardsModeBeforeEdit = dashTodayCardsMode;
+  syncDashColumnHeights();
+}
+function saveDashTodayDisplayMode(){
+  DB.settings = DB.settings || {};
+  DB.settings.dashTodayCards = dashTodayCardsMode;
+  saveDB();
+  dashTodayEditMode = false;
+  syncDashColumnHeights();
+  toast('Настройка отображения сохранена ✓');
+}
+function cancelDashTodayDisplayMode(){
+  dashTodayCardsMode = _dashTodayCardsModeBeforeEdit || String(MOBILE_VISIBLE_CARDS_DEFAULT);
+  dashTodayEditMode = false;
+  syncDashColumnHeights();
+}
+function setDashTodayCardsMode(mode){
+  dashTodayCardsMode = mode;
+  syncDashColumnHeights();
+}
+
+// Рисует (или прячет) сегментированный переключатель "1 / 3 / Все" в шапке
+// блока "Сегодня" — виден только пока открыта шторка настройки раздела.
+function renderDashTodayModePicker(){
+  const picker = document.getElementById('dashTodayModePicker');
+  if(!picker) return;
+  if(!dashTodayEditMode){ picker.style.display = 'none'; return; }
+  picker.style.display = '';
+  const opts = [['1','1'],['3','3'],['all','Все']];
+  picker.innerHTML = opts.map(function(o){
+    return '<span class="dash-mode-btn'+(dashTodayCardsMode===o[0]?' active':'')+'" onclick="setDashTodayCardsMode(\''+o[0]+'\')">'+o[1]+'</span>';
+  }).join('');
+}
 
 function toggleTodayExpand(){
   dashTodayExpanded = !dashTodayExpanded;
-  const btn = document.getElementById('todayToggleBtn');
-  if(btn) btn.textContent = dashTodayExpanded ? 'Свернуть' : 'Все';
   syncDashColumnHeights();
 }
 
@@ -4169,32 +4233,49 @@ function syncDashColumnHeights(){
   const bday = document.getElementById('bdayList');
   if(!today || !notif || !bday) return;
 
+  loadDashTodayCardsModeOnce();
   const todayToggleBtn = document.getElementById('todayToggleBtn');
   const cards = Array.from(today.querySelectorAll('.lesson-slot'));
 
   // ===== МОБИЛЬНАЯ ВЕРСИЯ =====
-  // Показываем по умолчанию только MOBILE_VISIBLE_CARDS карточек, кнопка
-  // "Все"/"Свернуть" в шапке разворачивает/сворачивает список прямо на
-  // месте (без отдельного окна). Фиксированную высоту в px не проставляем —
-  // на мобильном страница и так скроллится целиком как обычно, список
-  // просто занимает столько места, сколько нужно видимым карточкам.
+  // Показываем по умолчанию N карточек (N берётся из dashTodayCardsMode: 1,
+  // 3 или "все"). Кнопка "Развернуть"/"Свернуть" в шапке разворачивает и
+  // сворачивает список прямо на месте (без отдельного окна). Если выбран
+  // режим "Все" — кнопка вообще не нужна и не показывается: список и так
+  // всегда показан целиком. Фиксированную высоту в px не проставляем — на
+  // мобильном страница и так скроллится целиком как обычно.
   if(window.innerWidth < DASH_DESKTOP_MIN_WIDTH){
-    cards.forEach((c,i)=>{ c.style.display = (!dashTodayExpanded && i>=MOBILE_VISIBLE_CARDS) ? 'none' : ''; });
+    renderDashTodayModePicker();
+
+    if(dashTodayCardsMode === 'all'){
+      cards.forEach(c=>{ c.style.display = ''; });
+      today.style.height = ''; notif.style.height = ''; bday.style.height = '';
+      if(todayToggleBtn) todayToggleBtn.style.display = 'none';
+      dashTodayExpanded = false;
+      return;
+    }
+
+    const n = parseInt(dashTodayCardsMode,10) || MOBILE_VISIBLE_CARDS_DEFAULT;
+    cards.forEach((c,i)=>{ c.style.display = (!dashTodayExpanded && i>=n) ? 'none' : ''; });
     today.style.height = ''; notif.style.height = ''; bday.style.height = '';
     if(todayToggleBtn){
-      const showToggle = cards.length > MOBILE_VISIBLE_CARDS;
+      const showToggle = cards.length > n;
       todayToggleBtn.style.display = showToggle ? '' : 'none';
-      todayToggleBtn.textContent = dashTodayExpanded ? 'Свернуть' : 'Все';
+      const arrow = '<i class="fa-solid fa-chevron-down" style="transform:'+(dashTodayExpanded?'rotate(180deg)':'rotate(0deg)')+'"></i>';
+      todayToggleBtn.innerHTML = (dashTodayExpanded ? 'Свернуть' : 'Развернуть') + ' ' + arrow;
       if(!showToggle) dashTodayExpanded = false;
     }
     return;
   }
 
   // ===== ДЕСКТОП (как было изначально, без изменений) =====
-  // Кнопка "Все"/"Свернуть" на десктопе не используется — прячем её и
-  // показываем все карточки, высота колонки фиксирована ровно под
-  // DASH_VISIBLE_CARDS карточек, остальное — внутренняя прокрутка.
+  // Кнопка "Развернуть"/"Свернуть" и переключатель "1/3/Все" на десктопе не
+  // используются — прячем их и показываем все карточки, высота колонки
+  // фиксирована ровно под DASH_VISIBLE_CARDS карточек, остальное —
+  // внутренняя прокрутка.
   if(todayToggleBtn) todayToggleBtn.style.display = 'none';
+  const modePicker = document.getElementById('dashTodayModePicker');
+  if(modePicker) modePicker.style.display = 'none';
   cards.forEach(c=>{ c.style.display = ''; });
 
   let h = 0;
@@ -5894,6 +5975,17 @@ function applyAnalyticsCardOrder(){
    интерфейса на другой в правом нижнем углу.
    ============================================================ */
 function trySectionSettingsAction(){
+  if(currentPageName === 'dashboard'){
+    if(dashTodaySettingsIsOn()) return true; // режим уже включён — шторка сверху уже открыта, повторный тап ничего не делает
+    enterDashTodaySettingsMode();
+    showSettingsEditBar(
+      'Настройка отображения «Сегодня»',
+      function(){ saveDashTodayDisplayMode(); updateSectionSettingsIndicator(); },
+      function(){ cancelDashTodayDisplayMode(); updateSectionSettingsIndicator(); }
+    );
+    updateSectionSettingsIndicator();
+    return true;
+  }
   if(currentPageName === 'analytics'){
     if(analyticsReorderIsOn()) return true; // режим уже включён — шторка сверху уже открыта, повторный тап ничего не делает
     toggleAnalyticsReorderMode();
@@ -5932,7 +6024,8 @@ function updateSectionSettingsIndicator(){
   if(!item) return;
   const onAnalytics = currentPageName === 'analytics' && typeof analyticsReorderIsOn==='function' && analyticsReorderIsOn();
   const onProfileTab = currentPageName === 'student-detail' && currentDetailTab === 'profile' && profileReorderMode;
-  item.classList.toggle('settings-editing', onAnalytics || onProfileTab);
+  const onDashboard = currentPageName === 'dashboard' && typeof dashTodaySettingsIsOn==='function' && dashTodaySettingsIsOn();
+  item.classList.toggle('settings-editing', onAnalytics || onProfileTab || onDashboard);
 }
 
 /* ============================================================
