@@ -1408,6 +1408,7 @@
   .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-target{font-size:17px;font-weight:700;color:var(--text)}
+  .fin-goal-sub{font-size:11px;margin-top:2px}
   /* Только ЛЕВАЯ половина карточки "Цель по доходу" (заголовок + сумма + бар)
      растягивается на всю высоту строки — правая половина (kpi-ring-extra:
      "Осталось уроков/Осталось заработать/До конца месяца") НЕ трогается и
@@ -1437,7 +1438,7 @@
     #ringGoalCard{display:flex;align-items:center;padding:13px 20px}
     #ringGoalCard .fin-goal-left{
       display:flex;flex-direction:row;align-items:center;justify-content:center;
-      flex:0 0 auto;padding-right:20px
+      flex:1 1 0;padding-right:20px
     }
     #ringGoalCard .fin-goal-main{
       align-items:flex-start;text-align:left;gap:3px
@@ -1447,10 +1448,11 @@
        "Доход за год" (.stat-value), чтобы все числа в верхней строке
        Финансов смотрелись одинаково. */
     #ringGoalCard .fin-goal-target{font-size:26px;font-weight:600;letter-spacing:-1px}
+    #ringGoalCard .fin-goal-sub{font-size:11px;margin-top:3px}
     /* Правая часть (3 строки "осталось...") — как и было раньше, столбиком
-       сверху вниз. flex:1 — занимает всё оставшееся место в строке,
-       которого теперь стало больше после удаления блока "Текущий доход". */
-    #ringGoalCard .kpi-ring-extra{flex:1;gap:4px}
+       сверху вниз. flex:1 1 0 — та же ширина, что и у левой половины, чтобы
+       вертикальный разделитель между ними оказался строго по центру карточки. */
+    #ringGoalCard .kpi-ring-extra{flex:1 1 0;gap:4px}
     #ringGoalCard .kpi-ring-extra-row:not(:last-child){padding-bottom:4px}
   }
 
@@ -2630,6 +2632,7 @@
               <div class="fin-goal-main">
                 <div class="fin-goal-title">Цель по доходу</div>
                 <div class="fin-goal-target" id="finGoalTarget">Нажмите, чтобы задать цель</div>
+                <div class="fin-goal-sub" id="finGoalSub" style="color:var(--text3)">—</div>
               </div>
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
@@ -7601,11 +7604,10 @@ function renderFinances(){
   const incomeGoal = (teacher.incomeGoals && teacher.incomeGoals[goalKey]) || 0;
   const goalPctRaw = incomeGoal>0 ? Math.round(paid/incomeGoal*100) : 0;
   const isViewingCurrentMonth = financeMonthOffset===0;
-  const finGoalCurrentEl = document.getElementById('finGoalCurrent');
-  if(finGoalCurrentEl) finGoalCurrentEl.textContent = money(paid);
   document.getElementById('finGoalTarget').textContent = incomeGoal>0
     ? money(incomeGoal)
     : (isViewingCurrentMonth ? 'Нажмите, чтобы задать цель' : 'Цель не была поставлена');
+  document.getElementById('finGoalSub').textContent = 'на '+MN[now.getMonth()].toLowerCase()+' '+now.getFullYear();
   const goalExtraHost = document.getElementById('ringGoalExtra');
   if(incomeGoal>0){
     const remaining = Math.max(0, incomeGoal-paid);
