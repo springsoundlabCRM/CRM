@@ -1389,13 +1389,14 @@
   .goal-card-left{display:flex;align-items:center;gap:14px;padding-right:22px;min-width:0}
 
   /* --- Финансы: верхняя строка из 3 блоков (Оплачено / Цель по доходу / Доход за год) ---
-     align-items:start (а не stretch) — иначе на компьютере, где все 3
-     карточки стоят в один ряд, "Оплачено (месяц)" и "Доход за год"
-     растягивались по высоте до размера карточки "Цель по доходу" (у неё
-     естественно больше контента) и получались неоправданно огромными.
-     Теперь у каждой карточки своя обычная высота — такая же компактная,
-     как у карточек-статов на Дашборде. */
-  .fin-top-row{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:14px;margin-bottom:24px;align-items:start}
+     align-items:stretch — все 3 карточки в ряду получают одинаковую высоту,
+     равную самой высокой из них. Раньше (при старой, многоярусной вёрстке
+     карточки "Цель по доходу") это раздувало боковые карточки. Сейчас
+     "Цель по доходу" сама компактная и однострочная, поэтому stretch,
+     наоборот, просто подтягивает её до высоты боковых карточек — их
+     собственная высота при этом не меняется, так как они уже самые
+     высокие в ряду. */
+  .fin-top-row{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:14px;margin-bottom:24px;align-items:stretch}
   .fin-top-row .stat-card.fin-top-side{display:flex;flex-direction:column;justify-content:center}
   .fin-top-row .kpi-ring-card.fin-top-center{margin:0}
 
@@ -1444,7 +1445,7 @@
      как у карточек по бокам. На мобильных эти правила не действуют,
      там всё остаётся как было (вертикальная раскладка). */
   @media (min-width:881px){
-    #ringGoalCard{display:flex;align-items:stretch;padding:13px 20px}
+    #ringGoalCard{display:flex;align-items:center;padding:13px 20px}
     #ringGoalCard .fin-goal-left{
       display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
       gap:20px;flex:0 0 auto;padding-right:20px
