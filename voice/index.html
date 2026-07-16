@@ -1432,6 +1432,51 @@
      карточки осталась прежней. */
   .fin-top-row .kpi-ring-card.fin-top-center{align-items:stretch}
 
+  /* --- Финансы: карточка "Цель по доходу" — ТОЛЬКО для компьютера
+     (min-width:881px). Раньше это была высокая карточка с блоками друг
+     под другом (заголовок/сумма/разделитель/сумма сверху, 3 строки
+     "осталось..." снизу) — из-за этого она была заметно выше двух
+     соседних карточек ("Оплачено"/"Доход за год"). Теперь на компьютере
+     всё содержимое ставится в ОДНУ строку тремя секциями:
+     Текущий доход | тонкая вертикальная полоска | Цель по доходу |
+     тонкая вертикальная полоска | Осталось уроков / Осталось заработать /
+     До конца месяца — и высота карточки становится такой же компактной,
+     как у карточек по бокам. На мобильных эти правила не действуют,
+     там всё остаётся как было (вертикальная раскладка). */
+  @media (min-width:881px){
+    #ringGoalCard{display:flex;align-items:stretch;padding:14px 18px}
+    #ringGoalCard .fin-goal-left{
+      display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+      gap:20px;flex:0 0 auto;padding-right:20px
+    }
+    /* Меняем видимый порядок секций через order — сам DOM (и, соответственно,
+       JS-обновление по id) не трогаем: слева "Текущий доход" (order:1),
+       затем разделитель (order:2), затем "Цель по доходу" (order:3). */
+    #ringGoalCard .fin-goal-current-block{
+      order:1;flex-direction:column-reverse;align-items:flex-start;text-align:left;gap:3px
+    }
+    #ringGoalCard .fin-goal-divider{
+      order:2;width:1px;height:auto;align-self:stretch;flex-shrink:0
+    }
+    #ringGoalCard .fin-goal-main{
+      order:3;align-items:flex-start;text-align:left;gap:3px
+    }
+    #ringGoalCard .fin-goal-title{font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+    #ringGoalCard .fin-goal-current-label{font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+    #ringGoalCard .fin-goal-target,#ringGoalCard .fin-goal-current{font-size:17px}
+    /* Правая часть (3 строки "осталось...") — третья секция строки,
+       занимает всё оставшееся место, разделитель слева уже есть у неё
+       через border-left в .kpi-ring-extra. */
+    #ringGoalCard .kpi-ring-extra{
+      flex:1;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:18px
+    }
+    #ringGoalCard .kpi-ring-extra-row{
+      flex-direction:column;align-items:flex-start;gap:3px;min-width:0;flex:1;
+      padding-bottom:0!important;border-bottom:none!important
+    }
+    #ringGoalCard .kpi-ring-extra-row .v{font-size:14px;text-align:left}
+  }
+
   /* --- Общие "пилюли"-статы (быстрая сводка) --- */
   /* --- Аналитика: автоподгонка под один экран без прокрутки (только десктоп) ---
      #analyticsScaleWrap чуть сжимается через JS (см. fitAnalyticsPage), если контент
