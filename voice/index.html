@@ -246,6 +246,20 @@
   .section-link{font-size:12.5px;font-weight:600;color:var(--accent);cursor:pointer;user-select:none;flex-shrink:0;white-space:nowrap}
   .section-link:hover{color:var(--accent2);text-decoration:underline}
   .section-link i{font-size:8px;margin-left:4px;transition:transform .15s}
+  /* Значок календарика в шапке блока "Сегодня" — открывает выбор даты, чтобы
+     посмотреть/отметить статус уроков за прошлый (или любой другой) день.
+     Заголовок — inline-flex, поэтому значок всегда "прилипает" сразу после
+     последней цифры счётчика, сколько бы цифр в нём ни было — без какого-либо
+     фиксированного отступа/позиционирования. */
+  .section-title{display:inline-flex;align-items:center;gap:6px}
+  .today-date-pick-icon{font-size:12px;color:var(--text);opacity:.55;cursor:pointer;transition:opacity .15s,color .15s}
+  .today-date-pick-icon:hover{opacity:1;color:var(--accent)}
+  .today-date-input-hidden{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px}
+  /* Подсветка заголовка блока "Сегодня", когда сейчас показан не сегодняшний,
+     а выбранный прошлый/другой день — чтобы было явно видно, что это не
+     текущий день, и не спутать со свежим списком уроков. */
+  .section-title.viewing-other-day #todayTitleText,
+  .section-title.viewing-other-day #todayCountBadge{color:var(--accent)}
   /* Сегментированный переключатель "1 / 3 / Все" — режим отображения списка
      "Сегодня" на мобильной версии дашборда, появляется в шапке блока только
      пока включена настройка раздела (через нижнюю кнопку "Настройки").
@@ -2533,7 +2547,7 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
           <div>
-            <div class="section-head"><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div><div class="dash-mode-picker" id="dashTodayModePicker" style="display:none"></div><span class="section-link" id="todayToggleBtn" onclick="toggleTodayExpand()" style="display:none">Развернуть <i class="fa-solid fa-chevron-down"></i></span></div>
+            <div class="section-head"><div class="section-title" id="todayTitleWrap"><span id="todayTitleText">Сегодня</span>: <span id="todayCountBadge">0</span><i class="fa-solid fa-calendar-days today-date-pick-icon" id="todayDatePickIcon" title="Посмотреть другой день" onclick="openTodayDatePicker(event)"></i><input type="date" id="todayDateInput" class="today-date-input-hidden" onchange="onTodayDateChange(this.value)"></div><div style="display:flex;align-items:center;gap:10px"><span class="section-link" id="todayBackBtn" style="display:none" onclick="resetTodayDate()"><i class="fa-solid fa-rotate-left" style="font-size:11px;margin-left:0;margin-right:4px"></i>Сегодня</span><div class="dash-mode-picker" id="dashTodayModePicker" style="display:none"></div><span class="section-link" id="todayToggleBtn" onclick="toggleTodayExpand()" style="display:none">Развернуть <i class="fa-solid fa-chevron-down"></i></span></div></div>
             <div id="todayLessons"></div>
           </div>
           <div>
@@ -4591,22 +4605,23 @@ function renderDashboard(){
 
   updateUpcomingLessonCard();
 
-  // Список уроков "Сегодня": ближайшие по времени от текущего момента — сверху.
-  // Уроки, время которых уже прошло, опускаются вниз списка (а не остаются
-  // строго по возрастанию времени с начала суток) — так teacher всегда видит
-  // "что дальше" в самом верху блока, а не уже отработанное утро.
+  // KPI-карточки наверху дашборда ("Уроков сегодня" / "Ближайший урок") — это
+  // всегда РЕАЛЬНЫЙ сегодняшний день, независимо от того, какой день сейчас
+  // открыт в блоке-списке "Сегодня" ниже (см. renderTodayLessonsList).
+  // Ближайшие по времени от текущего момента — сверху; уроки, время которых
+  // уже прошло, опускаются вниз списка (а не остаются строго по возрастанию
+  // времени с начала суток) — так teacher всегда видит "что дальше" в самом
+  // верху блока, а не уже отработанное утро.
   const nowTimeStr = pad2(now.getHours())+':'+pad2(now.getMinutes());
-  const todayLessons = lessonsOfTeacher().filter(l=>l.date===todayISO()).sort((a,b)=>{
+  const realTodayLessons = lessonsOfTeacher().filter(l=>l.date===todayISO()).sort((a,b)=>{
     const aFuture = a.time >= nowTimeStr;
     const bFuture = b.time >= nowTimeStr;
     if(aFuture !== bFuture) return aFuture ? -1 : 1;
     return a.time<b.time?-1:1;
   });
-  document.getElementById('dLessonsToday').textContent = todayLessons.length;
-  const todayCountBadge = document.getElementById('todayCountBadge');
-  if(todayCountBadge) todayCountBadge.textContent = todayLessons.length;
-  const nextL = todayLessons.find(l=>l.status==='planned');
-  document.getElementById('dNextLesson').textContent = nextL ? 'Ближайший в '+nextL.time : (todayLessons.length? 'Все уроки обработаны' : 'Нет уроков');
+  document.getElementById('dLessonsToday').textContent = realTodayLessons.length;
+  const nextL = realTodayLessons.find(l=>l.status==='planned');
+  document.getElementById('dNextLesson').textContent = nextL ? 'Ближайший в '+nextL.time : (realTodayLessons.length? 'Все уроки обработаны' : 'Нет уроков');
 
   // "Новых учеников за месяц": дата начала занятий (studySince или createdAt) попадает
   // в текущий календарный месяц — счётчик автоматически обнуляется с наступлением нового
@@ -4617,8 +4632,11 @@ function renderDashboard(){
   }).length;
   document.getElementById('dNewStudentsWeek').textContent = newStudentsMonth;
 
-  const todayHost=document.getElementById('todayLessons');
-  todayHost.innerHTML = todayLessons.length ? todayLessons.map(l=>lessonCardHTML(l)).join('') : '<div class="empty-state">Сегодня уроков нет</div>';
+  // Список-блок "Сегодня" (карточки уроков с возможностью отметить статус) —
+  // может показывать не только реальный сегодняшний день, но и любой другой
+  // день, выбранный через значок календарика в шапке блока (dashLessonsDate).
+  // См. renderTodayLessonsList/openTodayDatePicker/onTodayDateChange ниже.
+  renderTodayLessonsList(realTodayLessons, nowTimeStr);
   // Видимость/подпись кнопки "Все"/"Свернуть" и сворачивание списка целиком
   // решает syncDashColumnHeights (см. ниже) — она же зависит от того,
   // десктоп сейчас или мобильная ширина экрана.
@@ -4627,6 +4645,72 @@ function renderDashboard(){
   renderBirthdays();
   renderDashboardPulse(myStudents, active, now);
   requestAnimationFrame(syncDashColumnHeights);
+}
+
+/* ---------- Блок "Сегодня" на дашборде: просмотр и отметка прошедших дней ----------
+   Раньше блок "Сегодня" показывал только уроки текущего дня, и если препод
+   забыл отметить статус (пришёл/не пришёл/отмена) в течение дня — на
+   следующий день список этих уроков из блока пропадал, и отметить статус
+   было больше физически негде (из-за этого в календаре такие уроки навсегда
+   оставались фиолетовыми — "запланирован", хотя урок уже прошёл).
+   Теперь справа от счётчика в шапке блока есть значок календарика: он
+   открывает системный выбор даты и позволяет переключиться на любой прошлый
+   день, увидеть его уроки и проставить им статус — после чего эти же уроки
+   в календаре сразу перекрасятся в цвет нужного статуса. */
+let dashLessonsDate = todayISO(); // какой день сейчас показан в блоке "Сегодня" на дашборде
+
+function renderTodayLessonsList(realTodayLessons, nowTimeStr){
+  const viewingToday = dashLessonsDate === todayISO();
+  // Если уже выбран сегодняшний день — переиспользуем список, который
+  // renderDashboard посчитал с сортировкой "ближайшее время сверху".
+  // Для прошлого/другого дня просто сортируем по времени урока по возрастанию.
+  const listLessons = viewingToday
+    ? realTodayLessons
+    : lessonsOfTeacher().filter(l=>l.date===dashLessonsDate).sort((a,b)=> a.time<b.time?-1:1);
+
+  const titleText = document.getElementById('todayTitleText');
+  const titleWrap = document.getElementById('todayTitleWrap');
+  const backBtn = document.getElementById('todayBackBtn');
+  const dateInput = document.getElementById('todayDateInput');
+  if(titleText) titleText.textContent = viewingToday ? 'Сегодня' : (weekdayName(dashLessonsDate)+', '+formatRuShort(dashLessonsDate));
+  if(titleWrap) titleWrap.classList.toggle('viewing-other-day', !viewingToday);
+  if(backBtn) backBtn.style.display = viewingToday ? 'none' : '';
+  if(dateInput) dateInput.value = dashLessonsDate;
+
+  const todayCountBadge = document.getElementById('todayCountBadge');
+  if(todayCountBadge) todayCountBadge.textContent = listLessons.length;
+
+  const todayHost = document.getElementById('todayLessons');
+  const emptyText = viewingToday ? 'Сегодня уроков нет' : 'В этот день уроков не было';
+  todayHost.innerHTML = listLessons.length ? listLessons.map(l=>lessonCardHTML(l)).join('') : '<div class="empty-state">'+emptyText+'</div>';
+}
+
+// Открывает системный выбор даты по клику на значок календарика рядом со
+// счётчиком в шапке блока "Сегодня" — позволяет перейти к любому прошлому
+// дню, чтобы посмотреть его уроки и (если забыли раньше) отметить им статус.
+function openTodayDatePicker(e){
+  if(e) e.stopPropagation();
+  const input = document.getElementById('todayDateInput');
+  if(!input) return;
+  input.value = dashLessonsDate;
+  if(typeof input.showPicker === 'function'){
+    try{ input.showPicker(); return; }catch(err){}
+  }
+  input.focus();
+  input.click();
+}
+
+function onTodayDateChange(value){
+  if(!value) return;
+  dashLessonsDate = value;
+  renderDashboard();
+}
+
+// Кнопка "Сегодня" в шапке блока — возврат из просмотра прошлого дня к
+// текущему дню одним кликом.
+function resetTodayDate(){
+  dashLessonsDate = todayISO();
+  renderDashboard();
 }
 
 /* ---------- Карточка "Ближайший урок" ----------
