@@ -1406,6 +1406,7 @@
      вкладке "Ученики". */
   .fin-goal-left{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:10px}
   .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+  .fin-goal-ring{display:none}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-target{font-size:17px;font-weight:700;color:var(--text)}
   .fin-goal-sub{font-size:11px;margin-top:2px}
@@ -1432,12 +1433,20 @@
      карточка состоит из ДВУХ секций в одну строку:
      Цель по доходу | тонкая вертикальная полоска | Осталось уроков /
      Осталось заработать / До конца месяца — высота карточки при этом не
-     меняется (та же, что и у карточек по бокам). На мобильных эти правила
-     не действуют, там всё остаётся как было (вертикальная раскладка). */
+     меняется (та же, что и у карточек по бокам). Текст цели выровнен по
+     левому краю — так же, как заголовки/суммы в карточках "Оплачено" и
+     "Доход за год" — а место, освободившееся справа от текста (до
+     разделителя), заполняет маленькое кольцо прогресса (тот же компонент
+     .kpi-ring, что и на дашборде), которое показывает % выполнения цели:
+     это уместнее, чем узкий горизонтальный прогресс-бар, и не выглядит
+     "функцией ради функции" — та же информация, что уже видна в цифрах
+     слева и справа, просто ещё и наглядно. На мобильных эти правила не
+     действуют, там всё остаётся как было (вертикальная раскладка, кольцо
+     скрыто через .fin-goal-ring{display:none}). */
   @media (min-width:881px){
     #ringGoalCard{display:flex;align-items:center;padding:13px 20px}
     #ringGoalCard .fin-goal-left{
-      display:flex;flex-direction:row;align-items:center;justify-content:center;
+      display:flex;flex-direction:row;align-items:center;justify-content:space-between;
       flex:1 1 0;padding-right:20px
     }
     #ringGoalCard .fin-goal-main{
@@ -1449,6 +1458,15 @@
        Финансов смотрелись одинаково. */
     #ringGoalCard .fin-goal-target{font-size:26px;font-weight:600;letter-spacing:-1px}
     #ringGoalCard .fin-goal-sub{font-size:11px;margin-top:3px}
+    /* Кольцо прогресса — компактный вариант .kpi-ring (обычно 74px),
+       уменьшенный под высоту этой строки карточек; margin-left отделяет
+       его от текста, а margin-right оставляет небольшой зазор перед
+       вертикальным разделителем .kpi-ring-extra. */
+    #ringGoalCard .fin-goal-ring{
+      display:flex;flex-shrink:0;width:48px;height:48px;margin:0 6px 0 14px
+    }
+    #ringGoalCard .fin-goal-ring::before{inset:5px}
+    #ringGoalCard .fin-goal-ring .kpi-ring-val{font-size:11px}
     /* Правая часть (3 строки "осталось...") — как и было раньше, столбиком
        сверху вниз. flex:1 1 0 — та же ширина, что и у левой половины, чтобы
        вертикальный разделитель между ними оказался строго по центру карточки. */
@@ -2634,6 +2652,7 @@
                 <div class="fin-goal-target" id="finGoalTarget">Нажмите, чтобы задать цель</div>
                 <div class="fin-goal-sub" id="finGoalSub" style="color:var(--text3)">—</div>
               </div>
+              <div class="kpi-ring fin-goal-ring" id="finGoalRing" title="Прогресс к цели по доходу"><span class="kpi-ring-val" id="finGoalRingVal">—</span></div>
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
@@ -7608,6 +7627,17 @@ function renderFinances(){
     ? money(incomeGoal)
     : (isViewingCurrentMonth ? 'Нажмите, чтобы задать цель' : 'Цель не была поставлена');
   document.getElementById('finGoalSub').textContent = 'на '+MN[now.getMonth()].toLowerCase()+' '+now.getFullYear();
+  // Кольцо прогресса рядом с суммой цели — та же цифра (%), что уже видна
+  // из сопоставления "Оплачено" (слева) и "Цель по доходу" (здесь), просто
+  // в наглядном виде. Зеленеет, когда цель выполнена или перевыполнена.
+  const finGoalRing = document.getElementById('finGoalRing');
+  if(incomeGoal>0){
+    setRing(finGoalRing, goalPctRaw, goalPctRaw>=100 ? 'var(--green)' : 'var(--accent)', 'var(--accent-glow)');
+    document.getElementById('finGoalRingVal').textContent = goalPctRaw+'%';
+  } else {
+    setRing(finGoalRing, 0, 'var(--accent)', 'var(--accent-glow)');
+    document.getElementById('finGoalRingVal').textContent = '—';
+  }
   const goalExtraHost = document.getElementById('ringGoalExtra');
   if(incomeGoal>0){
     const remaining = Math.max(0, incomeGoal-paid);
