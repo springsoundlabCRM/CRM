@@ -7721,7 +7721,7 @@ function renderFinances(){
         ? paidDoneLessons.reduce((sum,l)=>sum+Number(l.paid||0),0)/paidDoneLessons.length
         : ((DB.settings && DB.settings.defaultLessonPrice) || 0);
       const lessonsLeft = remaining<=0 ? 0 : (avgPrice>0 ? Math.ceil(remaining/avgPrice) : null);
-      const daysLeft = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()-now.getDate();
+      const daysLeft = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()-realNow.getDate();
       goalExtraHost.innerHTML =
         '<div class="kpi-ring-extra-row"><span>Осталось уроков</span><span class="v">'+(remaining<=0?'Цель выполнена 🎉':(lessonsLeft===null?'—':lessonsLeft))+'</span></div>'
         +'<div class="kpi-ring-extra-row"><span>Осталось заработать</span><span class="v">'+money(remaining)+'</span></div>'
