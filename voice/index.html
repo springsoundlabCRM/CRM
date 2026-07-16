@@ -1969,22 +1969,6 @@
     .tour-card{width:calc(100vw - 24px)}
   }
 
-  /* ---------- Плавающая кнопка "Помощь" ---------- */
-  .help-fab{position:fixed;right:18px;bottom:calc(22px + var(--bottom-nav-h,0px));z-index:850;
-    width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
-    color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;
-    box-shadow:0 6px 18px rgba(124,58,237,.4);cursor:pointer;border:none;transition:transform .15s}
-  .help-fab:hover{transform:scale(1.06)}
-  .help-fab.hidden{display:none}
-  .help-menu{position:fixed;right:18px;bottom:calc(74px + var(--bottom-nav-h,0px));z-index:851;
-    background:var(--card);border:1px solid var(--border2);border-radius:14px;overflow:hidden;
-    box-shadow:0 14px 40px rgba(0,0,0,.4);min-width:220px}
-  .help-menu.hidden{display:none}
-  .help-menu-item{display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:12.5px;font-weight:500;
-    color:var(--text);cursor:pointer;transition:background .15s}
-  .help-menu-item:hover{background:var(--bg3)}
-  .help-menu-item+.help-menu-item{border-top:1px solid var(--border)}
-
   /* ---------- Раздел "Справка" ---------- */
   .help-hero{background:linear-gradient(135deg,var(--accent-glow),transparent);border:1px solid var(--border);
     border-radius:var(--r2);padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;
@@ -2975,12 +2959,6 @@
 </div>
 
 <!-- Плавающая кнопка помощи -->
-<button class="help-fab hidden" id="helpFab" onclick="toggleHelpMenu()" title="Помощь">?</button>
-<div class="help-menu hidden" id="helpMenu">
-  <div class="help-menu-item" onclick="closeHelpMenu();startOnboardingTour(true)"><span>🎯</span> Пройти обучение</div>
-  <div class="help-menu-item" onclick="closeHelpMenu();showPage('help')"><span>📖</span> Открыть справку</div>
-</div>
-
 <!-- НИЖНЕЕ "БЫСТРОЕ МЕНЮ" (только мобильные, настраиваемое) -->
 <nav class="bottom-nav" id="bottomNav"></nav>
 
@@ -9557,7 +9535,6 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
     // Настоящий разлогин (не сетевой сбой) — здесь действительно нужна форма.
     console.error('checkSubscriptionAndRoute: currentUid не установлен');
     appEl.style.display = 'none';
-    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
     setAuthScreenMode('form');
@@ -9638,7 +9615,6 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
   if(sessionReallyDead || (!window.__fb.auth.currentUser && (subSnap === null || dbSnap === null))){
     currentUid = null;
     appEl.style.display = 'none';
-    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
     setAuthScreenMode('form');
@@ -9653,7 +9629,6 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
     // сессия при этом жива (см. проверку выше) — это временный сбой связи.
     // Сессию НЕ трогаем и НЕ показываем форму логина/пароля.
     appEl.style.display = 'none';
-    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'none';
     authScreen.style.display = 'flex';
     setAuthScreenMode('reconnect');
@@ -9700,8 +9675,6 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
     authScreen.style.display = 'none';
     paywallScreen.style.display = 'none';
     appEl.style.display = 'flex';
-    const helpFabEl = document.getElementById('helpFab');
-    if(helpFabEl) helpFabEl.classList.remove('hidden');
     await initApp(dbSnap);
     if(window.__pendingRegisterName){
       const t = DB.teachers.find(t=>t.id===DB.currentTeacherId);
@@ -9719,7 +9692,6 @@ async function checkSubscriptionAndRoute(isPeriodicCheck){
   } else {
     authScreen.style.display = 'none';
     appEl.style.display = 'none';
-    const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
     paywallScreen.style.display = 'flex';
     const titleEl = document.getElementById('paywallTitle');
     const subEl = document.getElementById('paywallSubtitle');
@@ -9807,7 +9779,6 @@ window.addEventListener('fb-ready', function(){
       // пустыми полями — человек уже залогинен (сессия сохранена), просто
       // идёт тихая проверка перед открытием приложения.
       appEl.style.display = 'none';
-      const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
       paywallScreen.style.display = 'none';
       authScreen.style.display = 'flex';
       setAuthScreenMode('loading');
@@ -9842,7 +9813,6 @@ window.addEventListener('fb-ready', function(){
       if(currentUid) clearLocalCache(currentUid);
       currentUid = null;
       appEl.style.display = 'none';
-      const _hf = document.getElementById('helpFab'); if(_hf) _hf.classList.add('hidden');
       paywallScreen.style.display = 'none';
       authScreen.style.display = 'flex';
       setAuthScreenMode('form');
@@ -10112,7 +10082,6 @@ async function startOnboardingTour(manualLaunch){
   if(typeof DB === 'undefined' || !DB || !DB.teachers){ return; }
   __tourActive = true;
   __tourStep = 0;
-  closeHelpMenu();
   closeMobileSidebar();
   document.getElementById('tourOverlay').classList.remove('hidden');
   await renderTourStep();
@@ -10256,24 +10225,6 @@ function positionTourSpot(){
   card.style.top = top + 'px';
   card.style.left = left + 'px';
 }
-
-/* ---------- Плавающая кнопка помощи ---------- */
-function toggleHelpMenu(){
-  const m = document.getElementById('helpMenu');
-  if(!m) return;
-  m.classList.toggle('hidden');
-}
-function closeHelpMenu(){
-  const m = document.getElementById('helpMenu');
-  if(m) m.classList.add('hidden');
-}
-document.addEventListener('click', function(e){
-  const menu = document.getElementById('helpMenu');
-  const fab = document.getElementById('helpFab');
-  if(!menu || menu.classList.contains('hidden')) return;
-  if(e.target.closest && (e.target.closest('#helpMenu') || e.target.closest('#helpFab'))) return;
-  closeHelpMenu();
-});
 
 /* ---------- Раздел «Справка»: аккордеон ---------- */
 function toggleHelpAcc(headEl){
