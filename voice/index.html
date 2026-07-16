@@ -1406,7 +1406,7 @@
      вкладке "Ученики". */
   .fin-goal-left{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:10px}
   .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
-  .fin-goal-ring{display:none}
+  .fin-goal-chart{display:none}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-target{font-size:17px;font-weight:700;color:var(--text)}
   .fin-goal-sub{font-size:11px;margin-top:2px}
@@ -1436,13 +1436,14 @@
      меняется (та же, что и у карточек по бокам). Текст цели выровнен по
      левому краю — так же, как заголовки/суммы в карточках "Оплачено" и
      "Доход за год" — а место, освободившееся справа от текста (до
-     разделителя), заполняет маленькое кольцо прогресса (тот же компонент
-     .kpi-ring, что и на дашборде), которое показывает % выполнения цели:
-     это уместнее, чем узкий горизонтальный прогресс-бар, и не выглядит
-     "функцией ради функции" — та же информация, что уже видна в цифрах
-     слева и справа, просто ещё и наглядно. На мобильных эти правила не
-     действуют, там всё остаётся как было (вертикальная раскладка, кольцо
-     скрыто через .fin-goal-ring{display:none}). */
+     разделителя), заполняет мини-график роста дохода по неделям месяца
+     (см. buildGoalChartSvg в JS): кривая поднимается от 1-й к 4-й неделе,
+     под ней — короткие деления-насечки (границы недель), а в правом
+     верхнем углу — кубок на уровне цели с указателем текущего прогресса
+     на вертикальной "мачте" рядом с ним: если заработано меньше цели,
+     указатель стоит ниже кубка. На мобильных эти правила не действуют,
+     там всё остаётся как было (вертикальная раскладка, график скрыт через
+     .fin-goal-chart{display:none}). */
   @media (min-width:881px){
     #ringGoalCard{display:flex;align-items:center;padding:13px 20px}
     #ringGoalCard .fin-goal-left{
@@ -1458,15 +1459,13 @@
        Финансов смотрелись одинаково. */
     #ringGoalCard .fin-goal-target{font-size:26px;font-weight:600;letter-spacing:-1px}
     #ringGoalCard .fin-goal-sub{font-size:11px;margin-top:3px}
-    /* Кольцо прогресса — компактный вариант .kpi-ring (обычно 74px),
-       уменьшенный под высоту этой строки карточек; margin-left отделяет
-       его от текста, а margin-right оставляет небольшой зазор перед
-       вертикальным разделителем .kpi-ring-extra. */
-    #ringGoalCard .fin-goal-ring{
-      display:flex;flex-shrink:0;width:48px;height:48px;margin:0 6px 0 14px
+    /* Контейнер мини-графика — сам SVG внутри всегда 148x56 (viewBox),
+       а тут только резервируем под него место и небольшие отступы от
+       текста слева и от разделителя справа. */
+    #ringGoalCard .fin-goal-chart{
+      display:block;flex-shrink:0;width:148px;height:56px;margin:0 2px 0 10px
     }
-    #ringGoalCard .fin-goal-ring::before{inset:5px}
-    #ringGoalCard .fin-goal-ring .kpi-ring-val{font-size:11px}
+    #ringGoalCard .fin-goal-chart svg{display:block;width:100%;height:100%;overflow:visible}
     /* Правая часть (3 строки "осталось...") — как и было раньше, столбиком
        сверху вниз. flex:1 1 0 — та же ширина, что и у левой половины, чтобы
        вертикальный разделитель между ними оказался строго по центру карточки. */
@@ -2652,7 +2651,7 @@
                 <div class="fin-goal-target" id="finGoalTarget">Нажмите, чтобы задать цель</div>
                 <div class="fin-goal-sub" id="finGoalSub" style="color:var(--text3)">—</div>
               </div>
-              <div class="kpi-ring fin-goal-ring" id="finGoalRing" title="Прогресс к цели по доходу"><span class="kpi-ring-val" id="finGoalRingVal">—</span></div>
+              <div class="fin-goal-chart" id="finGoalChart"></div>
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
@@ -4041,6 +4040,79 @@ function monthIncome(year, month){
     }
   });
   return {paid, debt};
+}
+
+/* Разбивает оплаченную сумму месяца на 4 "недели" по дню месяца (1-я неделя —
+   первые дни, 4-я — последние; при 29-31 дне в месяце "лишние" дни уходят в
+   4-ю неделю). Считаются те же источники, что и в monthIncome: оплаты уроков
+   (кроме списанных с абонемента) по дате урока + покупки/пополнения
+   абонементов по дате платежа. Возвращает массив НАКОПИТЕЛЬНЫХ сумм
+   [конец 1-й недели, ..., конец 4-й недели] — используется мини-графиком
+   роста дохода в карточке "Цель по доходу" на вкладке "Финансы". */
+function weeklyPaidCumulative(year, month){
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const bucketSize = Math.ceil(daysInMonth/4);
+  const buckets = [0,0,0,0];
+  function add(day, amt){
+    const idx = Math.min(3, Math.floor((day-1)/bucketSize));
+    buckets[idx] += amt;
+  }
+  lessonsOfTeacher().forEach(l=>{
+    const d=parseISO(l.date); if(!d) return;
+    if(d.getFullYear()!==year || d.getMonth()!==month) return;
+    if(!l.viaSubscription) add(d.getDate(), Number(l.paid||0));
+  });
+  DB.payments.forEach(p=>{
+    const stu = studentById(p.studentId); if(!stu||stu.teacherId!==DB.currentTeacherId) return;
+    if(p.type==='subscription_purchase' || p.type==='subscription_topup'){
+      const d=parseISO(p.date); if(!d) return;
+      if(d.getFullYear()===year && d.getMonth()===month) add(d.getDate(), Number(p.amount||0));
+    }
+  });
+  const cum=[]; let running=0;
+  buckets.forEach(v=>{ running+=v; cum.push(running); });
+  return cum;
+}
+
+/* Строит мини-график роста дохода по неделям для карточки "Цель по доходу":
+   поднимающаяся кривая (1-я -> 4-я неделя) с делениями-насечками по оси,
+   и кубок на уровне цели справа с указателем текущего прогресса — если
+   заработано меньше цели, указатель на "мачте" стоит ниже кубка. */
+function buildGoalChartSvg(weeklyCum, goal, achievedPct){
+  const W=148, H=56, baseY=46, topY=8, x0=4, xEnd=92, poleX=122;
+  const hasGoal = goal>0;
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const yFor=f=> baseY - clamp(f,0,1.05)*(baseY-topY);
+  const step=(xEnd-x0)/4;
+  const pts=[[x0,baseY]];
+  for(let i=0;i<4;i++){
+    const f = hasGoal ? (weeklyCum[i]/goal) : 0;
+    pts.push([x0+step*(i+1), yFor(f)]);
+  }
+  const lineColor = !hasGoal ? 'var(--border2)' : (achievedPct>=100 ? 'var(--green)' : 'var(--accent)');
+  let path='M'+pts[0][0]+' '+pts[0][1];
+  for(let i=1;i<pts.length;i++){
+    const [x1,y1]=pts[i-1], [x2,y2]=pts[i], mx=(x1+x2)/2;
+    path+=' C'+mx+' '+y1+', '+mx+' '+y2+', '+x2+' '+y2;
+  }
+  const areaPath = path+' L'+pts[pts.length-1][0]+' '+baseY+' L'+pts[0][0]+' '+baseY+' Z';
+  let ticks='';
+  for(let i=0;i<4;i++){ const tx=x0+step*(i+1); ticks+='<line x1="'+tx+'" y1="'+baseY+'" x2="'+tx+'" y2="'+(baseY+6)+'" stroke="var(--border2)" stroke-width="1.4" stroke-linecap="round"/>'; }
+  const arrowY = hasGoal ? yFor(clamp(achievedPct/100,0,1)) : baseY;
+  const trophyOpacity = hasGoal ? 1 : .35;
+  const svg = ''
+    +'<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'
+      +'<title>'+(hasGoal ? ('Цель '+money(goal)+' \u2014 выполнено '+achievedPct+'%') : 'Цель по доходу не задана')+'</title>'
+      +'<line x1="'+x0+'" y1="'+baseY+'" x2="'+poleX+'" y2="'+baseY+'" stroke="var(--border)" stroke-width="1.4"/>'
+      +ticks
+      +'<path d="'+areaPath+'" fill="'+lineColor+'" fill-opacity=".12" stroke="none"/>'
+      +'<path d="'+path+'" fill="none" stroke="'+lineColor+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+      +'<circle cx="'+pts[4][0]+'" cy="'+pts[4][1]+'" r="2.6" fill="'+lineColor+'"/>'
+      +'<line x1="'+poleX+'" y1="'+baseY+'" x2="'+poleX+'" y2="'+topY+'" stroke="var(--border2)" stroke-width="1.4" stroke-dasharray="2,2.5"/>'
+      +'<path d="M'+poleX+' '+(arrowY-5)+' L'+(poleX-4)+' '+(arrowY+3)+' L'+(poleX+4)+' '+(arrowY+3)+' Z" fill="'+lineColor+'"/>'
+      +'<text x="'+poleX+'" y="'+(topY-1)+'" text-anchor="middle" font-size="15" opacity="'+trophyOpacity+'">\uD83C\uDFC6</text>'
+    +'</svg>';
+  return svg;
 }
 
 function yearIncomeSeries(year){
@@ -7627,16 +7699,15 @@ function renderFinances(){
     ? money(incomeGoal)
     : (isViewingCurrentMonth ? 'Нажмите, чтобы задать цель' : 'Цель не была поставлена');
   document.getElementById('finGoalSub').textContent = 'на '+MN[now.getMonth()].toLowerCase()+' '+now.getFullYear();
-  // Кольцо прогресса рядом с суммой цели — та же цифра (%), что уже видна
-  // из сопоставления "Оплачено" (слева) и "Цель по доходу" (здесь), просто
-  // в наглядном виде. Зеленеет, когда цель выполнена или перевыполнена.
-  const finGoalRing = document.getElementById('finGoalRing');
-  if(incomeGoal>0){
-    setRing(finGoalRing, goalPctRaw, goalPctRaw>=100 ? 'var(--green)' : 'var(--accent)', 'var(--accent-glow)');
-    document.getElementById('finGoalRingVal').textContent = goalPctRaw+'%';
-  } else {
-    setRing(finGoalRing, 0, 'var(--accent)', 'var(--accent-glow)');
-    document.getElementById('finGoalRingVal').textContent = '—';
+  // Мини-график роста дохода по неделям рядом с суммой цели — показывает,
+  // как за 4 недели просматриваемого месяца накапливался доход, и где
+  // относительно цели (кубок) находится текущий результат. Заменяет собой
+  // прежнее KPI-кольцо: та же идея (виден % выполнения), но нагляднее
+  // показывает динамику внутри месяца, а не только итоговую цифру.
+  const finGoalChart = document.getElementById('finGoalChart');
+  if(finGoalChart){
+    const weeklyCum = weeklyPaidCumulative(now.getFullYear(), now.getMonth());
+    finGoalChart.innerHTML = buildGoalChartSvg(weeklyCum, incomeGoal, goalPctRaw);
   }
   const goalExtraHost = document.getElementById('ringGoalExtra');
   if(incomeGoal>0){
