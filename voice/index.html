@@ -1149,8 +1149,6 @@
        месяца") этим правилом никак не затрагивается. */
     .fin-goal-title{font-size:14px}
     .fin-goal-target{font-size:25px}
-    .fin-goal-current{font-size:25px}
-    .fin-goal-current-label{font-size:11.5px}
     .student-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     #dashTriColumn{grid-template-columns:1fr!important;gap:14px!important;margin-bottom:16px!important}
     .detail-panel{grid-template-columns:1fr}
@@ -1410,13 +1408,6 @@
   .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-target{font-size:17px;font-weight:700;color:var(--text)}
-  /* Горизонтальная тонкая полоса — тот же цвет и толщина, что у вертикального
-     разделителя справа (border-left:1px solid var(--border) у .kpi-ring-extra),
-     просто развёрнута горизонтально. */
-  .fin-goal-divider{height:1px;background:var(--border);flex-shrink:0}
-  .fin-goal-current-block{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
-  .fin-goal-current{font-size:17px;font-weight:700;color:var(--text)}
-  .fin-goal-current-label{font-size:11px;color:var(--text3)}
   /* Только ЛЕВАЯ половина карточки "Цель по доходу" (заголовок + сумма + бар)
      растягивается на всю высоту строки — правая половина (kpi-ring-extra:
      "Осталось уроков/Осталось заработать/До конца месяца") НЕ трогается и
@@ -1434,45 +1425,31 @@
   .fin-top-row .kpi-ring-card.fin-top-center{align-items:stretch}
 
   /* --- Финансы: карточка "Цель по доходу" — ТОЛЬКО для компьютера
-     (min-width:881px). Раньше это была высокая карточка с блоками друг
-     под другом (заголовок/сумма/разделитель/сумма сверху, 3 строки
-     "осталось..." снизу) — из-за этого она была заметно выше двух
-     соседних карточек ("Оплачено"/"Доход за год"). Теперь на компьютере
-     всё содержимое ставится в ОДНУ строку тремя секциями:
-     Текущий доход | тонкая вертикальная полоска | Цель по доходу |
-     тонкая вертикальная полоска | Осталось уроков / Осталось заработать /
-     До конца месяца — и высота карточки становится такой же компактной,
-     как у карточек по бокам. На мобильных эти правила не действуют,
-     там всё остаётся как было (вертикальная раскладка). */
+     (min-width:881px). Блок "Текущий доход" внутри этой карточки убран —
+     та же цифра уже показана слева, в карточке "Оплачено (месяц)"
+     (#finPaid), дублировать её здесь не нужно. Теперь на компьютере
+     карточка состоит из ДВУХ секций в одну строку:
+     Цель по доходу | тонкая вертикальная полоска | Осталось уроков /
+     Осталось заработать / До конца месяца — высота карточки при этом не
+     меняется (та же, что и у карточек по бокам). На мобильных эти правила
+     не действуют, там всё остаётся как было (вертикальная раскладка). */
   @media (min-width:881px){
     #ringGoalCard{display:flex;align-items:center;padding:13px 20px}
     #ringGoalCard .fin-goal-left{
-      display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
-      gap:20px;flex:0 0 auto;padding-right:20px
-    }
-    /* Меняем видимый порядок секций через order — сам DOM (и, соответственно,
-       JS-обновление по id) не трогаем: слева "Текущий доход" (order:1),
-       затем разделитель (order:2), затем "Цель по доходу" (order:3). */
-    #ringGoalCard .fin-goal-current-block{
-      order:1;flex-direction:column-reverse;align-items:flex-start;text-align:left;gap:3px
-    }
-    #ringGoalCard .fin-goal-divider{
-      order:2;width:1px;height:auto;align-self:stretch;flex-shrink:0
+      display:flex;flex-direction:row;align-items:center;justify-content:center;
+      flex:0 0 auto;padding-right:20px
     }
     #ringGoalCard .fin-goal-main{
-      order:3;align-items:flex-start;text-align:left;gap:3px
+      align-items:flex-start;text-align:left;gap:3px
     }
     #ringGoalCard .fin-goal-title{font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
-    #ringGoalCard .fin-goal-current-label{font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
-    /* Цифры "Текущий доход"/"Цель по доходу" — тот же размер, что и у
-       "Оплачено (месяц)"/"Доход за год" (.stat-value), чтобы все числа
-       в верхней строке Финансов смотрелись одинаково. */
-    #ringGoalCard .fin-goal-target,#ringGoalCard .fin-goal-current{font-size:26px;font-weight:600;letter-spacing:-1px}
+    /* Цифра "Цель по доходу" — тот же размер, что и у "Оплачено (месяц)"/
+       "Доход за год" (.stat-value), чтобы все числа в верхней строке
+       Финансов смотрелись одинаково. */
+    #ringGoalCard .fin-goal-target{font-size:26px;font-weight:600;letter-spacing:-1px}
     /* Правая часть (3 строки "осталось...") — как и было раньше, столбиком
-       сверху вниз, просто теперь это отдельная секция справа от разделителя.
-       flex:1 — занимает всё оставшееся место в строке. Отступы между
-       строками и padding-bottom чуть уменьшены — только чтобы вписаться
-       в ту же высоту, что и у боковых карточек, содержимое не меняется. */
+       сверху вниз. flex:1 — занимает всё оставшееся место в строке,
+       которого теперь стало больше после удаления блока "Текущий доход". */
     #ringGoalCard .kpi-ring-extra{flex:1;gap:4px}
     #ringGoalCard .kpi-ring-extra-row:not(:last-child){padding-bottom:4px}
   }
@@ -2653,11 +2630,6 @@
               <div class="fin-goal-main">
                 <div class="fin-goal-title">Цель по доходу</div>
                 <div class="fin-goal-target" id="finGoalTarget">Нажмите, чтобы задать цель</div>
-              </div>
-              <div class="fin-goal-divider"></div>
-              <div class="fin-goal-current-block">
-                <div class="fin-goal-current" id="finGoalCurrent">0₽</div>
-                <div class="fin-goal-current-label">Текущий доход</div>
               </div>
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
