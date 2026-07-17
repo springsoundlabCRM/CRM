@@ -234,6 +234,7 @@
   .stat-card.green::before{background:var(--green)}
   .stat-card.amber::before{background:var(--amber)}
   .stat-card.blue::before{background:var(--blue)}
+  .stat-card.red::before{background:var(--red)}
   .stat-label{font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
   .stat-value{font-size:26px;font-weight:600;letter-spacing:-1px;line-height:1}
   .stat-delta{font-size:11px;margin-top:6px}
@@ -1192,6 +1193,11 @@
        "Оплачено (месяц)" и "Доход за год" по 2 в ряд сверху, а кольцо
        "Цель по доходу" отдельным рядом на всю ширину снизу. */
     .fin-top-row{grid-template-columns:1fr 1fr!important;gap:10px;margin-bottom:16px}
+    /* Карточка "Общие долги" — только для компьютера (см. min-width:881px
+       выше), на мобильном/планшете её не показываем, здесь всё остаётся
+       как было раньше: "Оплачено (месяц)" + "Доход за год" сверху, кольцо
+       "Цель по доходу" отдельным рядом снизу. */
+    .fin-top-row .fin-top-debt{display:none}
     .fin-top-row .fin-top-paid{order:1}
     .fin-top-row .fin-top-year{order:2}
     .fin-top-row .fin-top-center{order:3;grid-column:1/-1}
@@ -1464,7 +1470,12 @@
      вкладке "Ученики". */
   .fin-goal-left{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:10px}
   .fin-goal-main{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
-  .fin-goal-chart{display:none}
+  /* Блок "Доход за месяц" внутри карточки "Цель по доходу" (заменил собой
+     прежний мини-график с кубком) — как и график раньше, показывается
+     ТОЛЬКО на компьютере (см. правило в @media (min-width:881px) ниже с
+     разделителем). На мобильном/планшете скрыт — там карточка выглядит
+     так же, как и раньше, без каких-либо изменений. */
+  .fin-goal-month{display:none}
   .fin-goal-title{font-size:13.5px;font-weight:600;color:var(--text)}
   .fin-goal-target{font-size:17px;font-weight:700;color:var(--text)}
   .fin-goal-sub{font-size:11px;margin-top:2px}
@@ -1485,24 +1496,28 @@
   .fin-top-row .kpi-ring-card.fin-top-center{align-items:stretch}
 
   /* --- Финансы: карточка "Цель по доходу" — ТОЛЬКО для компьютера
-     (min-width:881px). Блок "Текущий доход" внутри этой карточки убран —
-     та же цифра уже показана слева, в карточке "Оплачено (месяц)"
-     (#finPaid), дублировать её здесь не нужно. Теперь на компьютере
-     карточка состоит из ДВУХ секций в одну строку:
-     Цель по доходу | тонкая вертикальная полоска | Осталось уроков /
-     Осталось заработать / До конца месяца — высота карточки при этом не
-     меняется (та же, что и у карточек по бокам). Текст цели выровнен по
-     левому краю — так же, как заголовки/суммы в карточках "Оплачено" и
-     "Доход за год" — а место, освободившееся справа от текста (до
-     разделителя), заполняет мини-график роста дохода по неделям месяца
-     (см. buildGoalChartSvg в JS): кривая поднимается от 1-й к 4-й неделе,
-     под ней — короткие деления-насечки (границы недель), а в правом
-     верхнем углу — кубок на уровне цели с указателем текущего прогресса
-     на вертикальной "мачте" рядом с ним: если заработано меньше цели,
-     указатель стоит ниже кубка. На мобильных эти правила не действуют,
-     там всё остаётся как было (вертикальная раскладка, график скрыт через
-     .fin-goal-chart{display:none}). */
+     (min-width:881px). Теперь на компьютере карточка состоит из ТРЁХ
+     секций в одну строку, разделённых тонкими вертикальными полосками:
+     Цель по доходу | Доход за месяц | Осталось уроков / Осталось
+     заработать / До конца месяца — высота карточки при этом не меняется
+     (та же, что и у карточек по бокам). Текст цели выровнен по левому
+     краю — так же, как заголовки/суммы в карточках "Оплачено" и "Доход
+     за год". Средняя секция "Доход за месяц" (.fin-goal-month) заменила
+     собой прежний мини-график с кубком — там просто показывается сумма,
+     сколько уже оплачено за просматриваемый месяц, и отделена от секции
+     цели своей собственной вертикальной полоской (border-left), точно
+     такой же, как та, что уже отделяла "Осталось уроков..." справа.
+     На мобильных эти правила не действуют, там всё остаётся как было
+     (вертикальная раскладка, .fin-goal-month скрыт через
+     .fin-goal-month{display:none}). */
   @media (min-width:881px){
+    /* На компьютере в верхней строке "Финансов" вместо "Оплачено (месяц)"
+       слева теперь карточка "Общие долги" — сама сумма "Оплачено (месяц)"
+       переехала внутрь карточки "Цель по доходу" (см. .fin-goal-month
+       выше) под названием "Доход за месяц". На мобильном/планшете всё
+       остаётся как было — см. .fin-top-debt{display:none} в блоке
+       @media (max-width:880px). */
+    .fin-top-row .fin-top-paid{display:none}
     #ringGoalCard{display:flex;align-items:center;padding:13px 20px}
     #ringGoalCard .fin-goal-left{
       display:flex;flex-direction:row;align-items:center;justify-content:space-between;
@@ -1517,13 +1532,16 @@
        Финансов смотрелись одинаково. */
     #ringGoalCard .fin-goal-target{font-size:26px;font-weight:600;letter-spacing:-1px}
     #ringGoalCard .fin-goal-sub{font-size:11px;margin-top:3px}
-    /* Контейнер мини-графика — сам SVG внутри всегда 148x56 (viewBox),
-       а тут только резервируем под него место и небольшие отступы от
-       текста слева и от разделителя справа. */
-    #ringGoalCard .fin-goal-chart{
-      display:block;flex-shrink:0;width:148px;height:56px;margin:0 2px 0 10px
+    /* Блок "Доход за месяц" — тонкая вертикальная полоска слева (тот же
+       приём, что и у .kpi-ring-extra справа), заголовок сверху мелким
+       капсом, сумма снизу крупно — тем же размером, что и цифра цели. */
+    #ringGoalCard .fin-goal-month{
+      display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+      gap:4px;flex-shrink:0;margin-left:14px;padding-left:16px;
+      border-left:1px solid var(--border)
     }
-    #ringGoalCard .fin-goal-chart svg{display:block;width:100%;height:100%;overflow:visible}
+    #ringGoalCard .fin-goal-month-title{font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+    #ringGoalCard .fin-goal-month-value{font-size:22px;font-weight:600;letter-spacing:-.5px;color:var(--text);white-space:nowrap}
     /* Правая часть (3 строки "осталось...") — как и было раньше, столбиком
        сверху вниз. flex:1 1 0 — та же ширина, что и у левой половины, чтобы
        вертикальный разделитель между ними оказался строго по центру карточки. */
@@ -2686,11 +2704,15 @@
         <button class="btn btn-primary" onclick="openModal('payment')">Платёж</button>
       </div>
       <div class="content">
-        <!-- Верхняя строка "Финансов": слева "Оплачено (месяц)", по центру кольцо
-             "Цель по доходу", справа "Доход за год". Карточки "Доход (месяц)" и
-             "Долги" убраны по просьбе — раньше были в общем .stat-grid из 4 карточек. -->
+        <!-- Верхняя строка "Финансов" (компьютер): слева "Общие долги", по центру
+             карточка "Цель по доходу" (с "Доходом за месяц" внутри), справа "Доход
+             за год". На мобильном/планшете вместо "Общие долги" по-прежнему
+             показана "Оплачено (месяц)" — там ничего не менялось, см. CSS
+             .fin-top-debt/.fin-top-paid в @media (max-width:880px) и
+             @media (min-width:881px). -->
         <div class="fin-top-row">
           <div class="stat-card green fin-top-side fin-top-paid"><div class="stat-label">Оплачено (месяц)</div><div class="stat-value" id="finPaid">0₽</div><div class="stat-delta" id="finPaidDelta" style="color:var(--text3)">—</div></div>
+          <div class="stat-card red fin-top-side fin-top-debt"><div class="stat-label">Общие долги</div><div class="stat-value" id="finTotalDebt">0₽</div><div class="stat-delta" id="finTotalDebtSub" style="color:var(--text3)">—</div></div>
           <div class="kpi-ring-card goal-card fin-top-center" id="ringGoalCard" onclick="openModal('incomeGoal')" title="Нажмите, чтобы задать цель по доходу за месяц">
             <div class="goal-card-left fin-goal-left">
               <div class="fin-goal-main">
@@ -2698,7 +2720,10 @@
                 <div class="fin-goal-target" id="finGoalTarget">Нажмите, чтобы задать цель</div>
                 <div class="fin-goal-sub" id="finGoalSub" style="color:var(--text3)">—</div>
               </div>
-              <div class="fin-goal-chart" id="finGoalChart"></div>
+              <div class="fin-goal-month" id="finGoalMonth">
+                <div class="fin-goal-month-title">Доход за месяц</div>
+                <div class="fin-goal-month-value" id="finGoalMonthValue">0₽</div>
+              </div>
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
           </div>
@@ -7724,6 +7749,21 @@ function renderFinances(){
   document.getElementById('finPaid').textContent = money(paid);
   document.getElementById('finPaidDelta').textContent = 'за '+MN[now.getMonth()].toLowerCase();
 
+  // "Общие долги" — карточка слева на компьютере (см. .fin-top-debt в CSS,
+  // на мобильном/планшете скрыта, там по-прежнему видна "Оплачено (месяц)").
+  // Сумма — это ВСЕ незакрытые долги по всем ученикам сразу (studentDebt
+  // считает по каждому ученику долг за все его неоплаченные/недооплаченные
+  // уроки), а не только за просматриваемый месяц — общий долг не привязан
+  // к конкретному периоду.
+  const debtStudents = studentsOfTeacher().filter(s=>studentDebt(s.id)>0);
+  const totalDebtSum = debtStudents.reduce((sum,s)=>sum+studentDebt(s.id), 0);
+  const finTotalDebtEl = document.getElementById('finTotalDebt');
+  if(finTotalDebtEl) finTotalDebtEl.textContent = money(totalDebtSum);
+  const finTotalDebtSub = document.getElementById('finTotalDebtSub');
+  if(finTotalDebtSub) finTotalDebtSub.textContent = debtStudents.length>0
+    ? ('у '+debtStudents.length+' '+pluralStudents(debtStudents.length))
+    : 'долгов нет';
+
   // "Доход (месяц)": всегда за текущий реальный календарный месяц (не зависит
   // от просматриваемого периода financeMonthOffset) — перенесено с дашборда.
   const realNow = new Date();
@@ -7746,16 +7786,14 @@ function renderFinances(){
     ? money(incomeGoal)
     : (isViewingCurrentMonth ? 'Нажмите, чтобы задать цель' : 'Цель не была поставлена');
   document.getElementById('finGoalSub').textContent = 'на '+MN[now.getMonth()].toLowerCase()+' '+now.getFullYear();
-  // Мини-график роста дохода по неделям рядом с суммой цели — показывает,
-  // как за 4 недели просматриваемого месяца накапливался доход, и где
-  // относительно цели (кубок) находится текущий результат. Заменяет собой
-  // прежнее KPI-кольцо: та же идея (виден % выполнения), но нагляднее
-  // показывает динамику внутри месяца, а не только итоговую цифру.
-  const finGoalChart = document.getElementById('finGoalChart');
-  if(finGoalChart){
-    const weeklyCum = weeklyPaidCumulative(now.getFullYear(), now.getMonth());
-    finGoalChart.innerHTML = buildGoalChartSvg(weeklyCum, incomeGoal, goalPctRaw);
-  }
+  // "Доход за месяц" — секция внутри карточки "Цель по доходу" (только
+  // компьютер, см. .fin-goal-month в CSS). Заменила собой прежний мини-
+  // график с кубком: тут просто дублируется та же сумма, что и в "Оплачено
+  // (месяц)" слева (paid — фактически оплачено за просматриваемый месяц),
+  // но расположена рядом с целью, чтобы обе цифры (цель и факт) было видно
+  // в одной карточке одним взглядом.
+  const finGoalMonthValue = document.getElementById('finGoalMonthValue');
+  if(finGoalMonthValue) finGoalMonthValue.textContent = money(paid);
   const goalExtraHost = document.getElementById('ringGoalExtra');
   if(incomeGoal>0){
     const remaining = Math.max(0, incomeGoal-paid);
@@ -10205,6 +10243,14 @@ function pluralLessons(n){
   if(mod10===1 && mod100!==11) return 'урок';
   if([2,3,4].includes(mod10) && ![12,13,14].includes(mod100)) return 'урока';
   return 'уроков';
+}
+/* Грамотное склонение слова "ученик" в зависимости от числа — используется
+   в подписи карточки "Общие долги" (например, "у 3 учеников"). */
+function pluralStudents(n){
+  const mod10=n%10, mod100=n%100;
+  if(mod10===1 && mod100!==11) return 'ученик';
+  if([2,3,4].includes(mod10) && ![12,13,14].includes(mod100)) return 'ученика';
+  return 'учеников';
 }
 
 // ВРЕМЕННАЯ заглушка вместо реального вызова ЮKassa.
