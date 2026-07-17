@@ -724,6 +724,20 @@
   .year-axis-label{font-size:9px;color:var(--text3);line-height:1;white-space:nowrap;transform:translateY(50%)}
   .year-axis-label:first-child{transform:translateY(0)}
   .year-axis-label:last-child{transform:translateY(0)}
+  .year-labels-row{display:flex;gap:6px;padding-left:40px}
+  /* Мобильная версия: справа-выравнивание ("30k" вправо, "0" тоже вправо, но
+     у него самого мало символов) на узком экране визуально давало "рваный"
+     левый край — цифры как будто прижаты то ближе, то дальше от края экрана,
+     а не стоят одна под другой. На мобильном выравниваем подписи по левому
+     краю колонки (первый символ каждой подписи всегда в одной и той же
+     позиции — "0" ровно под первой цифрой "10k"/"20k"/"30k") и сужаем саму
+     колонку, чтобы цифры были ощутимо ближе к левому краю карточки.
+     Компьютерная версия (>880px) не затронута — там всё как было. */
+  @media (max-width:880px){
+    .year-axis{align-items:flex-start;width:26px}
+    .year-axis-label{font-variant-numeric:tabular-nums}
+    .year-labels-row{padding-left:34px}
+  }
   /* Карточка песни в "Репертуаре" (внутри карточки ученика) — по высоте
      должна совпадать с карточками "Истории уроков" (.lesson-note) и
      "Финансов" (#dtab-finance-tab .finance-row): тот же приём — одинаковый
@@ -2773,7 +2787,7 @@
             <div class="year-axis" id="yearAxis"></div>
             <div class="year-chart" id="yearChart"></div>
           </div>
-          <div style="display:flex;gap:6px;padding-left:40px" id="yearLabels"></div>
+          <div class="year-labels-row" id="yearLabels"></div>
         </div>
         </div><!-- /analyticsScaleWrap -->
       </div>
