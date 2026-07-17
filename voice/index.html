@@ -9167,9 +9167,11 @@ function renderDayAttendCalendar(){
   const today = new Date();
   today.setHours(0,0,0,0);
 
-  // Дни, в которые у преподавателя есть хотя бы один урок — отмечаем точкой,
-  // чтобы сразу было видно, где вообще есть что отмечать.
-  const lessonDates = new Set(lessonsOfTeacher().map(l=>l.date));
+  // Точкой отмечаем не просто дни с уроками, а только те дни, где есть
+  // хотя бы один урок с непроставленным статусом (l.status==='planned').
+  // Как только в этот день у всех уроков стоит "пришёл/не пришёл/отменён" —
+  // точка пропадает, и сразу видно, что в этом дне уже всё отмечено.
+  const pendingDates = new Set(lessonsOfTeacher().filter(l=>l.status==='planned').map(l=>l.date));
 
   const firstOfMonth = new Date(year, month, 1);
   const startGrid = getMondayOf(firstOfMonth);
@@ -9182,7 +9184,7 @@ function renderDayAttendCalendar(){
     cell.className = 'cal-picker-day';
     if (d.getMonth() !== month) cell.classList.add('other-month');
     if (d.getTime() === today.getTime()) cell.classList.add('today');
-    if (lessonDates.has(iso)) cell.classList.add('has-lessons');
+    if (pendingDates.has(iso)) cell.classList.add('has-lessons');
     cell.textContent = d.getDate();
     cell.onclick = () => selectDayAttendDate(iso);
     grid.appendChild(cell);
