@@ -708,12 +708,22 @@
   .notif-text{font-size:12px;line-height:1.5}
   .mini-chart{height:60px;display:flex;align-items:flex-end;gap:4px;margin:12px 0 4px}
   .bar-col{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer}
-  .bar{width:100%;border-radius:3px 3px 0 0;background:var(--accent);opacity:.7;transition:opacity .15s}
+  .bar{width:100%;min-height:2px;border-radius:3px 3px 0 0;background:var(--accent);opacity:.7;transition:opacity .15s}
   .bar-col:hover .bar{opacity:1}
   .bar-val{font-size:9px;color:var(--text3);margin-bottom:2px}
-  .year-chart{height:150px;display:flex;align-items:flex-end;gap:6px;margin:12px 0 6px}
+  .year-chart-row{display:flex;gap:8px;height:150px;margin:12px 0 6px}
+  .year-chart{flex:1;display:flex;align-items:flex-end;gap:6px;position:relative}
   .year-chart .bar{background:var(--accent)}
   .year-chart .bar.cur{background:var(--green)}
+  /* Шкала слева от графика "Доход по месяцам" — градация по 10 000, снизу
+     вверх (0, 10k, 20k ... до текущего максимума шкалы). Горизонтальные
+     полоски-линии от неё рисуются прямо на фоне .year-chart через JS
+     (repeating-linear-gradient), чтобы визуально было видно, на какой
+     "ступени" заработка находится столбик каждого месяца. */
+  .year-axis{width:32px;flex-shrink:0;display:flex;flex-direction:column-reverse;justify-content:space-between;align-items:flex-end}
+  .year-axis-label{font-size:9px;color:var(--text3);line-height:1;white-space:nowrap;transform:translateY(50%)}
+  .year-axis-label:first-child{transform:translateY(0)}
+  .year-axis-label:last-child{transform:translateY(0)}
   /* Карточка песни в "Репертуаре" (внутри карточки ученика) — по высоте
      должна совпадать с карточками "Истории уроков" (.lesson-note) и
      "Финансов" (#dtab-finance-tab .finance-row): тот же приём — одинаковый
@@ -1521,7 +1531,7 @@
     #analyticsScaleWrap{display:flex;flex-direction:column;height:100%}
     #analyticsScaleWrap>.an-row-3{flex:0 0 auto}
     #analyticsScaleWrap>#incomeYearCard{flex:1 1 auto;min-height:0}
-    #incomeYearCard .year-chart{flex:1 1 auto;min-height:70px;height:auto}
+    #incomeYearCard .year-chart-row{flex:1 1 auto;min-height:70px;height:auto}
   }
 
   /* --- Карточка аналитики (обёртка) --- */
@@ -2759,8 +2769,11 @@
             <div style="font-size:11px;color:var(--text3)">Средний чек: <b style="color:var(--text)" id="yearAvg">0₽</b></div>
             <div style="font-size:11px;color:var(--text3)">Долги (всего): <b style="color:var(--gold,var(--amber))" id="yearDebt">0₽</b></div>
           </div>
-          <div class="year-chart" id="yearChart"></div>
-          <div style="display:flex;gap:6px" id="yearLabels"></div>
+          <div class="year-chart-row">
+            <div class="year-axis" id="yearAxis"></div>
+            <div class="year-chart" id="yearChart"></div>
+          </div>
+          <div style="display:flex;gap:6px;padding-left:40px" id="yearLabels"></div>
         </div>
         </div><!-- /analyticsScaleWrap -->
       </div>
@@ -5120,25 +5133,21 @@ function renderBirthdays(){
 
 /* Рисует поверх столбиков графика тонкую пунктирную линию тренда с точками —
    такой приём часто используют современные CRM/BI-дашборды поверх bar chart'ов */
-function drawTrendOverlay(container, values){
+function drawTrendOverlay(container, values, scaleMax){
   if(!container) return;
   const old = container.querySelector('svg.trend-overlay'); if(old) old.remove();
   const w = container.clientWidth, h = container.clientHeight;
   if(!w || !h || !values.length) return;
-  const mx = Math.max(...values, 1);
+  // scaleMax — та же фиксированная шкала (кратная 10 000), что и у самих
+  // столбиков графика (см. chartScaleMax/renderYearChart), поэтому точка
+  // тренда всегда садится ровно на "кончик" столбика, без отдельного
+  // локального максимума и без искусственного отступа сверху: при v=0
+  // точка честно лежит в самом низу шкалы, при v=scaleMax — в самом верху.
+  const mx = scaleMax || Math.max(...values, 1);
   const n = values.length;
-  // Точка тренда должна садиться ровно на "кончик" столбика месяца (там же,
-  // где над ним появляется сумма) — а для месяцев с нулевым доходом должна
-  // быть прижата в самый низ шкалы, а не "приподнята". Раньше формула
-  // (h-pad - v/mx*(h-pad*1.6)) при v=0 давала точку на h-pad, то есть на 14%
-  // выше настоящего низа — отсюда и "подвисшие" точки на нулевых месяцах.
-  // topGap — единственный отступ сверху (тот самый, что уже сейчас даёт
-  // верный результат на месяце с максимальным доходом, напр. Июль) — линейно
-  // растягиваем шкалу между topGap (v=mx, самый верх) и h (v=0, самый низ).
-  const topGap = h*0.084;
   const pts = values.map((v,i)=>{
     const x = (i+0.5)/n*w;
-    const y = h - (v/mx)*(h-topGap);
+    const y = h - Math.min(v/mx, 1)*h;
     return [Math.round(x*10)/10, Math.round(y*10)/10];
   });
   const svgNS='http://www.w3.org/2000/svg';
@@ -8127,24 +8136,64 @@ window.addEventListener('resize', function(){
       // при смене ширины экрана, но точки/толщина линии будут чётче, если
       // пересчитать их заново под реальный новый размер контейнера.
       const chart = document.getElementById('yearChart');
-      if(chart) drawTrendOverlay(chart, yearIncomeSeries(analyticsYear).map(m=>m.paid));
+      const series = yearIncomeSeries(analyticsYear);
+      if(chart) drawTrendOverlay(chart, series.map(m=>m.paid), chartScaleMax(series.map(m=>m.paid)));
     }
   }, 120);
 });
 
 function shiftYear(d){ analyticsYear += d; renderYearChart(); fitAnalyticsPage(); }
 
+/* Фиксированная шкала графика "Доход по месяцам", с шагом 10 000.
+   По умолчанию (пока никто не заработал больше) шкала — 0..150 000, как и
+   просили: снизу вверх 10, 20, 30 ... 150 (тыс). Как только фактический доход
+   какого-то месяца превышает 150 000, шкала сама дорисовывается сверху ещё
+   на нужное число ступеней по 10 000 (160, 170, 180 и т.д.) — вплоть до
+   любой суммы, без верхнего предела. */
+function chartScaleMax(paidValues){
+  const STEP = 10000, BASE = 150000;
+  const maxPaid = Math.max.apply(null, paidValues.concat([0]));
+  if(maxPaid <= BASE) return BASE;
+  return Math.ceil(maxPaid / STEP) * STEP;
+}
+
+/* Рисует шкалу цифр слева от графика (0, 10k, 20k ... до scaleMax) и
+   горизонтальные полоски-линии того же шага прямо на фоне графика — чтобы
+   было наглядно видно, в какой момент столбик месяца пересекает очередную
+   отметку заработка. Подписи расставлены через flex column-reverse +
+   space-between: поскольку они идут строго с равным шагом (кратным 10 000),
+   их равномерное распределение по высоте флексом само по себе даёт верную
+   линейную шкалу — без ручного расчёта пикселей под каждую подпись. */
+function renderYearAxis(scaleMax){
+  const STEP = 10000;
+  const axis = document.getElementById('yearAxis');
+  if(!axis) return;
+  const steps = Math.round(scaleMax / STEP);
+  let html = '';
+  for(let i = 0; i <= steps; i++){
+    const v = i * STEP;
+    html += '<div class="year-axis-label">' + (v === 0 ? '0' : Math.round(v/1000) + 'k') + '</div>';
+  }
+  axis.innerHTML = html;
+}
+
 function renderYearChart(){
   document.getElementById('yearLabel').textContent = analyticsYear;
   const series = yearIncomeSeries(analyticsYear);
-  const mx = Math.max(...series.map(m=>m.paid), 1);
+  const paidValues = series.map(m=>m.paid);
+  const scaleMax = chartScaleMax(paidValues);
   const now = new Date();
   const chart = document.getElementById('yearChart');
   chart.innerHTML='';
+  renderYearAxis(scaleMax);
+  // Горизонтальные полоски-градация того же шага (10 000), что и подписи
+  // шкалы слева — от нижнего края графика вверх, до самого верха шкалы.
+  const stepPct = 10000 / scaleMax * 100;
+  chart.style.backgroundImage = 'repeating-linear-gradient(to top, var(--border2) 0, var(--border2) 1px, transparent 1px, transparent ' + stepPct + '%)';
   let yearTotal=0, yearDebt=0, doneCount=0;
   series.forEach((m,i)=>{
     yearTotal += m.paid; yearDebt += m.debt;
-    const h = Math.max(Math.round(m.paid/mx*100), m.paid>0?3:1);
+    const h = Math.max(m.paid / scaleMax * 100, 0);
     const isCur = (analyticsYear===now.getFullYear() && i===now.getMonth());
     const col = document.createElement('div');
     col.className='bar-col';
@@ -8158,7 +8207,7 @@ function renderYearChart(){
   document.getElementById('yearDebt').textContent = money(yearDebt);
   lessonsOfTeacher().forEach(l=>{ const d=parseISO(l.date); if(d && d.getFullYear()===analyticsYear && l.status==='done') doneCount++; });
   document.getElementById('yearAvg').textContent = doneCount>0 ? money(Math.round(yearTotal/doneCount)) : '0₽';
-  requestAnimationFrame(()=> drawTrendOverlay(chart, series.map(m=>m.paid)));
+  requestAnimationFrame(()=> drawTrendOverlay(chart, paidValues, scaleMax));
 }
 
 function openMonthInfo(idx, paid, debt){
