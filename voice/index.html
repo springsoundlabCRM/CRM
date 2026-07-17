@@ -833,6 +833,18 @@
     transition:.15s;
   }
   .btn-delete-icon:hover{background:var(--red);color:#fff}
+  /* Крестик "скрыть" в карточке "Требует внимания" (Аналитика) — в обычном
+     состоянии невидим, появляется только при наведении на строку, чтобы не
+     захламлять список визуально. Клик открывает модалку подтверждения
+     (см. confirmDismissAttention / buildDismissAttentionModal). */
+  .attention-dismiss-btn{
+    position:absolute;top:7px;right:7px;width:20px;height:20px;border-radius:6px;
+    border:none;background:transparent;color:var(--red);font-size:11px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    opacity:0;pointer-events:none;transition:.15s;
+  }
+  .attention-item:hover .attention-dismiss-btn{opacity:1;pointer-events:auto}
+  .attention-dismiss-btn:hover{background:var(--red);color:#fff}
   .btn-delete-icon:active{transform:scale(.94)}
   .input-group{margin-bottom:14px}
   .input-label{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.4px}
@@ -1170,6 +1182,9 @@
 
   /* ================= ТЕЛЕФОН (≤600px) ================= */
   @media (max-width:600px){
+    /* На телефоне нет ховера — крестик "скрыть" в "Требует внимания"
+       показываем сразу, но приглушённым, чтобы был доступен по тапу. */
+    .attention-dismiss-btn{opacity:.55;pointer-events:auto}
     body{font-size:13px}
     .app{flex-direction:column}
     .sidebar{width:78vw;max-width:300px;min-width:0}
@@ -7975,8 +7990,16 @@ function renderAnalytics(){
   }));
 
   /* ---------- Требуют внимания — только по реальным данным об учениках,
-     финансовые долги сюда не относятся (для этого есть раздел "Долги") ---------- */
+     финансовые долги сюда не относятся (для этого есть раздел "Долги").
+     У каждой причины есть свой key ('hw','noshow','moodTired','ratingHard',
+     'inactive') — по нему и по id ученика строится составной ключ, который
+     попадает в DB.settings.dismissedAttention, когда пункт скрывают
+     крестиком (см. dismissAttentionItem). Если позже у ученика появится
+     та же самая причина заново (например, опять пропустит 2 урока после
+     того, как ситуация уже была скрыта и выправилась) — пункт всплывёт
+     снова, потому что это уже будет "новый" случай той же причины. ---------- */
   const attention = [];
+  const dismissedAttention = (DB.settings && Array.isArray(DB.settings.dismissedAttention)) ? DB.settings.dismissedAttention : [];
   myStudents.forEach(s=>{
     const todo = homeworkOfStudent(s.id).filter(h=>h.status==='todo').length;
     const lessons = lessonsOfStudent(s.id); // отсортированы от новых к старым
@@ -7985,15 +8008,20 @@ function renderAnalytics(){
     let daysSinceLast = null;
     if(lastDone){ const d = parseISO(lastDone.date); if(d) daysSinceLast = Math.floor((now-d)/86400000); }
 
-    if(todo>=2) attention.push({s, text:'Не сдаёт ДЗ ('+todo+' заданий)', cls:'red'});
-    else if(noshowsRecent>=2) attention.push({s, text:'Пропустил '+noshowsRecent+' из последних уроков', cls:'amber'});
-    else if(lastDone && lastDone.mood==='tired') attention.push({s, text:'На последнем уроке выглядел уставшим', cls:'amber'});
-    else if(lastDone && lastDone.rating==='hard') attention.push({s, text:'Последний урок дался тяжело', cls:'amber'});
-    else if(s.status==='active' && daysSinceLast!==null && daysSinceLast>=21) attention.push({s, text:'Не занимался уже '+daysSinceLast+' дн.', cls:'red'});
+    if(todo>=2) attention.push({s, key:'hw', text:'Не сдаёт ДЗ ('+todo+' заданий)', cls:'red'});
+    else if(noshowsRecent>=2) attention.push({s, key:'noshow', text:'Пропустил '+noshowsRecent+' из последних уроков', cls:'amber'});
+    else if(lastDone && lastDone.mood==='tired') attention.push({s, key:'moodTired', text:'На последнем уроке выглядел уставшим', cls:'amber'});
+    else if(lastDone && lastDone.rating==='hard') attention.push({s, key:'ratingHard', text:'Последний урок дался тяжело', cls:'amber'});
+    else if(s.status==='active' && daysSinceLast!==null && daysSinceLast>=21) attention.push({s, key:'inactive', text:'Не занимался уже '+daysSinceLast+' дн.', cls:'red'});
   });
-  document.getElementById('attentionBox').innerHTML = attention.length ? attention.slice(0,5).map(a=>
-    '<div style="padding:8px 10px;background:var(--'+a.cls+'-bg);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--'+a.cls+');cursor:pointer" onclick="openStudent(studentById(\''+a.s.id+'\'))"><div style="font-size:12px;font-weight:500">'+escapeHTML(a.s.name)+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">'+a.text+'</div></div>'
+  const attentionVisible = attention.filter(a=> !dismissedAttention.includes(a.s.id+'::'+a.key));
+  document.getElementById('attentionBox').innerHTML = attentionVisible.length ? attentionVisible.slice(0,5).map(a=>
+    '<div class="attention-item" style="padding:8px 32px 8px 10px;background:var(--'+a.cls+'-bg);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--'+a.cls+');cursor:pointer;position:relative" onclick="openStudent(studentById(\''+a.s.id+'\'))">'
+      +'<div style="font-size:12px;font-weight:500">'+escapeHTML(a.s.name)+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">'+a.text+'</div>'
+      +'<button type="button" class="attention-dismiss-btn" title="Скрыть — если уже неактуально" onclick="event.stopPropagation();confirmDismissAttention(\''+a.s.id+'\',\''+a.key+'\')"><i class="fa-solid fa-xmark"></i></button>'
+    +'</div>'
   ).join('') : '<div class="empty-state">Все ученики в порядке 🎉</div>';
+
 
   /* ---------- Сводка месяца (+ сравнение с прошлым месяцем) ---------- */
   const monthLessonsAll = lessonsOfTeacher().filter(l=>{ const d=parseISO(l.date); return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && l.status!=='cancelled'; });
@@ -9309,6 +9337,41 @@ function buildDeleteRepertoireModal(ctx){
     +'</div>';
 }
 
+/* ---------- "Скрыть" пункт из карточки "Требует внимания" (Аналитика) ----------
+   Открывается по клику на красный крестик, который появляется при наведении
+   на строку. Само скрытие — не удаление данных ученика и не изменение
+   статусов уроков/ДЗ, а просто отметка "я это уже видел(а) и разобрался(ась)"
+   для конкретной причины у конкретного ученика: studentId+key сохраняется
+   в DB.settings.dismissedAttention. Если та же самая причина возникнет у
+   ученика заново позже (например, снова пропустит 2 занятия после того как
+   ситуация была скрыта и выправилась) — пункт появится опять, потому что
+   это уже новый случай. */
+function confirmDismissAttention(studentId, key){
+  openModal('dismissAttention', {studentId, key});
+}
+function buildDismissAttentionModal(ctx){
+  ctx = ctx||{};
+  const s = studentById(ctx.studentId);
+  return '<div class="modal-title">Скрыть уведомление? <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">'
+      +'Пункт про '+(s?'<b style="color:var(--text)">'+escapeHTML(s.name)+'</b>':'ученика')+' пропадёт из «Требует внимания». '
+      +'Если по этой же причине ситуация повторится позже — уведомление появится снова.'
+    +'</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="dismissAttentionItem(\''+ctx.studentId+'\',\''+ctx.key+'\')">Скрыть</button>'
+    +'</div>';
+}
+function dismissAttentionItem(studentId, key){
+  DB.settings = DB.settings || {};
+  if(!Array.isArray(DB.settings.dismissedAttention)) DB.settings.dismissedAttention = [];
+  const compositeKey = studentId+'::'+key;
+  if(!DB.settings.dismissedAttention.includes(compositeKey)) DB.settings.dismissedAttention.push(compositeKey);
+  saveDB();
+  closeModal();
+  renderAnalytics();
+}
+
 /* ============================================================
    ДИСПЕТЧЕР МОДАЛЬНЫХ ОКОН
    ============================================================ */
@@ -9330,6 +9393,7 @@ const modalBuilders = {
   deleteLessonConfirm: buildDeleteLessonConfirmModal,
   deleteHomework: buildDeleteHomeworkModal,
   deleteRepertoire: buildDeleteRepertoireModal,
+  dismissAttention: buildDismissAttentionModal,
   deleteSubscription: buildDeleteSubscriptionModal,
   incomeGoal: buildIncomeGoalModal,
   studentDanger: buildStudentDangerModal,
