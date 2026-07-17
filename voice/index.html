@@ -2213,7 +2213,21 @@
         document.documentElement.style.setProperty('--bottom-nav-h', nav.offsetHeight + 'px');
       }
     }
-    function refreshAll(force){ setVH(force === true); setNavH(); }
+    function refreshAll(force){
+      setVH(force === true);
+      setNavH();
+      // Реальная высота экрана на телефоне (--vh100) иногда "доезжает" до
+      // правильного значения только через несколько повторных замеров после
+      // старта (см. массив задержек ниже) — это нормальное поведение
+      // мобильных браузеров (скрытие/появление адресной строки и т.п.).
+      // Если в этот момент уже открыт календарь и на нём применён
+      // сохранённый зум "по нижней границе" (чтобы весь день влезал без
+      // прокрутки), высота календаря могла измениться уже ПОСЛЕ того как
+      // зум был применён — из-за этого появлялась микро-прокрутка, и
+      // казалось, что зум "откатился на шаг назад". Пересчитываем зум
+      // каждый раз, когда меняется реальная высота экрана.
+      if (typeof window.__onViewportSettled === 'function') window.__onViewportSettled();
+    }
     refreshAll();
     // Повторные замеры — на старте standalone-приложения (запуск с иконки)
     // размеры окна и реальная высота меню иногда устанавливаются не сразу.
@@ -4525,6 +4539,21 @@ function handleTouchEnd(e) {
   swipeHandled = false;
   swipeAxisLocked = null;
 }
+
+// Пересчёт нижней границы мобильного зума под актуальную высоту экрана.
+// Вызывается из refreshAll() (в самом верху страницы) каждый раз, когда
+// меняется --vh100 — в т.ч. при отложенных повторных замерах после
+// старта на телефоне. Если сохранённый зум был "по нижней границе"
+// (весь день без прокрутки) и высота экрана с тех пор чуть изменилась,
+// подгоняем зум под неё заново, чтобы прокрутка не появлялась сама собой.
+window.__onViewportSettled = function() {
+  if (!isMobileDevice || !calendarEverInited) return;
+  const scheduleEl = document.getElementById('page-schedule');
+  if (!scheduleEl || scheduleEl.classList.contains('hidden')) return;
+  const before = currentHourHeightMobile;
+  setEffectiveZoom(currentHourHeightMobile);
+  if (currentHourHeightMobile !== before) renderCalendar();
+};
 
 // Инициализация календаря при первом показе
 function initCalendar() {
