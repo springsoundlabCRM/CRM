@@ -1519,21 +1519,10 @@
      сохраняют свой обычный, некомпрессированный размер (flex:0 0 auto). */
   @media (min-width:881px){
     #analyticsScaleWrap{display:flex;flex-direction:column;height:100%}
-    #analyticsScaleWrap>.an-card-progress-summary,#analyticsScaleWrap>.an-row-3{flex:0 0 auto}
+    #analyticsScaleWrap>.an-row-3{flex:0 0 auto}
     #analyticsScaleWrap>#incomeYearCard{flex:1 1 auto;min-height:0}
     #incomeYearCard .year-chart{flex:1 1 auto;min-height:70px;height:auto}
   }
-
-  /* Карточка "Средний прогресс учеников" вверху аналитики — оформлена
-     так же, как остальные .an-card, но компактнее по высоте и без
-     собственного грид-ряда, так как она теперь единственная сводная
-     карточка (блок "Долги всего" убран — эта информация уже есть на
-     дашборде в уведомлениях). */
-  .an-card-progress-summary{margin:4px 0 14px;padding:14px 16px}
-  .avg-progress-row{display:flex;align-items:center;gap:14px}
-  .avg-progress-bar-track{flex:1;height:10px;border-radius:6px;background:var(--bg3);overflow:hidden}
-  .avg-progress-bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s ease}
-  .avg-progress-row b{font-size:18.5px;font-weight:700;color:var(--text);letter-spacing:-.2px;min-width:48px;text-align:right}
 
   /* --- Карточка аналитики (обёртка) --- */
   .an-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;flex-direction:column}
@@ -2718,14 +2707,6 @@
       <div class="content">
 
         <div id="analyticsScaleWrap">
-        <div class="an-card an-card-progress-summary" id="avgProgressCard">
-          <div class="an-card-title">📈 Средний прогресс учеников</div>
-          <div class="avg-progress-row">
-            <div class="avg-progress-bar-track"><div class="avg-progress-bar-fill" id="anProgressBarFill" style="width:0%"></div></div>
-            <b id="anPillProgress">0%</b>
-          </div>
-        </div>
-
         <div class="an-row-3" style="align-items:stretch" data-reorder-row="1">
           <div class="an-card" id="funnelCard" data-card-key="funnel">
             <div class="an-card-title">🔻 Воронка учеников</div>
@@ -7918,13 +7899,6 @@ function renderAnalytics(){
   const allStudents = allStudentsOfTeacher();   // вообще все, включая неактивных — для воронки/удержания
   const now = new Date();
 
-  /* ---------- Средний прогресс учеников ---------- */
-  const progressValues = myStudents.map(s=>studentProgress(s.id)).filter(v=>v>0);
-  const avgProgress = progressValues.length ? Math.round(progressValues.reduce((a,b)=>a+b,0)/progressValues.length) : 0;
-  document.getElementById('anPillProgress').textContent = avgProgress+'%';
-  const anProgressBarFillEl = document.getElementById('anProgressBarFill');
-  if(anProgressBarFillEl) anProgressBarFillEl.style.width = avgProgress+'%';
-
   /* ---------- Воронка учеников ---------- */
   const fTotal = allStudents.length;
   const fPastTrial = allStudents.filter(s=>s.status!=='trial').length;
@@ -10410,7 +10384,7 @@ const ONBOARDING_STEPS = [
     text:'Доска домашних заданий по всем ученикам сразу — три колонки: «Сдано», «В процессе», «Не сдано». Кнопкой <b>«Задать ДЗ»</b> назначаете новое задание любому ученику, не заходя в его карточку.'
   },
   {
-    id:'analytics', page:'analytics', selector:'#page-analytics .an-card-progress-summary',
+    id:'analytics', page:'analytics', selector:'#page-analytics #funnelCard',
     title:'📊 Аналитика',
     text:'Полная картина по студии: воронка учеников, удержание, лидерборд прогресса, средний уровень навыков, кто «требует внимания» и доход по месяцам. Карточки можно переставлять местами через значок ⚙️ в карточке ученика (вкладка «Профиль»).'
   },
