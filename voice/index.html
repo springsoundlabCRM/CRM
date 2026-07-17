@@ -1535,10 +1535,20 @@
     #ringGoalCard{display:flex;align-items:stretch;padding:14px 22px}
     #ringGoalCard .fin-goal-left{display:contents}
     #ringGoalCard .fin-goal-main,
-    #ringGoalCard .fin-goal-month,
-    #ringGoalCard .kpi-ring-extra{
+    #ringGoalCard .fin-goal-month{
       flex:1 1 0;min-width:0;display:flex;flex-direction:column;
       justify-content:center;align-items:flex-start;text-align:left;gap:5px;padding:0 20px
+    }
+    /* Правая колонка ("Осталось уроков" / "Осталось заработать" / "До
+       конца месяца") — align-items:stretch (а не flex-start, как у левых
+       двух колонок), чтобы каждая строка растягивалась на всю ширину
+       колонки. Тогда justify-content:space-between внутри строки толкает
+       цифру к правому краю КОЛОНКИ, а не к правому краю своего же текста —
+       и все три цифры выстраиваются в один ровный столбик у правого края,
+       как и просили, вместо разнобоя из-за разной длины подписей слева. */
+    #ringGoalCard .kpi-ring-extra{
+      flex:1 1 0;min-width:0;display:flex;flex-direction:column;
+      justify-content:center;align-items:stretch;gap:5px;padding:0 20px
     }
     #ringGoalCard .fin-goal-main{padding-left:0}
     #ringGoalCard .fin-goal-month,
@@ -2731,6 +2741,7 @@
               <div class="fin-goal-month" id="finGoalMonth">
                 <div class="fin-goal-month-title">Доход за месяц</div>
                 <div class="fin-goal-month-value" id="finGoalMonthValue">0₽</div>
+                <div class="fin-goal-sub" id="finGoalMonthSub" style="color:var(--text3)">текущий месяц</div>
               </div>
             </div>
             <div class="kpi-ring-extra" id="ringGoalExtra"></div>
