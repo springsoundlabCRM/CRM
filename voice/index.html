@@ -2213,21 +2213,7 @@
         document.documentElement.style.setProperty('--bottom-nav-h', nav.offsetHeight + 'px');
       }
     }
-    function refreshAll(force){
-      setVH(force === true);
-      setNavH();
-      // Реальная высота экрана на телефоне (--vh100) иногда "доезжает" до
-      // правильного значения только через несколько повторных замеров после
-      // старта (см. массив задержек ниже) — это нормальное поведение
-      // мобильных браузеров (скрытие/появление адресной строки и т.п.).
-      // Если в этот момент уже открыт календарь и на нём применён
-      // сохранённый зум "по нижней границе" (чтобы весь день влезал без
-      // прокрутки), высота календаря могла измениться уже ПОСЛЕ того как
-      // зум был применён — из-за этого появлялась микро-прокрутка, и
-      // казалось, что зум "откатился на шаг назад". Пересчитываем зум
-      // каждый раз, когда меняется реальная высота экрана.
-      if (typeof window.__onViewportSettled === 'function') window.__onViewportSettled();
-    }
+    function refreshAll(force){ setVH(force === true); setNavH(); }
     refreshAll();
     // Повторные замеры — на старте standalone-приложения (запуск с иконки)
     // размеры окна и реальная высота меню иногда устанавливаются не сразу.
@@ -4540,21 +4526,6 @@ function handleTouchEnd(e) {
   swipeAxisLocked = null;
 }
 
-// Пересчёт нижней границы мобильного зума под актуальную высоту экрана.
-// Вызывается из refreshAll() (в самом верху страницы) каждый раз, когда
-// меняется --vh100 — в т.ч. при отложенных повторных замерах после
-// старта на телефоне. Если сохранённый зум был "по нижней границе"
-// (весь день без прокрутки) и высота экрана с тех пор чуть изменилась,
-// подгоняем зум под неё заново, чтобы прокрутка не появлялась сама собой.
-window.__onViewportSettled = function() {
-  if (!isMobileDevice || !calendarEverInited) return;
-  const scheduleEl = document.getElementById('page-schedule');
-  if (!scheduleEl || scheduleEl.classList.contains('hidden')) return;
-  const before = currentHourHeightMobile;
-  setEffectiveZoom(currentHourHeightMobile);
-  if (currentHourHeightMobile !== before) renderCalendar();
-};
-
 // Инициализация календаря при первом показе
 function initCalendar() {
   const calView = document.getElementById('calView');
@@ -4563,11 +4534,20 @@ function initCalendar() {
     calView.addEventListener('touchmove', handleTouchMove, { passive: false });
     calView.addEventListener('touchend', handleTouchEnd, { passive: false });
   }
-  // Восстанавливаем zoom из профиля учителя
+  // Восстанавливаем zoom из профиля учителя — ТОЧНО то значение, которое
+  // было сохранено, без подгонки под текущий экран. Раньше нижней границей
+  // для мобильного зума служила getMobileMinHourHeight() (зависит от
+  // текущей высоты экрана в моменте загрузки), из-за чего одно и то же
+  // сохранённое значение могло на следующий заход внезапно "подрасти" —
+  // если высота экрана в этот момент считалась чуть меньше, чем при
+  // сохранении. Теперь используем только фиксированные абсолютные границы
+  // (те же, что и на компьютере) — они не зависят от момента замера, так
+  // что сохранённое значение всегда остаётся ровно таким, каким его задал
+  // человек.
   const teacher = getCurrentTeacher();
   if(teacher) {
     if(teacher.hourHeight) currentHourHeight = Math.min(Math.max(teacher.hourHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
-    if(teacher.hourHeightMobile) currentHourHeightMobile = Math.min(Math.max(teacher.hourHeightMobile, getMobileMinHourHeight()), MAX_HOUR_HEIGHT);
+    if(teacher.hourHeightMobile) currentHourHeightMobile = Math.min(Math.max(teacher.hourHeightMobile, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
   }
   isMobileDevice = window.innerWidth <= 768;
   renderCalendar();
@@ -10391,10 +10371,11 @@ async function initApp(prefetchedDbSnap){
     fixBottomNav();
     fixAppHeight();
     if(calendarEverInited && !document.getElementById('page-schedule').classList.contains('hidden')){
-      // При повороте экрана/смене высоты окна доступное место под календарь
-      // могло измениться — пересчитываем нижнюю границу зума под новую
-      // высоту, чтобы диапазон 7:00–23:00 по-прежнему помещался без остатка.
-      if(isMobileDevice) setEffectiveZoom(getEffectiveZoom());
+      // Раньше здесь пересчитывался (и тем самым молча менялся) зум под
+      // новую высоту экрана. Убрано по просьбе: сохранённое значение зума
+      // должно оставаться ровно таким, каким его задал человек, и меняться
+      // только его собственным действием (кнопки +/- или pinch), а не
+      // автоматически при повороте экрана/ресайзе.
       renderCalendar();
     }
   });
