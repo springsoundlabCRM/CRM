@@ -7926,8 +7926,8 @@ function renderAnalytics(){
   funnelBox.innerHTML = funnelStages.map(st=>{
     const w = Math.max(Math.round(st.val/fMax*100), st.val>0?10:4);
     return '<div class="funnel-row"><div class="funnel-label">'+st.label+'</div>'
-      +'<div class="funnel-bar-wrap"><div class="funnel-bar" data-target="'+w+'" style="width:0%">'+(w>=20?st.val:'')+'</div></div>'
-      +'<div class="funnel-count">'+(w<20?st.val:'')+'</div></div>';
+      +'<div class="funnel-bar-wrap"><div class="funnel-bar" data-target="'+w+'" style="width:0%"></div></div>'
+      +'<div class="funnel-count">'+st.val+'</div></div>';
   }).join('') || '<div class="empty-state">Нет данных</div>';
   requestAnimationFrame(()=> requestAnimationFrame(()=>{
     funnelBox.querySelectorAll('.funnel-bar').forEach(el=> el.style.width = el.dataset.target+'%');
