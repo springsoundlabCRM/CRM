@@ -725,6 +725,12 @@
   .year-axis-label:first-child{transform:translateY(0)}
   .year-axis-label:last-child{transform:translateY(0)}
   .year-labels-row{display:flex;gap:6px;padding-left:40px}
+  /* Пунктирные линии-градация поверх фона графика (см. renderYearGridLines) —
+     раскладываются той же схемой flex column-reverse + space-between, что и
+     цифры шкалы слева, поэтому всегда попадают точно на свою отметку. */
+  .year-grid-lines{position:absolute;inset:0;display:flex;flex-direction:column-reverse;justify-content:space-between;pointer-events:none}
+  .year-grid-line{height:0;border-top:1px dashed var(--border2)}
+  .year-grid-line-zero{border-top:none}
   /* Мобильная версия: справа-выравнивание ("30k" вправо, "0" тоже вправо, но
      у него самого мало символов) на узком экране визуально давало "рваный"
      левый край — цифры как будто прижаты то ближе, то дальше от края экрана,
@@ -8219,6 +8225,30 @@ function renderYearAxis(scaleMax){
   axis.innerHTML = html;
 }
 
+/* Пунктирные горизонтальные линии-градация на графике "Доход по месяцам" —
+   по одной на каждые 10 000 (10к, 20к, 30к ... до scaleMax), чтобы было явно
+   видно момент, когда столбик месяца пересекает очередную отметку заработка.
+   Позиции линий считаются той же самой конструкцией, что и цифры шкалы
+   слева (flex column-reverse + justify-content:space-between на n+1 точках
+   0..scaleMax) — поэтому линия и подпись одного и того же значения гарантированно
+   оказываются на одной высоте, без ручного пересчёта пикселей. Линия "0"
+   не рисуется — она и так совпадает с нижним краем графика. */
+function renderYearGridLines(scaleMax){
+  const STEP = 10000;
+  const chart = document.getElementById('yearChart');
+  if(!chart) return;
+  const old = chart.querySelector('.year-grid-lines'); if(old) old.remove();
+  const steps = Math.round(scaleMax / STEP);
+  const wrap = document.createElement('div');
+  wrap.className = 'year-grid-lines';
+  let html = '<div class="year-grid-line year-grid-line-zero"></div>';
+  for(let i=1;i<=steps;i++){ html += '<div class="year-grid-line"></div>'; }
+  wrap.innerHTML = html;
+  // Вставляем самым первым ребёнком графика — раньше столбиков в DOM,
+  // поэтому линии всегда прорисовываются под ними, а не поверх.
+  chart.insertBefore(wrap, chart.firstChild);
+}
+
 function renderYearChart(){
   document.getElementById('yearLabel').textContent = analyticsYear;
   const series = yearIncomeSeries(analyticsYear);
@@ -8228,10 +8258,7 @@ function renderYearChart(){
   const chart = document.getElementById('yearChart');
   chart.innerHTML='';
   renderYearAxis(scaleMax);
-  // Горизонтальные полоски-градация того же шага (10 000), что и подписи
-  // шкалы слева — от нижнего края графика вверх, до самого верха шкалы.
-  const stepPct = 10000 / scaleMax * 100;
-  chart.style.backgroundImage = 'repeating-linear-gradient(to top, var(--border2) 0, var(--border2) 1px, transparent 1px, transparent ' + stepPct + '%)';
+  renderYearGridLines(scaleMax);
   let yearTotal=0, yearDebt=0, doneCount=0;
   series.forEach((m,i)=>{
     yearTotal += m.paid; yearDebt += m.debt;
