@@ -1534,16 +1534,10 @@
        одинаковую ширину. */
     #ringGoalCard{display:flex;align-items:stretch;padding:14px 22px}
     #ringGoalCard .fin-goal-left{display:contents}
-    #ringGoalCard .fin-goal-main{
-      flex:1 1 0;min-width:0;display:flex;flex-direction:column;
-      justify-content:center;align-items:flex-start;text-align:left;gap:5px;padding:0 20px
-    }
-    /* "Доход за месяц" — центрируем относительно своих же тонких
-       вертикальных полосок по бокам (а не прижимаем к левому краю, как
-       у "Цель по доходу" слева от неё). */
+    #ringGoalCard .fin-goal-main,
     #ringGoalCard .fin-goal-month{
       flex:1 1 0;min-width:0;display:flex;flex-direction:column;
-      justify-content:center;align-items:center;text-align:center;gap:5px;padding:0 20px
+      justify-content:center;align-items:flex-start;text-align:left;gap:5px;padding:0 20px
     }
     /* Правая колонка ("Осталось уроков" / "Осталось заработать" / "До
        конца месяца") — align-items:stretch (а не flex-start, как у левых
@@ -1554,7 +1548,7 @@
        как и просили, вместо разнобоя из-за разной длины подписей слева. */
     #ringGoalCard .kpi-ring-extra{
       flex:1 1 0;min-width:0;display:flex;flex-direction:column;
-      justify-content:center;align-items:stretch;gap:5px;padding:0 4px 0 20px
+      justify-content:center;align-items:stretch;gap:5px;padding:0 20px
     }
     #ringGoalCard .fin-goal-main{padding-left:0}
     #ringGoalCard .fin-goal-month,
