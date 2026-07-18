@@ -958,7 +958,14 @@
   .attention-item:hover .attention-dismiss-btn{opacity:1;pointer-events:auto}
   .attention-dismiss-btn:hover{background:var(--red);color:#fff}
   .btn-delete-icon:active{transform:scale(.94)}
-  .input-group{margin-bottom:14px}
+  /* min-width:0 — обязательно для ячеек внутри .input-row (grid).
+     Без этого браузер не даёт колонке сжаться уже "естественной" ширины
+     содержимого — а у <select> эта ширина зависит от системного размера
+     шрифта (на телефонах с крупным шрифтом в настройках, например часто
+     на iPhone Pro Max и подобных больших моделях, она больше). Из-за
+     этого поле вылезало за свою половину строки и наезжало на соседнее —
+     сейчас это исправлено на уровне самого класса, для всех форм сразу. */
+  .input-group{margin-bottom:14px;min-width:0}
   .input-label{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.4px}
   .input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s}
   /* Стрелочка у <select> — раньше это была "родная" браузерная стрелка,
@@ -972,6 +979,14 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%239090a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
     background-position:right 12px center;
+    /* Не даём длинному тексту опции (напр. "Оплачено полностью") растягивать
+       сам select шире его ячейки в .input-row — вместо наезда на соседнее
+       поле текст аккуратно обрезается многоточием (см. комментарий у
+       .input-group про min-width:0 — это вторая половина того же фикса). */
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
   }
   .input:focus{border-color:var(--accent)}
   .input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
