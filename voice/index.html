@@ -802,7 +802,7 @@
   .rep-status-dd .autocomplete-item.active{background:var(--accent);color:#fff}
   .rep-status-dd .autocomplete-item.active .autocomplete-name{color:#fff}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
-  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
+  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto;overflow-x:hidden}
   #modal-content.modal-danger{border-color:var(--red)}
   #modal-content.modal-wide{width:540px}
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -877,6 +877,7 @@
       flex:1 1 auto;
       min-height:0;
       overflow-y:auto;
+      overflow-x:hidden;
       padding-right:2px;
     }
     /* Кнопки (Удалить урок / Сохранить) — зафиксированы в самом низу
@@ -1528,6 +1529,7 @@
       flex:1 1 auto;
       min-height:0;
       overflow-y:auto;
+      overflow-x:hidden;
       -webkit-overflow-scrolling:touch;
       padding-right:2px;
     }
