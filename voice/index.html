@@ -815,17 +815,18 @@
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
 
   /* ================================================================
-     ВЫБОР ФОРМАТА ЭКСПОРТА (exportChoice/exportAllChoice) — шторка
-     СНИЗУ (bottom sheet) ТОЛЬКО на телефоне/планшете (≤880px). На
-     компьютере (>880px) эти два типа теперь ведут себя как обычные
-     drawer-модалки и выезжают СПРАВА панелью — см. .modal-bg.drawer-mode
-     и @media(min-width:881px) выше/ниже по файлу, а также
-     EXPORT_CHOICE_TYPES/openModal в JS, где это решается по
-     window.innerWidth. Классы задаются JS-ом: .sheet-mode на #modal-bg
-     и .modal-sheet на #modal-content — присваиваются только когда
-     isMobileWidth true. Специально вынесено ИЗ любых @media-блоков,
-     чтобы срабатывать по факту присвоенного класса, а не по ширине CSS
-     напрямую (ширина уже учтена в JS при выборе isSheetType). */
+     ВЫБОР ФОРМАТА ЭКСПОРТА (exportChoice/exportAllChoice) — ВСЕГДА
+     выезжающая СНИЗУ шторка (bottom sheet), на любом устройстве и
+     любой ширине экрана: и на компьютере, и на телефоне. В отличие от
+     .drawer-mode/.modal-drawer (выше/ниже по файлу), которые на
+     компьютере превращаются в панель СПРАВА, а на телефоне — в шторку
+     СНИЗУ, здесь поведение ОДНО и то же везде — это не окно
+     создания/редактирования с кучей полей, а короткий выбор из 1-2
+     вариантов (см. Google Drive: "Скачать как..." всегда выезжает
+     снизу, независимо от устройства). Классы задаются JS-ом:
+     .sheet-mode на #modal-bg и .modal-sheet на #modal-content (см.
+     SHEET_MODAL_TYPES/openModal). Специально вынесено ИЗ любых
+     @media-блоков, чтобы не зависеть от ширины экрана вообще. */
   .modal-bg.sheet-mode{
     align-items:flex-end;
     justify-content:center;
@@ -10000,15 +10001,11 @@ const modalBuilders = {
 // информационные попапы и все окна с кнопками удаления/сброса в этот
 // список НЕ входят и продолжают открываться как обычные центральные
 // модалки — см. подробный комментарий у CSS-блока .modal-bg.drawer-mode.
-const DRAWER_MODAL_TYPES = ['student','lesson','note','payment','subscription','subTopup','homework','repertoire','incomeGoal','exportChoice','exportAllChoice'];
-// exportChoice/exportAllChoice — особый случай внутри DRAWER_MODAL_TYPES:
-// на компьютере (>880px) ведут себя как все остальные drawer-модалки —
-// выезжают СПРАВА панелью (см. CSS-блок .modal-bg.drawer-mode рядом с
-// @media(min-width:881px)). На телефоне/планшете (≤880px) поведение НЕ
-// меняем — это по-прежнему короткая шторка выбора формата снизу (см.
-// CSS-блок .modal-bg.sheet-mode/#modal-content.modal-sheet, не завязан
-// на @media) — см. проверку по window.innerWidth в openModal ниже.
-const EXPORT_CHOICE_TYPES = ['exportChoice','exportAllChoice'];
+const DRAWER_MODAL_TYPES = ['student','lesson','note','payment','subscription','subTopup','homework','repertoire','incomeGoal'];
+// Типы модалок выбора формата — всегда выезжающая снизу шторка на
+// любом устройстве (см. CSS-блок .modal-bg.sheet-mode/#modal-content.
+// modal-sheet рядом с .modal-title, не завязан на @media).
+const SHEET_MODAL_TYPES = ['exportChoice','exportAllChoice'];
 
 // Приводит содержимое модалки к структуре "заголовок / прокручиваемые
 // поля / зафиксированная внизу кнопка", необходимой для CSS-панели
@@ -10050,20 +10047,9 @@ function openModal(type, ctx){
   // удаления и любые другие типы, не входящие в DRAWER_MODAL_TYPES, класс
   // .modal-drawer НИКОГДА не получают — они всегда остаются обычным окном
   // строго по центру экрана.
-  // exportChoice/exportAllChoice — на компьютере это drawer (панель
-  // справа, как и всё остальное из DRAWER_MODAL_TYPES), а на телефоне/
-  // планшете (≤880px) по-прежнему sheet (шторка снизу) — поведение там
-  // не трогаем, см. комментарий у EXPORT_CHOICE_TYPES выше.
-  const isExportChoiceType = EXPORT_CHOICE_TYPES.includes(type);
-  const isMobileWidth = window.innerWidth <= 880;
-  const isDrawerType = DRAWER_MODAL_TYPES.includes(type) && !(isExportChoiceType && isMobileWidth);
-  const isSheetType = isExportChoiceType && isMobileWidth;
-  // Разметка "шапка / прокрутка / зафиксированная кнопка внизу" нужна
-  // формам создания/редактирования (одна кнопка сохранения последним
-  // элементом). У exportChoice/exportAllChoice последним элементом стоит
-  // не одна кнопка, а ряд из двух вариантов формата — этой разметке она
-  // не подходит, поэтому для них функцию не вызываем даже в drawer-режиме.
-  if(isDrawerType && !isExportChoiceType) setupDrawerFormLayout(modalContent);
+  const isDrawerType = DRAWER_MODAL_TYPES.includes(type);
+  const isSheetType = SHEET_MODAL_TYPES.includes(type);
+  if(isDrawerType) setupDrawerFormLayout(modalContent);
   modalContent.classList.toggle('modal-drawer', isDrawerType);
   modalBg.classList.toggle('drawer-mode', isDrawerType);
   modalContent.classList.toggle('modal-sheet', isSheetType);
@@ -10075,10 +10061,9 @@ function openModal(type, ctx){
   // transform:translateY — см. @media max-width:880px). Оба переключаются
   // одним и тем же классом .drawer-open, конкретное CSS-свойство,
   // которое анимируется, зависит только от текущей ширины экрана.
-  // exportChoice/exportAllChoice на телефоне (isSheetType) используют
-  // отдельный класс .sheet-open — та же логика "два requestAnimationFrame",
-  // едет снизу (см. .modal-bg.sheet-mode выше); на компьютере для них
-  // isDrawerType true и они едут справа, как обычный drawer, — см. выше.
+  // SHEET_MODAL_TYPES (выбор формата) используют отдельный класс
+  // .sheet-open — та же логика "два requestAnimationFrame", просто на
+  // ВСЕХ ширинах экрана едет снизу (см. .modal-bg.sheet-mode выше).
   if(isDrawerType){
     // Класс .drawer-open добавляется НЕ сразу, а через два кадра отрисовки:
     // если добавить его в тот же момент, что и снятие .hidden (display:none
