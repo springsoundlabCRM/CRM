@@ -808,30 +808,36 @@
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
 
   /* ================================================================
-     ДЕСКТОП: форма планирования/редактирования урока — выезжающая
-     СПРАВА панель (Side Drawer / Sheet) вместо обычного попапа по
-     центру экрана. Работает ТОЛЬКО на компьютере (min-width:881px) —
-     на телефоне/планшете форма урока остаётся обычным центральным
-     модальным окном, как и раньше (см. .modal-bg/.modal выше и все
-     мобильные @media-правила — они не тронуты и продолжают работать
-     как обычно).
+     ДЕСКТОП: окна СОЗДАНИЯ И РЕДАКТИРОВАНИЯ (ученик, урок, заметка,
+     платёж, абонемент, пополнение абонемента, домашнее задание,
+     репертуар, цель по доходу) — выезжающая СПРАВА панель (Side Drawer
+     / Sheet) вместо обычного попапа по центру экрана. Работает ТОЛЬКО
+     на компьютере (min-width:881px) — на телефоне/планшете эти формы
+     остаются обычными центральными модальными окнами, как и раньше
+     (см. .modal-bg/.modal выше и все мобильные @media-правила — они не
+     тронуты и продолжают работать как обычно).
 
      Классы .drawer-mode (на #modal-bg) и .modal-drawer (на
-     #modal-content) добавляются JS-ом ТОЛЬКО когда открыт тип 'lesson'
-     (см. openModal/closeModal ниже по файлу). Критические попапы
-     подтверждения ("Удалить урок", подтверждение удаления ученика и
-     т.п.) используют те же самые #modal-bg/#modal-content, но эти
-     классы никогда не получают — поэтому остаются обычными
+     #modal-content) добавляются JS-ом (см. DRAWER_MODAL_TYPES и
+     openModal/closeModal ниже по файлу) только для перечисленных выше
+     типов "создать/редактировать". Попапы-ПИКЕРЫ (выбор даты/периода),
+     информационные попапы (история абонементов, доход за месяц, выбор
+     формата экспорта) и КРИТИЧЕСКИЕ попапы подтверждения ("Удалить
+     урок", удаление ученика/абонемента/задания/песни, сброс карточки
+     «Голос» и т.п.) используют те же самые #modal-bg/#modal-content,
+     но эти классы никогда не получают — поэтому остаются обычными
      аккуратными окнами строго по центру экрана с затемнением фона,
      без каких-либо изменений. ================================================================ */
   @media (min-width:881px){
-    /* Фон под панелью — прозрачный (без затемнения и блюра): сетка
-       расписания слева должна оставаться полностью видимой. Панель
-       прижата к правому краю на всю высоту экрана; клик по прозрачному
-       фону вне панели по-прежнему закрывает её (тот же механизм, что и
-       у обычных модалок — см. handleModalBgMouseDown/closeModal). */
+    /* Фон под панелью — слегка затемняем (не полностью прозрачно, но и не
+       такой плотный, как у обычных модалок), без блюра: сетка расписания
+       и остальной интерфейс слева должны оставаться хорошо видимыми и
+       узнаваемыми. Панель прижата к правому краю на всю высоту экрана;
+       клик по затемнённому фону вне панели по-прежнему закрывает её (тот
+       же механизм, что и у обычных модалок — см.
+       handleModalBgMouseDown/closeModal). */
     .modal-bg.drawer-mode{
-      background:transparent;
+      background:rgba(4,4,10,.32);
       backdrop-filter:none;
       align-items:stretch;
       justify-content:flex-end;
@@ -9637,6 +9643,39 @@ const modalBuilders = {
   voiceReset: buildResetVoiceModal,
   exportChoice: buildExportChoiceModal,
   exportAllChoice: buildExportAllChoiceModal};
+// Типы модалок, которые на компьютере открываются выезжающей справа
+// панелью (Side Drawer), а не обычным попапом по центру — это все окна
+// СОЗДАНИЯ и РЕДАКТИРОВАНИЯ сущностей. Пикеры (выбор даты/периода),
+// информационные попапы и все окна с кнопками удаления/сброса в этот
+// список НЕ входят и продолжают открываться как обычные центральные
+// модалки — см. подробный комментарий у CSS-блока .modal-bg.drawer-mode.
+const DRAWER_MODAL_TYPES = ['student','lesson','note','payment','subscription','subTopup','homework','repertoire','incomeGoal'];
+
+// Приводит содержимое модалки к структуре "заголовок / прокручиваемые
+// поля / зафиксированная внизу кнопка", необходимой для CSS-панели
+// (.drawer-form-scroll растягивается и скроллится, .drawer-form-footer
+// всегда внизу). Форма урока (buildLessonModal) уже сама оборачивает
+// себя в эти же классы (там 2 кнопки в футере — "Удалить"/"Сохранить"),
+// поэтому для неё эта функция ничего не делает. Для всех остальных форм
+// из DRAWER_MODAL_TYPES разметка простая и одинаковая: .modal-title,
+// затем поля формы, затем ОДНА кнопка сохранения последним элементом —
+// именно её и переносим в футер, всё, что между заголовком и ней,
+// уходит в прокручиваемую область.
+function setupDrawerFormLayout(modalContent){
+  if(modalContent.querySelector('.drawer-form-scroll')) return;
+  const children = Array.from(modalContent.children);
+  if(children.length < 2) return;
+  const footerBtn = children[children.length-1];
+  const middle = children.slice(1, children.length-1);
+  const scrollWrap = document.createElement('div');
+  scrollWrap.className = 'drawer-form-scroll';
+  middle.forEach(el=> scrollWrap.appendChild(el));
+  const footerWrap = document.createElement('div');
+  footerWrap.className = 'drawer-form-footer';
+  footerWrap.appendChild(footerBtn);
+  modalContent.appendChild(scrollWrap);
+  modalContent.appendChild(footerWrap);
+}
 function openModal(type, ctx){
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
@@ -9646,13 +9685,14 @@ function openModal(type, ctx){
   modalContent.innerHTML = builder(modalCtx);
   modalContent.classList.toggle('modal-danger', type==='studentDanger');
   modalContent.classList.toggle('modal-wide', type==='exportChoice' || type==='exportAllChoice');
-  // Форма планирования/редактирования урока — единственный тип попапа,
-  // который на компьютере превращается в выезжающую справа панель
-  // (Side Drawer), см. CSS-блок @media(min-width:881px) рядом с
-  // .modal-bg/.modal. Критические попапы подтверждения (удаление урока,
-  // удаление ученика и т.п.) класс .modal-drawer НИКОГДА не получают —
-  // они всегда остаются обычным окном строго по центру экрана.
-  const isDrawerType = (type==='lesson');
+  // Окна создания/редактирования — на компьютере превращаются в
+  // выезжающую справа панель (Side Drawer), см. CSS-блок
+  // @media(min-width:881px) рядом с .modal-bg/.modal. Попапы подтверждения
+  // удаления и любые другие типы, не входящие в DRAWER_MODAL_TYPES, класс
+  // .modal-drawer НИКОГДА не получают — они всегда остаются обычным окном
+  // строго по центру экрана.
+  const isDrawerType = DRAWER_MODAL_TYPES.includes(type);
+  if(isDrawerType) setupDrawerFormLayout(modalContent);
   modalContent.classList.toggle('modal-drawer', isDrawerType);
   modalBg.classList.toggle('drawer-mode', isDrawerType);
   modalBg.classList.remove('hidden');
