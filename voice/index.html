@@ -1385,6 +1385,18 @@
        и Статус оплаты/Сумма оплаты должны на телефоне выглядеть
        так же, как на компьютере: в два столбца, а не друг под другом. */
     .input-row.lesson-modal-row{grid-template-columns:1fr 1fr!important;gap:8px!important}
+    /* Дата/Время — особый случай, отдельно от Длительности/Формата и Статуса
+       оплаты/Суммы (у тех — <select> и короткие числа, ровные 50/50 им
+       подходят). У поля "Дата" на iOS браузер сам рисует значение нативного
+       <input type="date"> ПОЛНОЙ локализованной строкой ("15 июля 2026 г."
+       и т.п.) — это не текст в DOM, а собственная отрисовка контрола, её
+       нельзя обрезать через ellipsis или сжать через min-width:0. При
+       жёстких равных 50/50 колонках эта строка не помещается в свою
+       половину и наезжает на соседнее поле "Время". У "Времени" же значение
+       всегда короткое ("19:00"), поэтому отдаём ему узкую фиксированную
+       колонку, а "Дате" — всё оставшееся место: так она гарантированно
+       помещается на любом телефоне, а "Время" никогда не обрезается. */
+    .input-row.lesson-modal-row.lesson-datetime-row{grid-template-columns:1fr 104px!important;gap:8px!important}
 
     /* ================================================================
        ФИКС "страницу уносит вверх и не отпускает" при фокусе на поле
@@ -8799,7 +8811,7 @@ function buildLessonModal(ctx){
     +'<input type="hidden" id="f-l-student" value="'+(studentId||'')+'">'
     +'<div class="autocomplete-dropdown" id="f-l-student-suggest"></div>'
     +'</div>'
-    +'<div class="input-row lesson-modal-row"><div class="input-group"><label class="input-label">Дата</label><input class="input" id="f-l-date" type="date" value="'+defaultDate+'"></div>'
+    +'<div class="input-row lesson-modal-row lesson-datetime-row"><div class="input-group"><label class="input-label">Дата</label><input class="input" id="f-l-date" type="date" value="'+defaultDate+'"></div>'
     +'<div class="input-group"><label class="input-label">Время</label><input class="input" id="f-l-time" type="time" value="'+defaultTime+'"></div></div>'
     +'<div class="input-row lesson-modal-row"><div class="input-group"><label class="input-label">Длительность</label><select class="input" id="f-l-dur"><option value="30" '+(defaultDur===30?'selected':'')+'>30 мин</option><option value="45" '+(defaultDur===45?'selected':'')+'>45 мин</option><option value="60" '+(defaultDur===60?'selected':'')+'>60 мин</option></select></div>'
     +'<div class="input-group"><label class="input-label">Формат</label><select class="input" id="f-l-format"><option value="online" '+(defaultFormat==='online'?'selected':'')+'>Онлайн</option><option value="offline" '+(defaultFormat==='offline'?'selected':'')+'>Офлайн</option></select></div></div>'
