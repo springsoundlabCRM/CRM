@@ -1379,6 +1379,94 @@
     .modal{width:100%;max-width:420px;max-height:82vh;border-radius:16px;
       padding:20px 16px;margin:0;box-sizing:border-box}
 
+    /* ================================================================
+       МОБИЛЬНЫЙ BOTTOM SHEET (≤880px): те же окна СОЗДАНИЯ и
+       РЕДАКТИРОВАНИЯ (ученик, урок, заметка, платёж, абонемент,
+       пополнение абонемента, домашнее задание, репертуар, цель по
+       доходу — см. DRAWER_MODAL_TYPES в JS), которые на компьютере
+       выезжают СПРАВА панелью, на телефоне/планшете превращаются в
+       шторку, выезжающую СНИЗУ ВВЕРХ и занимающую ~82% высоты экрана —
+       сверху специально остаётся видна полоска календаря/фона, чтобы
+       не терять контекст. Классы те же самые (.drawer-mode на
+       #modal-bg, .modal-drawer на #modal-content), просто здесь для
+       них другие правила — специфичность селектора (класс+класс,
+       id+класс) у .modal-bg.drawer-mode/#modal-content.modal-drawer
+       ВСЕГДА выше обычных .modal-bg/.modal чуть выше, поэтому порядок
+       правил в файле не важен, эти переопределяют те.
+
+       Модалки подтверждения удаления (studentDanger, deleteLesson,
+       deleteLessonConfirm, deleteSubscription, voiceReset и т.п.)
+       класс .drawer-mode/.modal-drawer никогда не получают (см.
+       DRAWER_MODAL_TYPES в JS) — они всегда остаются обычными
+       попапами по центру экрана, заданными правилами выше, и это
+       правило их не затрагивает. ================================================================ */
+    .modal-bg.drawer-mode{
+      align-items:flex-end;
+      justify-content:center;
+      padding:0;
+      background:rgba(4,4,10,.55);
+      backdrop-filter:none;
+    }
+    #modal-content.modal-drawer{
+      position:relative;
+      width:100%;
+      max-width:100%;
+      height:82dvh;
+      max-height:82dvh;
+      margin:0;
+      border-radius:20px 20px 0 0;
+      border:1px solid var(--border2);
+      border-bottom:none;
+      padding:26px 16px 0;
+      box-sizing:border-box;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      box-shadow:0 -14px 40px rgba(0,0,0,.4);
+      /* Так же, как на компьютере — стартовая позиция "за экраном"
+         (внизу), сам выезд анимируется добавлением .drawer-open через
+         JS (openModal) на следующих двух кадрах отрисовки. */
+      transform:translateY(100%);
+      transition:transform .32s cubic-bezier(.22,1,.36,1);
+    }
+    .modal-bg.drawer-mode.drawer-open #modal-content.modal-drawer{
+      transform:translateY(0);
+    }
+    /* Маркер-подсказка (drag handle) — тонкая серая полоска по центру
+       самого верха шторки, намекающая, что её можно потянуть/смахнуть.
+       Чисто визуальный элемент, за реальное закрытие свайпом отвечает
+       крестик и клик по затемнённой области выше шторки (см. ниже). */
+    #modal-content.modal-drawer::before{
+      content:'';
+      position:absolute;
+      top:9px;
+      left:50%;
+      transform:translateX(-50%);
+      width:38px;
+      height:4px;
+      border-radius:3px;
+      background:var(--border2);
+    }
+    /* Заголовок с крестиком закрытия закреплён сверху шторки */
+    #modal-content.modal-drawer > .modal-title{ flex-shrink:0; }
+    /* Поля формы — своя прокрутка внутри шторки, крестик и заголовок
+       всегда остаются на виду */
+    #modal-content.modal-drawer .drawer-form-scroll{
+      flex:1 1 auto;
+      min-height:0;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      padding-right:2px;
+    }
+    /* Кнопка сохранения (и кнопка удаления в форме урока) зафиксирована
+       внизу шторки, с отступом под системный "домик"/жест iPhone, чтобы
+       никогда не оказаться "под пальцем" или обрезанной краем экрана */
+    #modal-content.modal-drawer .drawer-form-footer{
+      flex-shrink:0;
+      padding:12px 0 calc(14px + env(safe-area-inset-bottom));
+      background:var(--bg2);
+    }
+
     /* Табы — горизонтальный скролл вместо переноса */
     .tab-row{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
     .tab-row::-webkit-scrollbar{display:none}
@@ -9696,18 +9784,27 @@ function openModal(type, ctx){
   modalContent.classList.toggle('modal-drawer', isDrawerType);
   modalBg.classList.toggle('drawer-mode', isDrawerType);
   modalBg.classList.remove('hidden');
-  const isDesktopWidth = window.matchMedia('(min-width:881px)').matches;
-  if(isDrawerType && isDesktopWidth){
+  // Анимация выезда включается для DRAWER_MODAL_TYPES и на компьютере
+  // (панель едет СПРАВА налево, transform:translateX — см. @media
+  // min-width:881px), и на телефоне/планшете (шторка едет СНИЗУ вверх,
+  // transform:translateY — см. @media max-width:880px). Оба переключаются
+  // одним и тем же классом .drawer-open, конкретное CSS-свойство,
+  // которое анимируется, зависит только от текущей ширины экрана.
+  if(isDrawerType){
     // Класс .drawer-open добавляется НЕ сразу, а через два кадра отрисовки:
     // если добавить его в тот же момент, что и снятие .hidden (display:none
     // → flex), браузер не анимирует последующий transform (не с чего
     // "стартовать" переход). Два rAF гарантируют, что первый кадр с
-    // transform:translateX(100%) уже реально отрисован.
+    // "закрытым" transform уже реально отрисован.
     modalBg.classList.remove('drawer-open');
     requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ modalBg.classList.add('drawer-open'); }); });
   } else {
     modalBg.classList.remove('drawer-open');
   }
+  // На мобильной шторке (bottom sheet) сразу подгоняем #modal-bg под
+  // реальную видимую область (visualViewport) — на случай, если
+  // клавиатура уже была открыта на предыдущем экране.
+  syncDrawerBgToViewport();
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
   if(type==='calPicker') renderCalPickerCalendar();
@@ -9737,7 +9834,63 @@ function finalizeModalClose(){
   modalContent.classList.remove('modal-drawer');
   modalBg.classList.remove('drawer-mode');
   modalBg.classList.remove('drawer-open');
+  // Сбрасываем инлайн-стили, выставленные syncDrawerBgToViewport() под
+  // клавиатуру — иначе они "прилипнут" и повлияют на следующую модалку.
+  modalBg.style.top = '';
+  modalBg.style.height = '';
 }
+
+/* ============================================================
+   МОБИЛЬНАЯ ШТОРКА (Bottom Sheet) — подстройка под клавиатуру
+   ============================================================
+   На телефоне при фокусе на поле ввода внутри выезжающей снизу шторки
+   (см. #modal-content.modal-drawer, @media max-width:880px) окно
+   #modal-bg — это position:fixed;inset:0, то есть привязано к полному
+   layout-viewport, который на iOS/Android НЕ уменьшается при появлении
+   клавиатуры (в отличие от visualViewport). Из-за этого низ шторки —
+   там, где кнопка "Сохранить" — рисковал оказаться "под клавиатурой",
+   вне видимой области и недоступным для нажатия вслепую. Подгоняем
+   #modal-bg под window.visualViewport (его размер и сдвиг ДЕЙСТВИТЕЛЬНО
+   меняются при появлении клавиатуры), чтобы шторка целиком, включая
+   кнопку сохранения, всегда оставалась в реально видимой части экрана. */
+function syncDrawerBgToViewport(){
+  const modalBg = document.getElementById('modal-bg');
+  if(!modalBg || modalBg.classList.contains('hidden')) return;
+  if(!modalBg.classList.contains('drawer-mode')) return;
+  // На компьютере (>880px) шторка не используется — там обычная боковая
+  // панель, инлайн-стили под клавиатуру ей не нужны.
+  if(!window.matchMedia('(max-width:880px)').matches){
+    modalBg.style.top = '';
+    modalBg.style.height = '';
+    return;
+  }
+  const vv = window.visualViewport;
+  if(!vv) return;
+  modalBg.style.top = vv.offsetTop + 'px';
+  modalBg.style.height = vv.height + 'px';
+}
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', syncDrawerBgToViewport);
+  window.visualViewport.addEventListener('scroll', syncDrawerBgToViewport);
+}
+// Когда клавиатура выезжает, поле, которое сейчас редактируют, должно
+// остаться на виду — прокручиваем его во внутренней прокручиваемой
+// области формы (.drawer-form-scroll), не полагаясь на то, что браузер
+// сам подскроллит фиксированный по позиции элемент.
+document.addEventListener('focusin', function(e){
+  const field = e.target;
+  if(!field || !field.closest) return;
+  if(!/^(INPUT|TEXTAREA|SELECT)$/.test(field.tagName)) return;
+  const scrollWrap = field.closest('#modal-content.modal-drawer .drawer-form-scroll');
+  if(!scrollWrap) return;
+  if(!window.matchMedia('(max-width:880px)').matches) return;
+  // Небольшая задержка — даём мобильной клавиатуре время реально
+  // появиться и visualViewport — обновить свои размеры перед пересчётом.
+  setTimeout(function(){
+    syncDrawerBgToViewport();
+    field.scrollIntoView({block:'nearest', behavior:'smooth'});
+  }, 300);
+});
 function doCloseModal(){
   const modalBg = document.getElementById('modal-bg');
   if(modalBg.classList.contains('drawer-open')){
