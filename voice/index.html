@@ -924,6 +924,20 @@
     cursor:pointer;font-size:12.5px;flex-shrink:0;transition:.15s;
   }
   .today-cal-icon-btn:hover{background:var(--accent);color:#fff}
+  /* Кнопка "Пробный урок" в паре с полем "Стоимость урока" — текст с
+     эмодзи должен помещаться в свою половину строки на ЛЮБОЙ ширине
+     экрана (от iPhone SE ~375px до Pro Max ~430px и любых Android).
+     clamp() даёт плавное масштабирование шрифта без скачков между
+     брейкпоинтами; overflow:hidden+ellipsis — аварийная страховка,
+     чтобы даже в крайнем случае текст не вылезал за пределы кнопки
+     и не наезжал на соседнее поле. */
+  .lesson-trial-btn{
+    font-size:clamp(11px,3.4vw,13px);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    gap:4px;
+  }
   .modal-close{
     cursor:pointer;background:var(--red-bg);border:1px solid rgba(248,113,113,.35);
     color:var(--red);font-size:18px;font-weight:600;line-height:1;
@@ -1475,6 +1489,8 @@
       padding:0;
       background:rgba(4,4,10,.55);
       backdrop-filter:none;
+      overscroll-behavior:contain;
+      touch-action:none;
     }
     #modal-content.modal-drawer{
       position:relative;
@@ -1493,6 +1509,8 @@
       display:flex;
       flex-direction:column;
       overflow:hidden;
+      overscroll-behavior:contain;
+      touch-action:pan-y;
       box-shadow:0 -14px 40px rgba(0,0,0,.4);
       /* height/max-height дублируются: сначала обычные vh (понимает
          вообще любой браузер), затем dvh поверх них — на движках без
@@ -1643,6 +1661,16 @@
     .kpi-ring-grid.compact .kpi-ring::before{inset:4.5px}
     .kpi-ring-grid.compact .kpi-ring-val{font-size:9.5px}
     .kpi-ring-grid.compact .kpi-ring-title{font-size:8.5px;line-height:1.15}
+    /* Модалка "Запланировать/Редактировать урок" на самых узких телефонах
+       (iPhone SE, компактные Android ~320-380px) — тот же вид в 2 колонки,
+       что и на всех остальных устройствах (см. .lesson-modal-row выше),
+       просто с чуть меньшими отступами/шрифтом, чтобы подписи и значения
+       (особенно "Длительность"/"Формат" и кнопка "Пробный урок") гарантированно
+       помещались и не наезжали друг на друга. */
+    .input-row.lesson-modal-row{gap:6px!important}
+    .input-row.lesson-modal-row .input-label{font-size:10.5px}
+    .input-row.lesson-modal-row .input{padding-left:8px;padding-right:8px}
+    .lesson-trial-btn{font-size:10.5px;gap:3px}
   }
 
   /* ---------- Сенсорные улучшения (применяются везде на тач-устройствах) ---------- */
@@ -8838,7 +8866,7 @@ function buildLessonModal(ctx){
     +'<div id="f-l-sub-note" class="lesson-sub-banner" style="'+(sub?'':'display:none')+'">'+(sub?'🎫 У ученика активен абонемент — урок будет списан с него автоматически':'')+'</div>'
     +'<div class="input-group" id="f-l-price-wrap" style="'+(sub?'display:none':'')+'">'
     +'<div class="input-row lesson-modal-row"><div class="input-group" style="margin-bottom:0"><label class="input-label">Стоимость урока (₽)</label><input class="input" id="f-l-price" type="number" placeholder="1500" value="'+defaultPrice+'" data-mode="regular" onchange="onLessonPriceChange(this)" style="height:38px;box-sizing:border-box"></div>'
-    +'<div class="input-group" style="margin-bottom:0"><label class="input-label">&nbsp;</label><button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;white-space:nowrap;padding:0 12px;font-size:13px;height:38px;line-height:1;box-sizing:border-box" onclick="onTrialPriceBtnClick()">🎓 Пробный урок</button></div></div>'
+    +'<div class="input-group" style="margin-bottom:0;min-width:0"><label class="input-label">&nbsp;</label><button type="button" class="btn btn-ghost lesson-trial-btn" style="width:100%;justify-content:center;padding:0 8px;height:38px;line-height:1;box-sizing:border-box" onclick="onTrialPriceBtnClick()">🎓 Пробный урок</button></div></div>'
     +'<div class="input-row lesson-modal-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Статус оплаты</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none" '+(defaultPaid===0?'selected':'')+'>Не оплачено</option><option value="full" '+(defaultPaid>=defaultPrice?'selected':'')+'>Оплачено полностью</option><option value="partial" '+(defaultPaid>0&&defaultPaid<defaultPrice?'selected':'')+'>Частично</option></select></div>'
     +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;'+(defaultPaid>0&&defaultPaid<defaultPrice?'':'display:none')+'"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500" value="'+(defaultPaid>0&&defaultPaid<defaultPrice?defaultPaid:'')+'"></div></div>'
     +'</div>'
