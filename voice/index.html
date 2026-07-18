@@ -807,6 +807,81 @@
   #modal-content.modal-wide{width:540px}
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
 
+  /* ================================================================
+     ДЕСКТОП: форма планирования/редактирования урока — выезжающая
+     СПРАВА панель (Side Drawer / Sheet) вместо обычного попапа по
+     центру экрана. Работает ТОЛЬКО на компьютере (min-width:881px) —
+     на телефоне/планшете форма урока остаётся обычным центральным
+     модальным окном, как и раньше (см. .modal-bg/.modal выше и все
+     мобильные @media-правила — они не тронуты и продолжают работать
+     как обычно).
+
+     Классы .drawer-mode (на #modal-bg) и .modal-drawer (на
+     #modal-content) добавляются JS-ом ТОЛЬКО когда открыт тип 'lesson'
+     (см. openModal/closeModal ниже по файлу). Критические попапы
+     подтверждения ("Удалить урок", подтверждение удаления ученика и
+     т.п.) используют те же самые #modal-bg/#modal-content, но эти
+     классы никогда не получают — поэтому остаются обычными
+     аккуратными окнами строго по центру экрана с затемнением фона,
+     без каких-либо изменений. ================================================================ */
+  @media (min-width:881px){
+    /* Фон под панелью — прозрачный (без затемнения и блюра): сетка
+       расписания слева должна оставаться полностью видимой. Панель
+       прижата к правому краю на всю высоту экрана; клик по прозрачному
+       фону вне панели по-прежнему закрывает её (тот же механизм, что и
+       у обычных модалок — см. handleModalBgMouseDown/closeModal). */
+    .modal-bg.drawer-mode{
+      background:transparent;
+      backdrop-filter:none;
+      align-items:stretch;
+      justify-content:flex-end;
+      padding:0;
+    }
+    #modal-content.modal-drawer{
+      width:400px;
+      max-width:400px;
+      height:100%;
+      max-height:100%;
+      margin:0;
+      border-radius:0;
+      border-top:none;
+      border-bottom:none;
+      border-right:none;
+      border-left:1px solid var(--border2);
+      box-shadow:-14px 0 40px rgba(0,0,0,.35);
+      /* Плавный выезд справа налево через transform — анимируется
+         только после того, как JS на следующем кадре добавит класс
+         .drawer-open (см. openModal ниже), поэтому сам переход
+         display:none → flex не "ломает" transition. */
+      transform:translateX(100%);
+      transition:transform .32s cubic-bezier(.22,1,.36,1);
+      display:flex;
+      flex-direction:column;
+      padding:22px 22px 0;
+      overflow:hidden;
+    }
+    .modal-bg.drawer-mode.drawer-open #modal-content.modal-drawer{
+      transform:translateX(0);
+    }
+    /* Заголовок панели закреплён сверху, не участвует в прокрутке полей */
+    #modal-content.modal-drawer > .modal-title{ flex-shrink:0; }
+    /* Поля формы — вертикальный список сверху вниз, с собственной
+       прокруткой на случай, если полей больше, чем помещается по высоте */
+    #modal-content.modal-drawer .drawer-form-scroll{
+      flex:1 1 auto;
+      min-height:0;
+      overflow-y:auto;
+      padding-right:2px;
+    }
+    /* Кнопки (Удалить урок / Сохранить) — зафиксированы в самом низу
+       панели и никогда не уезжают вместе с прокруткой полей выше */
+    #modal-content.modal-drawer .drawer-form-footer{
+      flex-shrink:0;
+      padding:12px 0 22px;
+      background:var(--bg2);
+    }
+  }
+
   /* ---------- Пикер выбора периода (открывается по клику на дату в расписании) ---------- */
   .cal-period-btn{cursor:pointer}
   .cal-picker-year-row{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:14px}
@@ -8569,6 +8644,7 @@ function buildLessonModal(ctx){
   const isEdit = !!lesson;
 
   return '<div class="modal-title">'+(isEdit?'Редактировать урок':'Запланировать урок')+' <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div class="drawer-form-scroll">'
     +'<input type="hidden" id="f-l-lesson-id" value="'+(lesson?lesson.id:'')+'">'
     +'<div class="input-group autocomplete-wrap">'
     +'<label class="input-label">Ученик</label>'
@@ -8588,8 +8664,11 @@ function buildLessonModal(ctx){
     +'<div class="input-row lesson-modal-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Статус оплаты</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none" '+(defaultPaid===0?'selected':'')+'>Не оплачено</option><option value="full" '+(defaultPaid>=defaultPrice?'selected':'')+'>Оплачено полностью</option><option value="partial" '+(defaultPaid>0&&defaultPaid<defaultPrice?'selected':'')+'>Частично</option></select></div>'
     +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;'+(defaultPaid>0&&defaultPaid<defaultPrice?'':'display:none')+'"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500" value="'+(defaultPaid>0&&defaultPaid<defaultPrice?defaultPaid:'')+'"></div></div>'
     +'</div>'
+    +'</div>' /* /.drawer-form-scroll */
+    +'<div class="drawer-form-footer">'
     + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="deleteLesson(\''+lesson.id+'\')">🗑 Удалить урок</button>' : '')
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>'
+    +'</div>';
 }
 function onLessonStudentChange(){
   const sid = document.getElementById('f-l-student').value;
@@ -9562,10 +9641,33 @@ function openModal(type, ctx){
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
   if(!builder){ console.warn('Неизвестный тип модального окна:', type); return; }
-  document.getElementById('modal-content').innerHTML = builder(modalCtx);
-  document.getElementById('modal-content').classList.toggle('modal-danger', type==='studentDanger');
-  document.getElementById('modal-content').classList.toggle('modal-wide', type==='exportChoice' || type==='exportAllChoice');
-  document.getElementById('modal-bg').classList.remove('hidden');
+  const modalBg = document.getElementById('modal-bg');
+  const modalContent = document.getElementById('modal-content');
+  modalContent.innerHTML = builder(modalCtx);
+  modalContent.classList.toggle('modal-danger', type==='studentDanger');
+  modalContent.classList.toggle('modal-wide', type==='exportChoice' || type==='exportAllChoice');
+  // Форма планирования/редактирования урока — единственный тип попапа,
+  // который на компьютере превращается в выезжающую справа панель
+  // (Side Drawer), см. CSS-блок @media(min-width:881px) рядом с
+  // .modal-bg/.modal. Критические попапы подтверждения (удаление урока,
+  // удаление ученика и т.п.) класс .modal-drawer НИКОГДА не получают —
+  // они всегда остаются обычным окном строго по центру экрана.
+  const isDrawerType = (type==='lesson');
+  modalContent.classList.toggle('modal-drawer', isDrawerType);
+  modalBg.classList.toggle('drawer-mode', isDrawerType);
+  modalBg.classList.remove('hidden');
+  const isDesktopWidth = window.matchMedia('(min-width:881px)').matches;
+  if(isDrawerType && isDesktopWidth){
+    // Класс .drawer-open добавляется НЕ сразу, а через два кадра отрисовки:
+    // если добавить его в тот же момент, что и снятие .hidden (display:none
+    // → flex), браузер не анимирует последующий transform (не с чего
+    // "стартовать" переход). Два rAF гарантируют, что первый кадр с
+    // transform:translateX(100%) уже реально отрисован.
+    modalBg.classList.remove('drawer-open');
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ modalBg.classList.add('drawer-open'); }); });
+  } else {
+    modalBg.classList.remove('drawer-open');
+  }
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
   if(type==='calPicker') renderCalPickerCalendar();
@@ -9585,21 +9687,36 @@ let modalBgMouseDownOnBg = false;
 function handleModalBgMouseDown(e){
   modalBgMouseDownOnBg = (e.target && e.target.id === 'modal-bg');
 }
-function closeModal(e){
-  if(!e){
-    document.getElementById('modal-bg').classList.add('hidden');
-    document.getElementById('modal-content').innerHTML='';
-    document.getElementById('modal-content').classList.remove('modal-danger');
-    document.getElementById('modal-content').classList.remove('modal-wide');
-    return;
+function finalizeModalClose(){
+  const modalBg = document.getElementById('modal-bg');
+  const modalContent = document.getElementById('modal-content');
+  modalBg.classList.add('hidden');
+  modalContent.innerHTML='';
+  modalContent.classList.remove('modal-danger');
+  modalContent.classList.remove('modal-wide');
+  modalContent.classList.remove('modal-drawer');
+  modalBg.classList.remove('drawer-mode');
+  modalBg.classList.remove('drawer-open');
+}
+function doCloseModal(){
+  const modalBg = document.getElementById('modal-bg');
+  if(modalBg.classList.contains('drawer-open')){
+    // Панель урока на компьютере: сначала анимированно уезжаем обратно
+    // вправо (снимаем .drawer-open — CSS-transition отработает сама),
+    // и только по завершении анимации скрываем и очищаем модалку —
+    // иначе форма пропадала бы мгновенно, без анимации выезда обратно.
+    modalBg.classList.remove('drawer-open');
+    setTimeout(finalizeModalClose, 320);
+  } else {
+    finalizeModalClose();
   }
+}
+function closeModal(e){
+  if(!e){ doCloseModal(); return; }
   const clickedCloseBtn = e.target && e.target.closest && e.target.closest('.modal-close');
   const clickedBgOnly = e.target.id==='modal-bg' && modalBgMouseDownOnBg;
   if(clickedCloseBtn || clickedBgOnly){
-    document.getElementById('modal-bg').classList.add('hidden');
-    document.getElementById('modal-content').innerHTML='';
-    document.getElementById('modal-content').classList.remove('modal-danger');
-    document.getElementById('modal-content').classList.remove('modal-wide');
+    doCloseModal();
   }
 }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
