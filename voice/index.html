@@ -1370,6 +1370,30 @@
        и Статус оплаты/Сумма оплаты должны на телефоне выглядеть
        так же, как на компьютере: в два столбца, а не друг под другом. */
     .input-row.lesson-modal-row{grid-template-columns:1fr 1fr!important;gap:8px!important}
+
+    /* ================================================================
+       ФИКС "страницу уносит вверх и не отпускает" при фокусе на поле
+       ввода (например, имя ученика в форме урока). Причина — классический
+       баг мобильных браузеров (в первую очередь iOS Safari): если у
+       текстового поля шрифт МЕНЬШЕ 16px, при получении фокуса браузер
+       сам масштабирует и прокручивает страницу, чтобы "приблизить" поле.
+       На обычной странице это безобидно и само возвращается назад, НО у
+       нас body сделан через position:fixed;overflow:hidden (нужно для
+       предотвращения бокового/резинового скролла интерфейса) — из-за
+       этого браузеру после такого авто-зума физически нечем "откатить"
+       страницу обратно, и её натурально заклинивает вверху с пустой
+       областью снизу, скроллить некуда. Раньше почти везде в приложении
+       у полей ввода font-size:13px (см. .input в основных стилях) — этого
+       достаточно, чтобы триггерить баг. Универсальное и единственное
+       по-настоящему надёжное решение — держать шрифт ЛЮБОГО поля ввода
+       на телефоне не меньше 16px; !important нужен, чтобы перебить
+       локальные инлайн-стили полей (font-size:12px и т.п.), которые
+       используются местами для компактности на десктопе. ================================================================ */
+    input, textarea, select,
+    .input, input.input, textarea.input, select.input{
+      font-size:16px!important;
+    }
+
     /* Поп-ап окна на телефоне — отдельное всплывающее окно ПО ЦЕНТРУ экрана,
        не касается боковых/нижнего краёв (раньше было прилипающее к низу
        окно на всю ширину экрана — "bottom sheet"). Это касается ВСЕХ
@@ -1411,7 +1435,9 @@
       position:relative;
       width:100%;
       max-width:100%;
+      height:82vh;
       height:82dvh;
+      max-height:82vh;
       max-height:82dvh;
       margin:0;
       border-radius:20px 20px 0 0;
@@ -1423,6 +1449,9 @@
       flex-direction:column;
       overflow:hidden;
       box-shadow:0 -14px 40px rgba(0,0,0,.4);
+      /* height/max-height дублируются: сначала обычные vh (понимает
+         вообще любой браузер), затем dvh поверх них — на движках без
+         поддержки dvh просто останется рабочее значение на vh. */
       /* Так же, как на компьютере — стартовая позиция "за экраном"
          (внизу), сам выезд анимируется добавлением .drawer-open через
          JS (openModal) на следующих двух кадрах отрисовки. */
@@ -2445,7 +2474,16 @@
       var el = e.target;
       if(el && el.closest && el.closest('input, textarea, [contenteditable="true"]')){
         _kbLock = false;
-        setTimeout(function(){ refreshAll(true); }, 300);
+        setTimeout(function(){
+          refreshAll(true);
+          // Подстраховка от того самого "прилипания" страницы вверху после
+          // авто-зума на фокусе (см. большой комментарий у font-size:16px
+          // в @media max-width:880px) — на случай нативных полей типа
+          // <select>/<input type="date">, у которых сам браузер решает,
+          // масштабировать страницу или нет, независимо от CSS-шрифта.
+          // Безвредно, даже если страница и так уже была в позиции (0,0).
+          window.scrollTo(0, 0);
+        }, 300);
       }
     });
     // Меню рендерится через JS уже после загрузки страницы — следим за ним,
@@ -9801,10 +9839,6 @@ function openModal(type, ctx){
   } else {
     modalBg.classList.remove('drawer-open');
   }
-  // На мобильной шторке (bottom sheet) сразу подгоняем #modal-bg под
-  // реальную видимую область (visualViewport) — на случай, если
-  // клавиатура уже была открыта на предыдущем экране.
-  syncDrawerBgToViewport();
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
   if(type==='calPicker') renderCalPickerCalendar();
@@ -9834,49 +9868,21 @@ function finalizeModalClose(){
   modalContent.classList.remove('modal-drawer');
   modalBg.classList.remove('drawer-mode');
   modalBg.classList.remove('drawer-open');
-  // Сбрасываем инлайн-стили, выставленные syncDrawerBgToViewport() под
-  // клавиатуру — иначе они "прилипнут" и повлияют на следующую модалку.
-  modalBg.style.top = '';
-  modalBg.style.height = '';
 }
 
 /* ============================================================
    МОБИЛЬНАЯ ШТОРКА (Bottom Sheet) — подстройка под клавиатуру
    ============================================================
-   На телефоне при фокусе на поле ввода внутри выезжающей снизу шторки
-   (см. #modal-content.modal-drawer, @media max-width:880px) окно
-   #modal-bg — это position:fixed;inset:0, то есть привязано к полному
-   layout-viewport, который на iOS/Android НЕ уменьшается при появлении
-   клавиатуры (в отличие от visualViewport). Из-за этого низ шторки —
-   там, где кнопка "Сохранить" — рисковал оказаться "под клавиатурой",
-   вне видимой области и недоступным для нажатия вслепую. Подгоняем
-   #modal-bg под window.visualViewport (его размер и сдвиг ДЕЙСТВИТЕЛЬНО
-   меняются при появлении клавиатуры), чтобы шторка целиком, включая
-   кнопку сохранения, всегда оставалась в реально видимой части экрана. */
-function syncDrawerBgToViewport(){
-  const modalBg = document.getElementById('modal-bg');
-  if(!modalBg || modalBg.classList.contains('hidden')) return;
-  if(!modalBg.classList.contains('drawer-mode')) return;
-  // На компьютере (>880px) шторка не используется — там обычная боковая
-  // панель, инлайн-стили под клавиатуру ей не нужны.
-  if(!window.matchMedia('(max-width:880px)').matches){
-    modalBg.style.top = '';
-    modalBg.style.height = '';
-    return;
-  }
-  const vv = window.visualViewport;
-  if(!vv) return;
-  modalBg.style.top = vv.offsetTop + 'px';
-  modalBg.style.height = vv.height + 'px';
-}
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize', syncDrawerBgToViewport);
-  window.visualViewport.addEventListener('scroll', syncDrawerBgToViewport);
-}
-// Когда клавиатура выезжает, поле, которое сейчас редактируют, должно
-// остаться на виду — прокручиваем его во внутренней прокручиваемой
-// области формы (.drawer-form-scroll), не полагаясь на то, что браузер
-// сам подскроллит фиксированный по позиции элемент.
+   В приложении уже есть проверенный, намеренный подход к клавиатуре:
+   при фокусе на поле высота интерфейса ЗАМОРАЖИВАЕТСЯ (см. _kbLock в
+   самом начале файла, блок с setVH/refreshAll) — клавиатура просто
+   перекрывает нижнюю часть экрана поверх интерфейса, а не заставляет
+   всё сжиматься под visualViewport (раньше именно динамический пересчёт
+   ломал вёрстку на телефонах). Шторка следует тому же принципу и НЕ
+   меняет размеры #modal-bg под клавиатуру — вместо этого при фокусе на
+   поле внутри шторки просто докручиваем это поле в видимую зону его
+   собственной прокручиваемой области (.drawer-form-scroll), чтобы оно
+   не пряталось "под" клавиатурой вслепую. */
 document.addEventListener('focusin', function(e){
   const field = e.target;
   if(!field || !field.closest) return;
@@ -9885,9 +9891,8 @@ document.addEventListener('focusin', function(e){
   if(!scrollWrap) return;
   if(!window.matchMedia('(max-width:880px)').matches) return;
   // Небольшая задержка — даём мобильной клавиатуре время реально
-  // появиться и visualViewport — обновить свои размеры перед пересчётом.
+  // появиться перед прокруткой к полю.
   setTimeout(function(){
-    syncDrawerBgToViewport();
     field.scrollIntoView({block:'nearest', behavior:'smooth'});
   }, 300);
 });
