@@ -1054,9 +1054,9 @@
   .cal-picker-day.has-lessons:hover::after,.cal-picker-day.has-lessons.in-selected-week::after{background:currentColor}
   /* Кнопка-иконка календаря слева от заголовка "Сегодня" на дашборде */
   .today-cal-icon-btn{
-    display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;
-    border-radius:6px;background:var(--accent-glow);color:var(--accent);border:none;
-    cursor:pointer;font-size:11px;flex-shrink:0;transition:.15s;
+    display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+    border-radius:8px;background:var(--accent-glow);color:var(--accent);border:none;
+    cursor:pointer;font-size:12.5px;flex-shrink:0;transition:.15s;
   }
   .today-cal-icon-btn:hover{background:var(--accent);color:#fff}
   /* Кнопка "Пробный урок" в паре с полем "Стоимость урока" — текст с
@@ -3053,15 +3053,15 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0" id="dashTriColumn">
           <div>
-            <div class="section-head"><div style="display:flex;align-items:flex-end;gap:8px"><button class="today-cal-icon-btn" onclick="openDayAttendModal()" title="Отметить посещение за другой день"><span class="icon">📅</span></button><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div></div><div class="dash-mode-picker" id="dashTodayModePicker" style="display:none"></div><span class="section-link" id="todayToggleBtn" onclick="toggleTodayExpand()" style="display:none">Развернуть <i class="fa-solid fa-chevron-down"></i></span></div>
+            <div class="section-head" style="min-height:26px;align-items:flex-end"><div style="display:flex;align-items:flex-end;gap:8px"><button class="today-cal-icon-btn" onclick="openDayAttendModal()" title="Отметить посещение за другой день"><span class="icon">📅</span></button><div class="section-title">Сегодня: <span id="todayCountBadge">0</span></div></div><div class="dash-mode-picker" id="dashTodayModePicker" style="display:none"></div><span class="section-link" id="todayToggleBtn" onclick="toggleTodayExpand()" style="display:none">Развернуть <i class="fa-solid fa-chevron-down"></i></span></div>
             <div id="todayLessons"></div>
           </div>
           <div>
-            <div class="section-head"><div class="section-title">Уведомления</div></div>
+            <div class="section-head" style="min-height:26px;align-items:flex-end"><div class="section-title">Уведомления</div></div>
             <div id="notifList"></div>
           </div>
           <div>
-            <div class="section-head"><div class="section-title">🎂 Дни рождения</div></div>
+            <div class="section-head" style="min-height:26px;align-items:flex-end"><div class="section-title">🎂 Дни рождения</div></div>
             <div id="bdayList"></div>
           </div>
         </div>
