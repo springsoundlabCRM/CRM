@@ -9896,6 +9896,7 @@ function setupDrawerFormLayout(modalContent){
   modalContent.appendChild(footerWrap);
 }
 function openModal(type, ctx){
+  modalClosing = false;
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
   if(!builder){ console.warn('Неизвестный тип модального окна:', type); return; }
@@ -9989,7 +9990,21 @@ document.addEventListener('focusin', function(e){
     field.scrollIntoView({block:'nearest', behavior:'smooth'});
   }, 300);
 });
+// Флаг-защёлка от повторного запуска закрытия. Клик по крестику
+// (.modal-close) обрабатывается ДВАЖДЫ за один и тот же клик: сначала
+// собственным onclick="closeModal()" самой кнопки, а затем тем же
+// событием, всплывшим вверх до #modal-bg, у которого тоже есть
+// onclick="closeModal(event)" (он специально ловит клики по крестику —
+// см. closeModal ниже). Без защёлки второй, "лишний" вызов происходил
+// уже ПОСЛЕ того, как первый вызов снял класс .drawer-open — и видя,
+// что .drawer-open уже отсутствует, срабатывал мгновенно, в обход
+// анимации (в отличие от клика мимо окна, где обработчик всего один).
+// Флаг гарантирует, что весь цикл закрытия — и мгновенный, и
+// анимированный — целиком отрабатывает только один раз.
+let modalClosing = false;
 function doCloseModal(){
+  if(modalClosing) return;
+  modalClosing = true;
   const modalBg = document.getElementById('modal-bg');
   if(modalBg.classList.contains('drawer-open')){
     // Панель урока на компьютере: сначала анимированно уезжаем обратно
@@ -9997,9 +10012,10 @@ function doCloseModal(){
     // и только по завершении анимации скрываем и очищаем модалку —
     // иначе форма пропадала бы мгновенно, без анимации выезда обратно.
     modalBg.classList.remove('drawer-open');
-    setTimeout(finalizeModalClose, 320);
+    setTimeout(function(){ finalizeModalClose(); modalClosing = false; }, 320);
   } else {
     finalizeModalClose();
+    modalClosing = false;
   }
 }
 function closeModal(e){
