@@ -884,6 +884,19 @@
     border-radius:3px;
     background:var(--border2);
   }
+  /* На компьютере кнопки "Скачать Excel"/"Скачать PDF" в шторке выбора
+     формата встают В РЯД, а не друг под другом — из-за этого сама
+     шторка становится заметно короче и компактнее (высота ведь считается
+     от контента, см. #modal-content.modal-sheet выше). На телефоне
+     (ширина ≤880px) это правило не действует — там всё остаётся как
+     было, друг под другом на всю ширину, там и так выглядит хорошо. */
+  @media (min-width:881px){
+    .export-choice-row{ flex-direction:row!important; }
+    .export-choice-row .export-choice-btn{
+      flex:1 1 0;
+      min-width:0;
+    }
+  }
 
   /* ================================================================
      ДЕСКТОП: окна СОЗДАНИЯ И РЕДАКТИРОВАНИЯ (ученик, урок, заметка,
@@ -4182,12 +4195,12 @@ async function exportAllStudentsToPDF(){
 function buildExportAllChoiceModal(){
   return '<div class="modal-title"><span>📄 Выгрузить базу учеников</span><button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="font-size:13px;color:var(--text3);margin-bottom:20px">Выберите формат, в котором нужно выгрузить всю базу учеников.</div>'
-    +'<div style="display:flex;flex-direction:column;gap:12px">'
-      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportAllStudentsToExcel();closeModal()">'
+    +'<div class="export-choice-row" style="display:flex;flex-direction:column;gap:12px">'
+      +'<button type="button" class="btn btn-ghost export-choice-btn" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportAllStudentsToExcel();closeModal()">'
         +'<i class="fa-solid fa-file-excel" style="font-size:22px;color:#22c55e;flex-shrink:0"></i>'
         +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать Excel</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">CSV-таблица, удобно открывать и редактировать</span></span>'
       +'</button>'
-      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportAllStudentsToPDF();closeModal()">'
+      +'<button type="button" class="btn btn-ghost export-choice-btn" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportAllStudentsToPDF();closeModal()">'
         +'<i class="fa-solid fa-file-pdf" style="font-size:22px;color:#ef4444;flex-shrink:0"></i>'
         +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать PDF</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">Готовая к печати табличная страница</span></span>'
       +'</button>'
@@ -4458,12 +4471,12 @@ function buildExportChoiceModal(ctx){
   const name = s ? s.name : '';
   return '<div class="modal-title"><span>📄 Скачать отчёт'+(name?' — '+escapeHTML(name):'')+'</span><button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="font-size:13px;color:var(--text3);margin-bottom:20px">Выберите формат, в котором нужно скачать отчёт по ученику.</div>'
-    +'<div style="display:flex;flex-direction:column;gap:12px">'
-      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportStudentReportToExcel(\''+ctx.studentId+'\');closeModal()">'
+    +'<div class="export-choice-row" style="display:flex;flex-direction:column;gap:12px">'
+      +'<button type="button" class="btn btn-ghost export-choice-btn" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportStudentReportToExcel(\''+ctx.studentId+'\');closeModal()">'
         +'<i class="fa-solid fa-file-excel" style="font-size:22px;color:#22c55e;flex-shrink:0"></i>'
         +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать Excel</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">CSV-таблица, удобно открывать и редактировать</span></span>'
       +'</button>'
-      +'<button type="button" class="btn btn-ghost" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportStudentReportToPDF(\''+ctx.studentId+'\');closeModal()">'
+      +'<button type="button" class="btn btn-ghost export-choice-btn" style="justify-content:flex-start;gap:12px;padding:16px 18px;font-size:14px;font-weight:600;border-radius:12px;white-space:normal;width:100%;text-align:left" onclick="exportStudentReportToPDF(\''+ctx.studentId+'\');closeModal()">'
         +'<i class="fa-solid fa-file-pdf" style="font-size:22px;color:#ef4444;flex-shrink:0"></i>'
         +'<span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span>Скачать PDF</span><span style="font-size:11.5px;font-weight:400;color:var(--text3)">Готовый к печати документ</span></span>'
       +'</button>'
