@@ -720,9 +720,33 @@
   .bar-col:hover .bar{opacity:1}
   .bar-val{font-size:9px;color:var(--text3);margin-bottom:2px}
   .year-chart-row{display:flex;gap:8px;height:150px;margin:12px 0 6px}
-  .year-chart{flex:1;display:flex;align-items:flex-end;gap:6px;position:relative}
+  /* isolation:isolate — весь график "Доход по месяцам" (пунктирные линии-
+     градация сзади + столбики + SVG-линия тренда с точками поверх) считает
+     порядок наложения слоёв ТОЛЬКО между собой, независимо от остальной
+     страницы вокруг — так z-index ниже всегда предсказуемо ложится под
+     z-index выше, без сюрпризов от случайных position/z-index где-то ещё
+     в карточке. */
+  .year-chart{flex:1;display:flex;align-items:flex-end;gap:6px;position:relative;isolation:isolate}
   .year-chart .bar{background:var(--accent)}
   .year-chart .bar.cur{background:var(--green)}
+  /* Порядок наложения (снизу вверх): пунктирные линии-градация (см.
+     .year-grid-lines ниже, z-index:0) → сам столбик (z-index:1) → SVG-линия
+     тренда с точками, рисуется JS-ом последней в DOM (z-index:1, при
+     равном z-index более поздний элемент в DOM побеждает — поэтому точки
+     остаются поверх столбика) → цифра дохода над столбиком (z-index:2 —
+     САМЫЙ верхний слой, чтобы точка тренда никогда не перекрывала цифру,
+     даже когда столбик достаёт до самого верха графика). Раньше линии-
+     градация были position:absolute (позиционированный элемент), а
+     столбики — обычным потоком (без position) — позиционированные элементы
+     всегда рисуются ПОВЕРХ непозиционированных, независимо от порядка в
+     DOM, поэтому пунктир оказывался поверх столбика при наведении (когда
+     сам столбик становится непрозрачным на 100% и контраст с пунктиром
+     резко растёт). z-index у .bar/.bar-val работает без position:relative,
+     потому что оба — flex-элементы внутри .bar-col (flex-контейнера), а
+     для них z-index действует и без явного position (особенность
+     флекс-раскладки). */
+  .year-chart .bar{z-index:1}
+  .year-chart .bar-val{z-index:2;font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
   /* Шкала слева от графика "Доход по месяцам" — градация по 10 000, снизу
      вверх (0, 10k, 20k ... до текущего максимума шкалы). Горизонтальные
      полоски-линии от неё рисуются прямо на фоне .year-chart через JS
@@ -733,10 +757,13 @@
   .year-axis-label:first-child{transform:translateY(0)}
   .year-axis-label:last-child{transform:translateY(0)}
   .year-labels-row{display:flex;gap:6px;padding-left:40px}
-  /* Пунктирные линии-градация поверх фона графика (см. renderYearGridLines) —
+  /* Пунктирные линии-градация ПОЗАДИ столбиков (см. renderYearGridLines) —
      раскладываются той же схемой flex column-reverse + space-between, что и
-     цифры шкалы слева, поэтому всегда попадают точно на свою отметку. */
-  .year-grid-lines{position:absolute;inset:0;display:flex;flex-direction:column-reverse;justify-content:space-between;pointer-events:none}
+     цифры шкалы слева, поэтому всегда попадают точно на свою отметку.
+     z-index:0 — явно самый нижний слой внутри .year-chart (см. подробный
+     комментарий у .year-chart выше), чтобы линии больше не "пробивались"
+     поверх столбика при наведении. */
+  .year-grid-lines{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column-reverse;justify-content:space-between;pointer-events:none}
   .year-grid-line{height:0;border-top:1px dashed var(--border2)}
   .year-grid-line-zero{border-top:none}
   /* Мобильная версия: справа-выравнивание ("30k" вправо, "0" тоже вправо, но
