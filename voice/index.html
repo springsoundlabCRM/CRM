@@ -842,6 +842,16 @@
       align-items:stretch;
       justify-content:flex-end;
       padding:0;
+      /* Затемнение фона гаснет ТЕМ ЖЕ переходом (длительность+кривая), что
+         и выезд/уезд самой панели (см. transform на #modal-content.modal-drawer
+         чуть ниже) — благодаря этому оба анимируются синхронно и исчезают
+         одновременно, а не так, что панель уже скрылась, а затемнение ещё
+         секунду висит поверх интерфейса. */
+      opacity:0;
+      transition:opacity .32s cubic-bezier(.22,1,.36,1);
+    }
+    .modal-bg.drawer-mode.drawer-open{
+      opacity:1;
     }
     #modal-content.modal-drawer{
       width:400px;
@@ -1491,6 +1501,15 @@
       backdrop-filter:none;
       overscroll-behavior:contain;
       touch-action:none;
+      /* См. пояснение к тому же свойству в блоке @media(min-width:881px)
+         выше — затемнение гаснет тем же переходом, что и выезд/уезд самой
+         шторки, чтобы оба исчезали одновременно, без "зависшего" фона
+         после того, как шторка уже скрылась за нижним краем экрана. */
+      opacity:0;
+      transition:opacity .32s cubic-bezier(.22,1,.36,1);
+    }
+    .modal-bg.drawer-mode.drawer-open{
+      opacity:1;
     }
     #modal-content.modal-drawer{
       position:relative;
