@@ -2524,6 +2524,13 @@
     font-size:12.5px;font-weight:600;border-radius:10px;padding:10px 12px;cursor:pointer;
     border:1px solid var(--border2);background:var(--bg3);color:var(--text);transition:all .15s}
   .tour-final-btn:hover{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
+  /* Кнопка "Готово" на последнем шаге тура: раньше она стояла в одной
+     строке с точками прогресса и на узких экранах/при 11+ шагах вылезала
+     за пределы карточки, наезжая на соседние элементы. Теперь это
+     отдельная полноширинная кнопка среди финальных действий, а строка
+     с точками ниже — уже без кнопки, поэтому конфликтовать нечему. */
+  .tour-final-done-btn{width:100%;text-align:center;justify-content:center;box-sizing:border-box}
+  .tour-card-footer.tour-footer-center{justify-content:center}
   @media (max-width:520px){
     .tour-card{width:calc(100vw - 24px)}
   }
@@ -11254,19 +11261,21 @@ async function renderTourStep(){
   const dotsHtml = ONBOARDING_STEPS.map((s,i)=>'<span class="tour-dot'+(i===__tourStep?' active':'')+'"></span>').join('');
 
   let footerBtns = '';
-  if(step.final){
-    footerBtns = '<button class="tour-btn tour-btn-primary" onclick="finishOnboardingTour()">Готово</button>';
-  } else {
+  if(!step.final){
     footerBtns =
       (isFirst ? '' : '<button class="tour-btn" onclick="tourGoPrev()">Назад</button>')
       + '<button class="tour-btn tour-btn-primary" onclick="tourGoNext()">'+(isLast?'Завершить':'Далее')+'</button>';
   }
+  // На финальном шаге кнопки в футере нет вовсе — "Готово" переехало
+  // в блок extra как полноширинная кнопка (см. ниже), чтобы не делить
+  // тесную строку с точками прогресса.
 
   let extra = '';
   if(step.final){
     extra = '<div class="tour-final-actions">'
       + '<button class="tour-final-btn" onclick="tourFinishAndOpen(\'student\')"><span>🎓</span> Добавить первого ученика</button>'
       + '<button class="tour-final-btn" onclick="tourFinishAndOpen(\'lesson\')"><span>📅</span> Запланировать урок</button>'
+      + '<button class="tour-btn tour-btn-primary tour-final-done-btn" onclick="finishOnboardingTour()">Готово</button>'
       + '</div>';
   }
 
@@ -11275,9 +11284,9 @@ async function renderTourStep(){
     + '<div class="tour-card-title">'+step.title+'</div>'
     + '<div class="tour-card-text">'+step.text+'</div>'
     + extra
-    + '<div class="tour-card-footer">'
+    + '<div class="tour-card-footer'+(step.final?' tour-footer-center':'')+'">'
     +   '<div class="tour-dots">'+dotsHtml+'</div>'
-    +   '<div class="tour-card-btns">'+footerBtns+'</div>'
+    +   (step.final ? '' : '<div class="tour-card-btns">'+footerBtns+'</div>')
     + '</div>';
 
   positionTourSpot();
