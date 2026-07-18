@@ -40,15 +40,8 @@
     --wa:#34d399;
     --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
     --bottom-nav-h:44px;
-    /* Затемнение фона под выезжающей панелью/шторкой урока и т.п.
-       На тёмной теме — темнее (интерфейс и так тёмный, слабое затемнение
-       плохо отделяет панель от фона), на светлой — как было раньше. */
-    --drawer-backdrop:rgba(4,4,10,.55);
-    --sheet-backdrop:rgba(4,4,10,.72);
   }
   body.light-theme{
-    --drawer-backdrop:rgba(4,4,10,.32);
-    --sheet-backdrop:rgba(4,4,10,.55);
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
     --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
     --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
@@ -809,110 +802,10 @@
   .rep-status-dd .autocomplete-item.active{background:var(--accent);color:#fff}
   .rep-status-dd .autocomplete-item.active .autocomplete-name{color:#fff}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
-  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto;overflow-x:hidden}
+  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto}
   #modal-content.modal-danger{border-color:var(--red)}
   #modal-content.modal-wide{width:540px}
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
-
-  /* ================================================================
-     ДЕСКТОП: окна СОЗДАНИЯ И РЕДАКТИРОВАНИЯ (ученик, урок, заметка,
-     платёж, абонемент, пополнение абонемента, домашнее задание,
-     репертуар, цель по доходу) — выезжающая СПРАВА панель (Side Drawer
-     / Sheet) вместо обычного попапа по центру экрана. Работает ТОЛЬКО
-     на компьютере (min-width:881px) — на телефоне/планшете эти формы
-     остаются обычными центральными модальными окнами, как и раньше
-     (см. .modal-bg/.modal выше и все мобильные @media-правила — они не
-     тронуты и продолжают работать как обычно).
-
-     Классы .drawer-mode (на #modal-bg) и .modal-drawer (на
-     #modal-content) добавляются JS-ом (см. DRAWER_MODAL_TYPES и
-     openModal/closeModal ниже по файлу) только для перечисленных выше
-     типов "создать/редактировать". Попапы-ПИКЕРЫ (выбор даты/периода),
-     информационные попапы (история абонементов, доход за месяц, выбор
-     формата экспорта) и КРИТИЧЕСКИЕ попапы подтверждения ("Удалить
-     урок", удаление ученика/абонемента/задания/песни, сброс карточки
-     «Голос» и т.п.) используют те же самые #modal-bg/#modal-content,
-     но эти классы никогда не получают — поэтому остаются обычными
-     аккуратными окнами строго по центру экрана с затемнением фона,
-     без каких-либо изменений. ================================================================ */
-  @media (min-width:881px){
-    /* Фон под панелью — слегка затемняем (не полностью прозрачно, но и не
-       такой плотный, как у обычных модалок), без блюра: сетка расписания
-       и остальной интерфейс слева должны оставаться хорошо видимыми и
-       узнаваемыми. Панель прижата к правому краю на всю высоту экрана;
-       клик по затемнённому фону вне панели по-прежнему закрывает её (тот
-       же механизм, что и у обычных модалок — см.
-       handleModalBgMouseDown/closeModal). */
-    .modal-bg.drawer-mode{
-      background:rgba(4,4,10,0);
-      backdrop-filter:none;
-      align-items:stretch;
-      justify-content:flex-end;
-      padding:0;
-      /* Затемнение фона гаснет за ТУ ЖЕ длительность, что и выезд/уезд
-         самой панели (см. transform на #modal-content.modal-drawer чуть
-         ниже) — поэтому оба всегда заканчиваются одновременно, без
-         "зависшего" фона после того, как панель уже скрылась. Анимируем
-         именно ЦВЕТ фона (background-color), а НЕ opacity всего блока —
-         #modal-content лежит ВНУТРИ #modal-bg, и opacity на родителе
-         затемняет заодно и саму панель (она была полупрозрачной, пока
-         выезжала, и сквозь неё было видно интерфейс под ней). Через
-         background-color панель остаётся полностью непрозрачной с первого
-         кадра, "плывёт" только сам фон. У затемнения — более мягкая,
-         равномерная кривая (ease), а не резкая "рывком-и-стоп" кривая
-         панели (cubic-bezier ниже): если дать обеим одну и ту же резкую
-         кривую, фон визуально догорает уже в первой трети анимации, и всё
-         закрытие кажется быстрее, чем должно. */
-      transition:background-color .32s ease;
-    }
-    .modal-bg.drawer-mode.drawer-open{
-      background:var(--drawer-backdrop);
-    }
-    #modal-content.modal-drawer{
-      width:400px;
-      max-width:400px;
-      height:100%;
-      max-height:100%;
-      margin:0;
-      border-radius:0;
-      border-top:none;
-      border-bottom:none;
-      border-right:none;
-      border-left:1px solid var(--border2);
-      box-shadow:-14px 0 40px rgba(0,0,0,.35);
-      /* Плавный выезд справа налево через transform — анимируется
-         только после того, как JS на следующем кадре добавит класс
-         .drawer-open (см. openModal ниже), поэтому сам переход
-         display:none → flex не "ломает" transition. */
-      transform:translateX(100%);
-      transition:transform .32s cubic-bezier(.22,1,.36,1);
-      display:flex;
-      flex-direction:column;
-      padding:22px 22px 0;
-      overflow:hidden;
-    }
-    .modal-bg.drawer-mode.drawer-open #modal-content.modal-drawer{
-      transform:translateX(0);
-    }
-    /* Заголовок панели закреплён сверху, не участвует в прокрутке полей */
-    #modal-content.modal-drawer > .modal-title{ flex-shrink:0; }
-    /* Поля формы — вертикальный список сверху вниз, с собственной
-       прокруткой на случай, если полей больше, чем помещается по высоте */
-    #modal-content.modal-drawer .drawer-form-scroll{
-      flex:1 1 auto;
-      min-height:0;
-      overflow-y:auto;
-      overflow-x:hidden;
-      padding-right:2px;
-    }
-    /* Кнопки (Удалить урок / Сохранить) — зафиксированы в самом низу
-       панели и никогда не уезжают вместе с прокруткой полей выше */
-    #modal-content.modal-drawer .drawer-form-footer{
-      flex-shrink:0;
-      padding:12px 0 22px;
-      background:var(--bg2);
-    }
-  }
 
   /* ---------- Пикер выбора периода (открывается по клику на дату в расписании) ---------- */
   .cal-period-btn{cursor:pointer}
@@ -949,20 +842,6 @@
     cursor:pointer;font-size:12.5px;flex-shrink:0;transition:.15s;
   }
   .today-cal-icon-btn:hover{background:var(--accent);color:#fff}
-  /* Кнопка "Пробный урок" в паре с полем "Стоимость урока" — текст с
-     эмодзи должен помещаться в свою половину строки на ЛЮБОЙ ширине
-     экрана (от iPhone SE ~375px до Pro Max ~430px и любых Android).
-     clamp() даёт плавное масштабирование шрифта без скачков между
-     брейкпоинтами; overflow:hidden+ellipsis — аварийная страховка,
-     чтобы даже в крайнем случае текст не вылезал за пределы кнопки
-     и не наезжал на соседнее поле. */
-  .lesson-trial-btn{
-    font-size:clamp(11px,3.4vw,13px);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    gap:4px;
-  }
   .modal-close{
     cursor:pointer;background:var(--red-bg);border:1px solid rgba(248,113,113,.35);
     color:var(--red);font-size:18px;font-weight:600;line-height:1;
@@ -998,14 +877,7 @@
   .attention-item:hover .attention-dismiss-btn{opacity:1;pointer-events:auto}
   .attention-dismiss-btn:hover{background:var(--red);color:#fff}
   .btn-delete-icon:active{transform:scale(.94)}
-  /* min-width:0 — обязательно для ячеек внутри .input-row (grid).
-     Без этого браузер не даёт колонке сжаться уже "естественной" ширины
-     содержимого — а у <select> эта ширина зависит от системного размера
-     шрифта (на телефонах с крупным шрифтом в настройках, например часто
-     на iPhone Pro Max и подобных больших моделях, она больше). Из-за
-     этого поле вылезало за свою половину строки и наезжало на соседнее —
-     сейчас это исправлено на уровне самого класса, для всех форм сразу. */
-  .input-group{margin-bottom:14px;min-width:0}
+  .input-group{margin-bottom:14px}
   .input-label{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.4px}
   .input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s}
   /* Стрелочка у <select> — раньше это была "родная" браузерная стрелка,
@@ -1019,14 +891,6 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%239090a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
     background-position:right 12px center;
-    /* Не даём длинному тексту опции (напр. "Оплачено полностью") растягивать
-       сам select шире его ячейки в .input-row — вместо наезда на соседнее
-       поле текст аккуратно обрезается многоточием (см. комментарий у
-       .input-group про min-width:0 — это вторая половина того же фикса). */
-    max-width:100%;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
   }
   .input:focus{border-color:var(--accent)}
   .input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -1425,59 +1289,6 @@
        и Статус оплаты/Сумма оплаты должны на телефоне выглядеть
        так же, как на компьютере: в два столбца, а не друг под другом. */
     .input-row.lesson-modal-row{grid-template-columns:1fr 1fr!important;gap:8px!important}
-    /* ================================================================
-       ФИКС ТОЛЬКО ДЛЯ iOS: строка "Дата/Время" в модалке урока.
-       На Android/десктопе строка ВСЕГДА остаётся обычной 1fr/1fr (правило
-       выше) — здесь её никак не трогаем, потому что там всё и так
-       работает нормально (штатный формат даты в Chrome на Android
-       короткий, "15.07.2026", и в половину строки помещается свободно).
-
-       Проблема только в Mobile Safari (iOS): там браузер сам, средствами
-       ОС, рисует значение нативного <input type="date"> ПОЛНОЙ
-       локализованной строкой ("15 июля 2026 г.") — это не текст в DOM,
-       её нельзя ни обрезать через ellipsis, ни укоротить через CSS, а
-       сама ширина этой отрисовки на iOS может игнорировать заданную
-       ширину поля. Поэтому единственный по-настоящему надёжный вариант
-       именно на iOS — не делить строку на два столбца, а поставить
-       "Дата" и "Время" друг под другом на всю ширину, как остальные
-       поля формы.
-
-       "@supports (-webkit-touch-callout: none)" — стандартный приём для
-       нацеливания CSS-правила именно на iOS/Mobile Safari (это свойство
-       существует только в WebKit на iOS, на Android/десктопе/других ОС
-       @supports для него возвращает false, и всё правило просто
-       игнорируется) — то есть Android этот блок вообще не увидит.
-       ================================================================ */
-    @supports (-webkit-touch-callout: none) {
-      .input-row.lesson-modal-row.lesson-datetime-row{
-        grid-template-columns:1fr!important;
-        gap:10px!important;
-      }
-    }
-
-    /* ================================================================
-       ФИКС "страницу уносит вверх и не отпускает" при фокусе на поле
-       ввода (например, имя ученика в форме урока). Причина — классический
-       баг мобильных браузеров (в первую очередь iOS Safari): если у
-       текстового поля шрифт МЕНЬШЕ 16px, при получении фокуса браузер
-       сам масштабирует и прокручивает страницу, чтобы "приблизить" поле.
-       На обычной странице это безобидно и само возвращается назад, НО у
-       нас body сделан через position:fixed;overflow:hidden (нужно для
-       предотвращения бокового/резинового скролла интерфейса) — из-за
-       этого браузеру после такого авто-зума физически нечем "откатить"
-       страницу обратно, и её натурально заклинивает вверху с пустой
-       областью снизу, скроллить некуда. Раньше почти везде в приложении
-       у полей ввода font-size:13px (см. .input в основных стилях) — этого
-       достаточно, чтобы триггерить баг. Универсальное и единственное
-       по-настоящему надёжное решение — держать шрифт ЛЮБОГО поля ввода
-       на телефоне не меньше 16px; !important нужен, чтобы перебить
-       локальные инлайн-стили полей (font-size:12px и т.п.), которые
-       используются местами для компактности на десктопе. ================================================================ */
-    input, textarea, select,
-    .input, input.input, textarea.input, select.input{
-      font-size:16px!important;
-    }
-
     /* Поп-ап окна на телефоне — отдельное всплывающее окно ПО ЦЕНТРУ экрана,
        не касается боковых/нижнего краёв (раньше было прилипающее к низу
        окно на всю ширину экрана — "bottom sheet"). Это касается ВСЕХ
@@ -1486,117 +1297,6 @@
     .modal-bg{align-items:center;justify-content:center;padding:16px}
     .modal{width:100%;max-width:420px;max-height:82vh;border-radius:16px;
       padding:20px 16px;margin:0;box-sizing:border-box}
-
-    /* ================================================================
-       МОБИЛЬНЫЙ BOTTOM SHEET (≤880px): те же окна СОЗДАНИЯ и
-       РЕДАКТИРОВАНИЯ (ученик, урок, заметка, платёж, абонемент,
-       пополнение абонемента, домашнее задание, репертуар, цель по
-       доходу — см. DRAWER_MODAL_TYPES в JS), которые на компьютере
-       выезжают СПРАВА панелью, на телефоне/планшете превращаются в
-       шторку, выезжающую СНИЗУ ВВЕРХ и занимающую ~82% высоты экрана —
-       сверху специально остаётся видна полоска календаря/фона, чтобы
-       не терять контекст. Классы те же самые (.drawer-mode на
-       #modal-bg, .modal-drawer на #modal-content), просто здесь для
-       них другие правила — специфичность селектора (класс+класс,
-       id+класс) у .modal-bg.drawer-mode/#modal-content.modal-drawer
-       ВСЕГДА выше обычных .modal-bg/.modal чуть выше, поэтому порядок
-       правил в файле не важен, эти переопределяют те.
-
-       Модалки подтверждения удаления (studentDanger, deleteLesson,
-       deleteLessonConfirm, deleteSubscription, voiceReset и т.п.)
-       класс .drawer-mode/.modal-drawer никогда не получают (см.
-       DRAWER_MODAL_TYPES в JS) — они всегда остаются обычными
-       попапами по центру экрана, заданными правилами выше, и это
-       правило их не затрагивает. ================================================================ */
-    .modal-bg.drawer-mode{
-      align-items:flex-end;
-      justify-content:center;
-      padding:0;
-      background:rgba(4,4,10,0);
-      backdrop-filter:none;
-      overscroll-behavior:contain;
-      touch-action:none;
-      /* См. пояснение к тому же свойству в блоке @media(min-width:881px)
-         выше — анимируем именно цвет фона (background-color), а не
-         opacity всего #modal-bg, чтобы сама шторка (#modal-content лежит
-         внутри него) оставалась полностью непрозрачной с первого кадра,
-         а не была полупрозрачной/просвечивающей, пока едет снизу вверх.
-         Та же длительность, что и у выезда/уезда шторки, но более мягкая
-         кривая (ease, не резкая cubic-bezier шторки), иначе затемнение
-         "выгорает" в первой трети анимации и всё закрытие кажется намного
-         быстрее, чем было раньше. */
-      transition:background-color .32s ease;
-    }
-    .modal-bg.drawer-mode.drawer-open{
-      background:var(--sheet-backdrop);
-    }
-    #modal-content.modal-drawer{
-      position:relative;
-      width:100%;
-      max-width:100%;
-      height:82vh;
-      height:82dvh;
-      max-height:82vh;
-      max-height:82dvh;
-      margin:0;
-      border-radius:20px 20px 0 0;
-      border:1px solid var(--border2);
-      border-bottom:none;
-      padding:26px 16px 0;
-      box-sizing:border-box;
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
-      overscroll-behavior:contain;
-      touch-action:pan-y;
-      box-shadow:0 -14px 40px rgba(0,0,0,.4);
-      /* height/max-height дублируются: сначала обычные vh (понимает
-         вообще любой браузер), затем dvh поверх них — на движках без
-         поддержки dvh просто останется рабочее значение на vh. */
-      /* Так же, как на компьютере — стартовая позиция "за экраном"
-         (внизу), сам выезд анимируется добавлением .drawer-open через
-         JS (openModal) на следующих двух кадрах отрисовки. */
-      transform:translateY(100%);
-      transition:transform .32s cubic-bezier(.22,1,.36,1);
-    }
-    .modal-bg.drawer-mode.drawer-open #modal-content.modal-drawer{
-      transform:translateY(0);
-    }
-    /* Маркер-подсказка (drag handle) — тонкая серая полоска по центру
-       самого верха шторки, намекающая, что её можно потянуть/смахнуть.
-       Чисто визуальный элемент, за реальное закрытие свайпом отвечает
-       крестик и клик по затемнённой области выше шторки (см. ниже). */
-    #modal-content.modal-drawer::before{
-      content:'';
-      position:absolute;
-      top:9px;
-      left:50%;
-      transform:translateX(-50%);
-      width:38px;
-      height:4px;
-      border-radius:3px;
-      background:var(--border2);
-    }
-    /* Заголовок с крестиком закрытия закреплён сверху шторки */
-    #modal-content.modal-drawer > .modal-title{ flex-shrink:0; }
-    /* Поля формы — своя прокрутка внутри шторки, крестик и заголовок
-       всегда остаются на виду */
-    #modal-content.modal-drawer .drawer-form-scroll{
-      flex:1 1 auto;
-      min-height:0;
-      overflow-y:auto;
-      overflow-x:hidden;
-      -webkit-overflow-scrolling:touch;
-      padding-right:2px;
-    }
-    /* Кнопка сохранения (и кнопка удаления в форме урока) зафиксирована
-       внизу шторки, с отступом под системный "домик"/жест iPhone, чтобы
-       никогда не оказаться "под пальцем" или обрезанной краем экрана */
-    #modal-content.modal-drawer .drawer-form-footer{
-      flex-shrink:0;
-      padding:12px 0 calc(14px + env(safe-area-inset-bottom));
-      background:var(--bg2);
-    }
 
     /* Табы — горизонтальный скролл вместо переноса */
     .tab-row{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -1699,16 +1399,6 @@
     .kpi-ring-grid.compact .kpi-ring::before{inset:4.5px}
     .kpi-ring-grid.compact .kpi-ring-val{font-size:9.5px}
     .kpi-ring-grid.compact .kpi-ring-title{font-size:8.5px;line-height:1.15}
-    /* Модалка "Запланировать/Редактировать урок" на самых узких телефонах
-       (iPhone SE, компактные Android ~320-380px) — тот же вид в 2 колонки,
-       что и на всех остальных устройствах (см. .lesson-modal-row выше),
-       просто с чуть меньшими отступами/шрифтом, чтобы подписи и значения
-       (особенно "Длительность"/"Формат" и кнопка "Пробный урок") гарантированно
-       помещались и не наезжали друг на друга. */
-    .input-row.lesson-modal-row{gap:6px!important}
-    .input-row.lesson-modal-row .input-label{font-size:10.5px}
-    .input-row.lesson-modal-row .input{padding-left:8px;padding-right:8px}
-    .lesson-trial-btn{font-size:10.5px;gap:3px}
   }
 
   /* ---------- Сенсорные улучшения (применяются везде на тач-устройствах) ---------- */
@@ -2586,16 +2276,7 @@
       var el = e.target;
       if(el && el.closest && el.closest('input, textarea, [contenteditable="true"]')){
         _kbLock = false;
-        setTimeout(function(){
-          refreshAll(true);
-          // Подстраховка от того самого "прилипания" страницы вверху после
-          // авто-зума на фокусе (см. большой комментарий у font-size:16px
-          // в @media max-width:880px) — на случай нативных полей типа
-          // <select>/<input type="date">, у которых сам браузер решает,
-          // масштабировать страницу или нет, независимо от CSS-шрифта.
-          // Безвредно, даже если страница и так уже была в позиции (0,0).
-          window.scrollTo(0, 0);
-        }, 300);
+        setTimeout(function(){ refreshAll(true); }, 300);
       }
     });
     // Меню рендерится через JS уже после загрузки страницы — следим за ним,
@@ -8888,7 +8569,6 @@ function buildLessonModal(ctx){
   const isEdit = !!lesson;
 
   return '<div class="modal-title">'+(isEdit?'Редактировать урок':'Запланировать урок')+' <button class="modal-close" onclick="closeModal()">×</button></div>'
-    +'<div class="drawer-form-scroll">'
     +'<input type="hidden" id="f-l-lesson-id" value="'+(lesson?lesson.id:'')+'">'
     +'<div class="input-group autocomplete-wrap">'
     +'<label class="input-label">Ученик</label>'
@@ -8896,7 +8576,7 @@ function buildLessonModal(ctx){
     +'<input type="hidden" id="f-l-student" value="'+(studentId||'')+'">'
     +'<div class="autocomplete-dropdown" id="f-l-student-suggest"></div>'
     +'</div>'
-    +'<div class="input-row lesson-modal-row lesson-datetime-row"><div class="input-group"><label class="input-label">Дата</label><input class="input" id="f-l-date" type="date" value="'+defaultDate+'"></div>'
+    +'<div class="input-row lesson-modal-row"><div class="input-group"><label class="input-label">Дата</label><input class="input" id="f-l-date" type="date" value="'+defaultDate+'"></div>'
     +'<div class="input-group"><label class="input-label">Время</label><input class="input" id="f-l-time" type="time" value="'+defaultTime+'"></div></div>'
     +'<div class="input-row lesson-modal-row"><div class="input-group"><label class="input-label">Длительность</label><select class="input" id="f-l-dur"><option value="30" '+(defaultDur===30?'selected':'')+'>30 мин</option><option value="45" '+(defaultDur===45?'selected':'')+'>45 мин</option><option value="60" '+(defaultDur===60?'selected':'')+'>60 мин</option></select></div>'
     +'<div class="input-group"><label class="input-label">Формат</label><select class="input" id="f-l-format"><option value="online" '+(defaultFormat==='online'?'selected':'')+'>Онлайн</option><option value="offline" '+(defaultFormat==='offline'?'selected':'')+'>Офлайн</option></select></div></div>'
@@ -8904,15 +8584,12 @@ function buildLessonModal(ctx){
     +'<div id="f-l-sub-note" class="lesson-sub-banner" style="'+(sub?'':'display:none')+'">'+(sub?'🎫 У ученика активен абонемент — урок будет списан с него автоматически':'')+'</div>'
     +'<div class="input-group" id="f-l-price-wrap" style="'+(sub?'display:none':'')+'">'
     +'<div class="input-row lesson-modal-row"><div class="input-group" style="margin-bottom:0"><label class="input-label">Стоимость урока (₽)</label><input class="input" id="f-l-price" type="number" placeholder="1500" value="'+defaultPrice+'" data-mode="regular" onchange="onLessonPriceChange(this)" style="height:38px;box-sizing:border-box"></div>'
-    +'<div class="input-group" style="margin-bottom:0;min-width:0"><label class="input-label">&nbsp;</label><button type="button" class="btn btn-ghost lesson-trial-btn" style="width:100%;justify-content:center;padding:0 8px;height:38px;line-height:1;box-sizing:border-box" onclick="onTrialPriceBtnClick()">🎓 Пробный урок</button></div></div>'
+    +'<div class="input-group" style="margin-bottom:0"><label class="input-label">&nbsp;</label><button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;white-space:nowrap;padding:0 12px;font-size:13px;height:38px;line-height:1;box-sizing:border-box" onclick="onTrialPriceBtnClick()">🎓 Пробный урок</button></div></div>'
     +'<div class="input-row lesson-modal-row" style="margin-top:10px"><div class="input-group" style="margin-bottom:0"><label class="input-label">Статус оплаты</label><select class="input" id="f-l-paytype" onchange="onLessonPayTypeChange()"><option value="none" '+(defaultPaid===0?'selected':'')+'>Не оплачено</option><option value="full" '+(defaultPaid>=defaultPrice?'selected':'')+'>Оплачено полностью</option><option value="partial" '+(defaultPaid>0&&defaultPaid<defaultPrice?'selected':'')+'>Частично</option></select></div>'
     +'<div class="input-group" id="f-l-partial-wrap" style="margin-bottom:0;'+(defaultPaid>0&&defaultPaid<defaultPrice?'':'display:none')+'"><label class="input-label">Сумма оплаты (₽)</label><input class="input" id="f-l-partial" type="number" placeholder="500" value="'+(defaultPaid>0&&defaultPaid<defaultPrice?defaultPaid:'')+'"></div></div>'
     +'</div>'
-    +'</div>' /* /.drawer-form-scroll */
-    +'<div class="drawer-form-footer">'
     + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="deleteLesson(\''+lesson.id+'\')">🗑 Удалить урок</button>' : '')
-    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>'
-    +'</div>';
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>';
 }
 function onLessonStudentChange(){
   const sid = document.getElementById('f-l-student').value;
@@ -9881,77 +9558,14 @@ const modalBuilders = {
   voiceReset: buildResetVoiceModal,
   exportChoice: buildExportChoiceModal,
   exportAllChoice: buildExportAllChoiceModal};
-// Типы модалок, которые на компьютере открываются выезжающей справа
-// панелью (Side Drawer), а не обычным попапом по центру — это все окна
-// СОЗДАНИЯ и РЕДАКТИРОВАНИЯ сущностей. Пикеры (выбор даты/периода),
-// информационные попапы и все окна с кнопками удаления/сброса в этот
-// список НЕ входят и продолжают открываться как обычные центральные
-// модалки — см. подробный комментарий у CSS-блока .modal-bg.drawer-mode.
-const DRAWER_MODAL_TYPES = ['student','lesson','note','payment','subscription','subTopup','homework','repertoire','incomeGoal'];
-
-// Приводит содержимое модалки к структуре "заголовок / прокручиваемые
-// поля / зафиксированная внизу кнопка", необходимой для CSS-панели
-// (.drawer-form-scroll растягивается и скроллится, .drawer-form-footer
-// всегда внизу). Форма урока (buildLessonModal) уже сама оборачивает
-// себя в эти же классы (там 2 кнопки в футере — "Удалить"/"Сохранить"),
-// поэтому для неё эта функция ничего не делает. Для всех остальных форм
-// из DRAWER_MODAL_TYPES разметка простая и одинаковая: .modal-title,
-// затем поля формы, затем ОДНА кнопка сохранения последним элементом —
-// именно её и переносим в футер, всё, что между заголовком и ней,
-// уходит в прокручиваемую область.
-function setupDrawerFormLayout(modalContent){
-  if(modalContent.querySelector('.drawer-form-scroll')) return;
-  const children = Array.from(modalContent.children);
-  if(children.length < 2) return;
-  const footerBtn = children[children.length-1];
-  const middle = children.slice(1, children.length-1);
-  const scrollWrap = document.createElement('div');
-  scrollWrap.className = 'drawer-form-scroll';
-  middle.forEach(el=> scrollWrap.appendChild(el));
-  const footerWrap = document.createElement('div');
-  footerWrap.className = 'drawer-form-footer';
-  footerWrap.appendChild(footerBtn);
-  modalContent.appendChild(scrollWrap);
-  modalContent.appendChild(footerWrap);
-}
 function openModal(type, ctx){
-  modalClosing = false;
   modalCtx = ctx||{};
   const builder = modalBuilders[type];
   if(!builder){ console.warn('Неизвестный тип модального окна:', type); return; }
-  const modalBg = document.getElementById('modal-bg');
-  const modalContent = document.getElementById('modal-content');
-  modalContent.innerHTML = builder(modalCtx);
-  modalContent.classList.toggle('modal-danger', type==='studentDanger');
-  modalContent.classList.toggle('modal-wide', type==='exportChoice' || type==='exportAllChoice');
-  // Окна создания/редактирования — на компьютере превращаются в
-  // выезжающую справа панель (Side Drawer), см. CSS-блок
-  // @media(min-width:881px) рядом с .modal-bg/.modal. Попапы подтверждения
-  // удаления и любые другие типы, не входящие в DRAWER_MODAL_TYPES, класс
-  // .modal-drawer НИКОГДА не получают — они всегда остаются обычным окном
-  // строго по центру экрана.
-  const isDrawerType = DRAWER_MODAL_TYPES.includes(type);
-  if(isDrawerType) setupDrawerFormLayout(modalContent);
-  modalContent.classList.toggle('modal-drawer', isDrawerType);
-  modalBg.classList.toggle('drawer-mode', isDrawerType);
-  modalBg.classList.remove('hidden');
-  // Анимация выезда включается для DRAWER_MODAL_TYPES и на компьютере
-  // (панель едет СПРАВА налево, transform:translateX — см. @media
-  // min-width:881px), и на телефоне/планшете (шторка едет СНИЗУ вверх,
-  // transform:translateY — см. @media max-width:880px). Оба переключаются
-  // одним и тем же классом .drawer-open, конкретное CSS-свойство,
-  // которое анимируется, зависит только от текущей ширины экрана.
-  if(isDrawerType){
-    // Класс .drawer-open добавляется НЕ сразу, а через два кадра отрисовки:
-    // если добавить его в тот же момент, что и снятие .hidden (display:none
-    // → flex), браузер не анимирует последующий transform (не с чего
-    // "стартовать" переход). Два rAF гарантируют, что первый кадр с
-    // "закрытым" transform уже реально отрисован.
-    modalBg.classList.remove('drawer-open');
-    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ modalBg.classList.add('drawer-open'); }); });
-  } else {
-    modalBg.classList.remove('drawer-open');
-  }
+  document.getElementById('modal-content').innerHTML = builder(modalCtx);
+  document.getElementById('modal-content').classList.toggle('modal-danger', type==='studentDanger');
+  document.getElementById('modal-content').classList.toggle('modal-wide', type==='exportChoice' || type==='exportAllChoice');
+  document.getElementById('modal-bg').classList.remove('hidden');
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
   if(type==='calPicker') renderCalPickerCalendar();
@@ -9971,78 +9585,21 @@ let modalBgMouseDownOnBg = false;
 function handleModalBgMouseDown(e){
   modalBgMouseDownOnBg = (e.target && e.target.id === 'modal-bg');
 }
-function finalizeModalClose(){
-  const modalBg = document.getElementById('modal-bg');
-  const modalContent = document.getElementById('modal-content');
-  modalBg.classList.add('hidden');
-  modalContent.innerHTML='';
-  modalContent.classList.remove('modal-danger');
-  modalContent.classList.remove('modal-wide');
-  modalContent.classList.remove('modal-drawer');
-  modalBg.classList.remove('drawer-mode');
-  modalBg.classList.remove('drawer-open');
-}
-
-/* ============================================================
-   МОБИЛЬНАЯ ШТОРКА (Bottom Sheet) — подстройка под клавиатуру
-   ============================================================
-   В приложении уже есть проверенный, намеренный подход к клавиатуре:
-   при фокусе на поле высота интерфейса ЗАМОРАЖИВАЕТСЯ (см. _kbLock в
-   самом начале файла, блок с setVH/refreshAll) — клавиатура просто
-   перекрывает нижнюю часть экрана поверх интерфейса, а не заставляет
-   всё сжиматься под visualViewport (раньше именно динамический пересчёт
-   ломал вёрстку на телефонах). Шторка следует тому же принципу и НЕ
-   меняет размеры #modal-bg под клавиатуру — вместо этого при фокусе на
-   поле внутри шторки просто докручиваем это поле в видимую зону его
-   собственной прокручиваемой области (.drawer-form-scroll), чтобы оно
-   не пряталось "под" клавиатурой вслепую. */
-document.addEventListener('focusin', function(e){
-  const field = e.target;
-  if(!field || !field.closest) return;
-  if(!/^(INPUT|TEXTAREA|SELECT)$/.test(field.tagName)) return;
-  const scrollWrap = field.closest('#modal-content.modal-drawer .drawer-form-scroll');
-  if(!scrollWrap) return;
-  if(!window.matchMedia('(max-width:880px)').matches) return;
-  // Небольшая задержка — даём мобильной клавиатуре время реально
-  // появиться перед прокруткой к полю.
-  setTimeout(function(){
-    field.scrollIntoView({block:'nearest', behavior:'smooth'});
-  }, 300);
-});
-// Флаг-защёлка от повторного запуска закрытия. Клик по крестику
-// (.modal-close) обрабатывается ДВАЖДЫ за один и тот же клик: сначала
-// собственным onclick="closeModal()" самой кнопки, а затем тем же
-// событием, всплывшим вверх до #modal-bg, у которого тоже есть
-// onclick="closeModal(event)" (он специально ловит клики по крестику —
-// см. closeModal ниже). Без защёлки второй, "лишний" вызов происходил
-// уже ПОСЛЕ того, как первый вызов снял класс .drawer-open — и видя,
-// что .drawer-open уже отсутствует, срабатывал мгновенно, в обход
-// анимации (в отличие от клика мимо окна, где обработчик всего один).
-// Флаг гарантирует, что весь цикл закрытия — и мгновенный, и
-// анимированный — целиком отрабатывает только один раз.
-let modalClosing = false;
-function doCloseModal(){
-  if(modalClosing) return;
-  modalClosing = true;
-  const modalBg = document.getElementById('modal-bg');
-  if(modalBg.classList.contains('drawer-open')){
-    // Панель урока на компьютере: сначала анимированно уезжаем обратно
-    // вправо (снимаем .drawer-open — CSS-transition отработает сама),
-    // и только по завершении анимации скрываем и очищаем модалку —
-    // иначе форма пропадала бы мгновенно, без анимации выезда обратно.
-    modalBg.classList.remove('drawer-open');
-    setTimeout(function(){ finalizeModalClose(); modalClosing = false; }, 320);
-  } else {
-    finalizeModalClose();
-    modalClosing = false;
-  }
-}
 function closeModal(e){
-  if(!e){ doCloseModal(); return; }
+  if(!e){
+    document.getElementById('modal-bg').classList.add('hidden');
+    document.getElementById('modal-content').innerHTML='';
+    document.getElementById('modal-content').classList.remove('modal-danger');
+    document.getElementById('modal-content').classList.remove('modal-wide');
+    return;
+  }
   const clickedCloseBtn = e.target && e.target.closest && e.target.closest('.modal-close');
   const clickedBgOnly = e.target.id==='modal-bg' && modalBgMouseDownOnBg;
   if(clickedCloseBtn || clickedBgOnly){
-    doCloseModal();
+    document.getElementById('modal-bg').classList.add('hidden');
+    document.getElementById('modal-content').innerHTML='';
+    document.getElementById('modal-content').classList.remove('modal-danger');
+    document.getElementById('modal-content').classList.remove('modal-wide');
   }
 }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
