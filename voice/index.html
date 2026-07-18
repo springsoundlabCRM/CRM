@@ -815,6 +815,77 @@
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
 
   /* ================================================================
+     ВЫБОР ФОРМАТА ЭКСПОРТА (exportChoice/exportAllChoice) — ВСЕГДА
+     выезжающая СНИЗУ шторка (bottom sheet), на любом устройстве и
+     любой ширине экрана: и на компьютере, и на телефоне. В отличие от
+     .drawer-mode/.modal-drawer (выше/ниже по файлу), которые на
+     компьютере превращаются в панель СПРАВА, а на телефоне — в шторку
+     СНИЗУ, здесь поведение ОДНО и то же везде — это не окно
+     создания/редактирования с кучей полей, а короткий выбор из 1-2
+     вариантов (см. Google Drive: "Скачать как..." всегда выезжает
+     снизу, независимо от устройства). Классы задаются JS-ом:
+     .sheet-mode на #modal-bg и .modal-sheet на #modal-content (см.
+     SHEET_MODAL_TYPES/openModal). Специально вынесено ИЗ любых
+     @media-блоков, чтобы не зависеть от ширины экрана вообще. */
+  .modal-bg.sheet-mode{
+    align-items:flex-end;
+    justify-content:center;
+    padding:0;
+    background:rgba(4,4,10,0);
+    backdrop-filter:none;
+    overscroll-behavior:contain;
+    touch-action:none;
+    /* Анимируем именно цвет фона (background-color), а не opacity всего
+       #modal-bg — #modal-content лежит внутри него, и opacity на
+       родителе затемнило бы заодно и саму шторку (см. тот же приём у
+       .drawer-mode выше/ниже). */
+    transition:background-color .32s ease;
+  }
+  .modal-bg.sheet-mode.sheet-open{
+    background:var(--sheet-backdrop);
+  }
+  #modal-content.modal-sheet{
+    position:relative;
+    width:100%;
+    max-width:520px;
+    max-height:70vh;
+    max-height:70dvh;
+    margin:0;
+    border-radius:20px 20px 0 0;
+    border:1px solid var(--border2);
+    border-bottom:none;
+    padding:26px 20px calc(18px + env(safe-area-inset-bottom));
+    box-sizing:border-box;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    box-shadow:0 -14px 40px rgba(0,0,0,.4);
+    /* Стартовая позиция "за экраном" (внизу) — сам выезд анимируется
+       добавлением .sheet-open через JS на следующих двух кадрах
+       отрисовки, тем же приёмом, что и у .drawer-open (см. openModal). */
+    transform:translateY(100%);
+    transition:transform .32s cubic-bezier(.22,1,.36,1);
+  }
+  .modal-bg.sheet-mode.sheet-open #modal-content.modal-sheet{
+    transform:translateY(0);
+  }
+  /* Маркер-подсказка (drag handle), тот же приём, что и у мобильной
+     шторки .modal-drawer — чисто визуальный намёк, что шторку можно
+     смахнуть, за фактическое закрытие отвечает крестик/клик по фону. */
+  #modal-content.modal-sheet::before{
+    content:'';
+    position:absolute;
+    top:9px;
+    left:50%;
+    transform:translateX(-50%);
+    width:38px;
+    height:4px;
+    border-radius:3px;
+    background:var(--border2);
+  }
+
+  /* ================================================================
      ДЕСКТОП: окна СОЗДАНИЯ И РЕДАКТИРОВАНИЯ (ученик, урок, заметка,
      платёж, абонемент, пополнение абонемента, домашнее задание,
      репертуар, цель по доходу) — выезжающая СПРАВА панель (Side Drawer
@@ -9888,6 +9959,10 @@ const modalBuilders = {
 // список НЕ входят и продолжают открываться как обычные центральные
 // модалки — см. подробный комментарий у CSS-блока .modal-bg.drawer-mode.
 const DRAWER_MODAL_TYPES = ['student','lesson','note','payment','subscription','subTopup','homework','repertoire','incomeGoal'];
+// Типы модалок выбора формата — всегда выезжающая снизу шторка на
+// любом устройстве (см. CSS-блок .modal-bg.sheet-mode/#modal-content.
+// modal-sheet рядом с .modal-title, не завязан на @media).
+const SHEET_MODAL_TYPES = ['exportChoice','exportAllChoice'];
 
 // Приводит содержимое модалки к структуре "заголовок / прокручиваемые
 // поля / зафиксированная внизу кнопка", необходимой для CSS-панели
@@ -9923,7 +9998,6 @@ function openModal(type, ctx){
   const modalContent = document.getElementById('modal-content');
   modalContent.innerHTML = builder(modalCtx);
   modalContent.classList.toggle('modal-danger', type==='studentDanger');
-  modalContent.classList.toggle('modal-wide', type==='exportChoice' || type==='exportAllChoice');
   // Окна создания/редактирования — на компьютере превращаются в
   // выезжающую справа панель (Side Drawer), см. CSS-блок
   // @media(min-width:881px) рядом с .modal-bg/.modal. Попапы подтверждения
@@ -9931,9 +10005,12 @@ function openModal(type, ctx){
   // .modal-drawer НИКОГДА не получают — они всегда остаются обычным окном
   // строго по центру экрана.
   const isDrawerType = DRAWER_MODAL_TYPES.includes(type);
+  const isSheetType = SHEET_MODAL_TYPES.includes(type);
   if(isDrawerType) setupDrawerFormLayout(modalContent);
   modalContent.classList.toggle('modal-drawer', isDrawerType);
   modalBg.classList.toggle('drawer-mode', isDrawerType);
+  modalContent.classList.toggle('modal-sheet', isSheetType);
+  modalBg.classList.toggle('sheet-mode', isSheetType);
   modalBg.classList.remove('hidden');
   // Анимация выезда включается для DRAWER_MODAL_TYPES и на компьютере
   // (панель едет СПРАВА налево, transform:translateX — см. @media
@@ -9941,6 +10018,9 @@ function openModal(type, ctx){
   // transform:translateY — см. @media max-width:880px). Оба переключаются
   // одним и тем же классом .drawer-open, конкретное CSS-свойство,
   // которое анимируется, зависит только от текущей ширины экрана.
+  // SHEET_MODAL_TYPES (выбор формата) используют отдельный класс
+  // .sheet-open — та же логика "два requestAnimationFrame", просто на
+  // ВСЕХ ширинах экрана едет снизу (см. .modal-bg.sheet-mode выше).
   if(isDrawerType){
     // Класс .drawer-open добавляется НЕ сразу, а через два кадра отрисовки:
     // если добавить его в тот же момент, что и снятие .hidden (display:none
@@ -9951,6 +10031,12 @@ function openModal(type, ctx){
     requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ modalBg.classList.add('drawer-open'); }); });
   } else {
     modalBg.classList.remove('drawer-open');
+  }
+  if(isSheetType){
+    modalBg.classList.remove('sheet-open');
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ modalBg.classList.add('sheet-open'); }); });
+  } else {
+    modalBg.classList.remove('sheet-open');
   }
   if(type==='payment') onPayStudentChangeInit(modalCtx.studentId || (studentsOfTeacher()[0]||{}).id, modalCtx.lessonId||'');
   if(type==='lesson') onLessonStudentChange();
@@ -9979,8 +10065,11 @@ function finalizeModalClose(){
   modalContent.classList.remove('modal-danger');
   modalContent.classList.remove('modal-wide');
   modalContent.classList.remove('modal-drawer');
+  modalContent.classList.remove('modal-sheet');
   modalBg.classList.remove('drawer-mode');
   modalBg.classList.remove('drawer-open');
+  modalBg.classList.remove('sheet-mode');
+  modalBg.classList.remove('sheet-open');
 }
 
 /* ============================================================
@@ -10031,6 +10120,11 @@ function doCloseModal(){
     // и только по завершении анимации скрываем и очищаем модалку —
     // иначе форма пропадала бы мгновенно, без анимации выезда обратно.
     modalBg.classList.remove('drawer-open');
+    setTimeout(function(){ finalizeModalClose(); modalClosing = false; }, 320);
+  } else if(modalBg.classList.contains('sheet-open')){
+    // То же самое для шторки выбора формата — уезжает вниз, и только
+    // потом скрывается и очищается.
+    modalBg.classList.remove('sheet-open');
     setTimeout(function(){ finalizeModalClose(); modalClosing = false; }, 320);
   } else {
     finalizeModalClose();
