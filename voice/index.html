@@ -40,8 +40,15 @@
     --wa:#34d399;
     --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
     --bottom-nav-h:44px;
+    /* Затемнение фона под выезжающей панелью/шторкой урока и т.п.
+       На тёмной теме — темнее (интерфейс и так тёмный, слабое затемнение
+       плохо отделяет панель от фона), на светлой — как было раньше. */
+    --drawer-backdrop:rgba(4,4,10,.55);
+    --sheet-backdrop:rgba(4,4,10,.72);
   }
   body.light-theme{
+    --drawer-backdrop:rgba(4,4,10,.32);
+    --sheet-backdrop:rgba(4,4,10,.55);
     --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
     --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
     --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
@@ -837,7 +844,7 @@
        же механизм, что и у обычных модалок — см.
        handleModalBgMouseDown/closeModal). */
     .modal-bg.drawer-mode{
-      background:rgba(4,4,10,.32);
+      background:rgba(4,4,10,0);
       backdrop-filter:none;
       align-items:stretch;
       justify-content:flex-end;
@@ -845,19 +852,21 @@
       /* Затемнение фона гаснет за ТУ ЖЕ длительность, что и выезд/уезд
          самой панели (см. transform на #modal-content.modal-drawer чуть
          ниже) — поэтому оба всегда заканчиваются одновременно, без
-         "зависшего" фона после того, как панель уже скрылась. При этом
-         у затемнения намеренно более мягкая, равномерная кривая (ease),
-         а не резкая "рывком-и-стоп" кривая панели (cubic-bezier ниже) —
-         если сделать обеим ОДНУ и ту же резкую кривую, фон визуально
-         догорает уже в первой трети анимации и всё закрытие начинает
-         казаться намного быстрее, чем было раньше. Так — длительность
-         та же, скорость выезда панели та же, что и раньше, просто оба
-         элемента корректно финишируют вместе. */
-      opacity:0;
-      transition:opacity .32s ease;
+         "зависшего" фона после того, как панель уже скрылась. Анимируем
+         именно ЦВЕТ фона (background-color), а НЕ opacity всего блока —
+         #modal-content лежит ВНУТРИ #modal-bg, и opacity на родителе
+         затемняет заодно и саму панель (она была полупрозрачной, пока
+         выезжала, и сквозь неё было видно интерфейс под ней). Через
+         background-color панель остаётся полностью непрозрачной с первого
+         кадра, "плывёт" только сам фон. У затемнения — более мягкая,
+         равномерная кривая (ease), а не резкая "рывком-и-стоп" кривая
+         панели (cubic-bezier ниже): если дать обеим одну и ту же резкую
+         кривую, фон визуально догорает уже в первой трети анимации, и всё
+         закрытие кажется быстрее, чем должно. */
+      transition:background-color .32s ease;
     }
     .modal-bg.drawer-mode.drawer-open{
-      opacity:1;
+      background:var(--drawer-backdrop);
     }
     #modal-content.modal-drawer{
       width:400px;
@@ -1503,20 +1512,23 @@
       align-items:flex-end;
       justify-content:center;
       padding:0;
-      background:rgba(4,4,10,.55);
+      background:rgba(4,4,10,0);
       backdrop-filter:none;
       overscroll-behavior:contain;
       touch-action:none;
       /* См. пояснение к тому же свойству в блоке @media(min-width:881px)
-         выше — та же длительность, что и у выезда/уезда шторки, но более
-         мягкая кривая (ease, не резкая cubic-bezier шторки), иначе
-         затемнение "выгорает" в первой трети анимации и всё закрытие
-         кажется намного быстрее, чем было раньше. */
-      opacity:0;
-      transition:opacity .32s ease;
+         выше — анимируем именно цвет фона (background-color), а не
+         opacity всего #modal-bg, чтобы сама шторка (#modal-content лежит
+         внутри него) оставалась полностью непрозрачной с первого кадра,
+         а не была полупрозрачной/просвечивающей, пока едет снизу вверх.
+         Та же длительность, что и у выезда/уезда шторки, но более мягкая
+         кривая (ease, не резкая cubic-bezier шторки), иначе затемнение
+         "выгорает" в первой трети анимации и всё закрытие кажется намного
+         быстрее, чем было раньше. */
+      transition:background-color .32s ease;
     }
     .modal-bg.drawer-mode.drawer-open{
-      opacity:1;
+      background:var(--sheet-backdrop);
     }
     #modal-content.modal-drawer{
       position:relative;
