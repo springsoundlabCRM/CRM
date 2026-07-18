@@ -885,19 +885,21 @@
     background:var(--border2);
   }
   /* На компьютере кнопки "Скачать Excel"/"Скачать PDF" в шторке выбора
-     формата — тонкие вытянутые полоски на всю ширину (иконка, заголовок
-     и описание идут в один ряд слева направо), а не высокие карточки с
-     текстом друг под другом. Из-за этого высота каждой кнопки — всего
-     ~40px, и вся шторка выезжает всего на пару сантиметров, вся
-     информация при этом сохраняется, просто вытягивается по горизонтали.
+     формата стоят РЯДОМ — одна слева, другая справа (а не друг под
+     другом), и каждая при этом тонкая (иконка, заголовок и описание в
+     один ряд слева направо внутри самой кнопки, а не друг под другом).
+     Из-за этого вся шторка становится заметно короче по высоте — два
+     полноразмерных ряда превращаются в один тонкий ряд из двух половинок.
      На телефоне (ширина ≤880px) это правило не действует — там всё
      остаётся как было, обычные более высокие карточки друг под другом,
      там и так выглядит хорошо. */
   @media (min-width:881px){
-    .export-choice-row{ flex-direction:column!important; gap:8px!important; }
+    .export-choice-row{ flex-direction:row!important; gap:10px!important; }
     .export-choice-row .export-choice-btn{
-      padding:10px 16px!important;
-      gap:12px!important;
+      flex:1 1 0;
+      min-width:0;
+      padding:10px 14px!important;
+      gap:10px!important;
     }
     /* Заголовок и описание — тоже в ряд (были друг под другом), с
        коротким тире между ними вместо переноса строки. */
@@ -907,6 +909,7 @@
       gap:0!important;
       white-space:nowrap;
       overflow:hidden;
+      min-width:0;
     }
     .export-choice-row .export-choice-btn > span > span:first-child{
       flex-shrink:0;
@@ -919,7 +922,7 @@
     }
     .export-choice-row .export-choice-btn > span > span:last-child::before{
       content:'—';
-      margin:0 8px;
+      margin:0 6px;
       color:var(--text3);
       flex-shrink:0;
     }
