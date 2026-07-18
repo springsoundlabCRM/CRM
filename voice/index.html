@@ -815,18 +815,13 @@
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
 
   /* ================================================================
-     ВЫБОР ФОРМАТА ЭКСПОРТА (exportChoice/exportAllChoice) — ВСЕГДА
-     выезжающая СНИЗУ шторка (bottom sheet), на любом устройстве и
-     любой ширине экрана: и на компьютере, и на телефоне. В отличие от
-     .drawer-mode/.modal-drawer (выше/ниже по файлу), которые на
-     компьютере превращаются в панель СПРАВА, а на телефоне — в шторку
-     СНИЗУ, здесь поведение ОДНО и то же везде — это не окно
-     создания/редактирования с кучей полей, а короткий выбор из 1-2
-     вариантов (см. Google Drive: "Скачать как..." всегда выезжает
-     снизу, независимо от устройства). Классы задаются JS-ом:
-     .sheet-mode на #modal-bg и .modal-sheet на #modal-content (см.
-     SHEET_MODAL_TYPES/openModal). Специально вынесено ИЗ любых
-     @media-блоков, чтобы не зависеть от ширины экрана вообще. */
+     ВЫБОР ФОРМАТА ЭКСПОРТА (exportChoice/exportAllChoice) — по решению
+     от 18.07 это снова обычный попап строго по центру экрана, и на
+     компьютере, и на телефоне (никаких drawer/sheet-режимов), см.
+     openModal в JS — для этих типов isDrawerType/isSheetType всегда
+     false. Блок .modal-bg.sheet-mode/#modal-content.modal-sheet ниже
+     сейчас никем не используется — оставлен нетронутым на случай, если
+     шторка снизу понадобится для другого типа модалки в будущем. */
   .modal-bg.sheet-mode{
     align-items:flex-end;
     justify-content:center;
@@ -10002,10 +9997,11 @@ const modalBuilders = {
 // список НЕ входят и продолжают открываться как обычные центральные
 // модалки — см. подробный комментарий у CSS-блока .modal-bg.drawer-mode.
 const DRAWER_MODAL_TYPES = ['student','lesson','note','payment','subscription','subTopup','homework','repertoire','incomeGoal'];
-// Типы модалок выбора формата — всегда выезжающая снизу шторка на
-// любом устройстве (см. CSS-блок .modal-bg.sheet-mode/#modal-content.
-// modal-sheet рядом с .modal-title, не завязан на @media).
-const SHEET_MODAL_TYPES = ['exportChoice','exportAllChoice'];
+// exportChoice/exportAllChoice (выбор формата экспорта) сюда намеренно
+// НЕ входят — по решению 18.07 они снова обычный попап по центру
+// экрана, и на компьютере, и на телефоне, без drawer/sheet-режимов.
+// modalBuilders для них строит обычную разметку (.modal-title + текст +
+// ряд кнопок), никаких спецклассов не требуется.
 
 // Приводит содержимое модалки к структуре "заголовок / прокручиваемые
 // поля / зафиксированная внизу кнопка", необходимой для CSS-панели
@@ -10048,7 +10044,7 @@ function openModal(type, ctx){
   // .modal-drawer НИКОГДА не получают — они всегда остаются обычным окном
   // строго по центру экрана.
   const isDrawerType = DRAWER_MODAL_TYPES.includes(type);
-  const isSheetType = SHEET_MODAL_TYPES.includes(type);
+  const isSheetType = false;
   if(isDrawerType) setupDrawerFormLayout(modalContent);
   modalContent.classList.toggle('modal-drawer', isDrawerType);
   modalBg.classList.toggle('drawer-mode', isDrawerType);
@@ -10061,9 +10057,12 @@ function openModal(type, ctx){
   // transform:translateY — см. @media max-width:880px). Оба переключаются
   // одним и тем же классом .drawer-open, конкретное CSS-свойство,
   // которое анимируется, зависит только от текущей ширины экрана.
-  // SHEET_MODAL_TYPES (выбор формата) используют отдельный класс
-  // .sheet-open — та же логика "два requestAnimationFrame", просто на
-  // ВСЕХ ширинах экрана едет снизу (см. .modal-bg.sheet-mode выше).
+  // isSheetType сейчас всегда false — .sheet-mode/.modal-sheet больше не
+  // используются: exportChoice/exportAllChoice снова обычный попап по
+  // центру (см. решение от 18.07, ветку else ниже). Код класса
+  // .sheet-open оставлен как есть на случай, если в будущем шторка снизу
+  // понадобится для какого-то другого типа модалки — просто сейчас в неё
+  // никто не попадает.
   if(isDrawerType){
     // Класс .drawer-open добавляется НЕ сразу, а через два кадра отрисовки:
     // если добавить его в тот же момент, что и снятие .hidden (display:none
