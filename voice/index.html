@@ -8619,10 +8619,25 @@ function renderFinances(){
     const debt = lessonDebt(l);
     let rowCls, amountCls, amountText, leftIcon;
     if(l.viaSubscription){
-      rowCls = 'is-paid';
-      amountCls = 'paid';
-      amountText = 'Абонемент';
-      leftIcon = '<div style="font-size:20px">🎫</div>';
+      if(l.status==='noshow' && !l._noshowSubRefunded){
+        // Ученик не пришёл, но занятие всё равно оставлено списанным с
+        // абонемента (решение "Оставить списанным с абонемента" в модалке
+        // "Не пришёл") — визуально помечаем это красным: и саму иконку
+        // 🎫 (маленькой красной точкой-индикатором в углу, т.к. цвет самого
+        // эмодзи через CSS не меняется), и надпись "Абонемент" красным
+        // текстом, чтобы сразу было видно: списано, но занятие не состоялось.
+        rowCls = 'is-debt';
+        amountCls = 'debt';
+        amountText = 'Абонемент';
+        leftIcon = '<div style="font-size:20px;position:relative;display:inline-block">🎫'
+          +'<span style="position:absolute;top:-2px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--red);border:1.5px solid var(--card)"></span>'
+          +'</div>';
+      } else {
+        rowCls = 'is-paid';
+        amountCls = 'paid';
+        amountText = 'Абонемент';
+        leftIcon = '<div style="font-size:20px">🎫</div>';
+      }
     } else if(l.status==='noshow'){
       // Неявка: вопрос оплаты уже закрыт решением из модалки "Не пришёл" —
       // показываем, сколько именно удержано, а не остаток как "долг
