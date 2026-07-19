@@ -4683,14 +4683,25 @@ function setEffectiveZoom(val) {
   else { currentHourHeight = Math.min(Math.max(val, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT); }
 }
 
-function saveZoomToProfile() {
-  // Сохраняем в localStorage для текущего учителя (сохраняем в объекте учителя)
+// Ключ для локального (только этого устройства) хранения зума календаря.
+// Раньше зум сохранялся в объект учителя (teacher.hourHeight /
+// teacher.hourHeightMobile) и уходил в saveDB() — то есть в общую базу
+// Firestore. Из-за этого один и тот же аккаунт, открытый и на телефоне, и на
+// компьютере, "перетягивал" зум друг у друга: зумирование на одном устройстве
+// через синхронизацию базы прилетало на другое. Теперь зум — это чисто
+// локальная настройка устройства (как в любом нативном приложении), она
+// хранится в localStorage ЭТОГО браузера и никогда не отправляется на сервер,
+// поэтому телефон и компьютер больше никак не влияют на зум друг друга, даже
+// будучи залогинены в один и тот же аккаунт одновременно.
+function zoomLocalStorageKey(forMobile) {
   const teacher = getCurrentTeacher();
-  if(teacher && teacher.id) {
-    teacher.hourHeight = getEffectiveZoom();
-    teacher.hourHeightMobile = isMobileDevice ? currentHourHeightMobile : null;
-    saveDB();
-  }
+  const teacherId = (teacher && teacher.id) || 'anon';
+  return 'voiceloft_cal_zoom_' + (currentUid || 'anon') + '_' + teacherId + '_' + (forMobile ? 'mobile' : 'desktop');
+}
+function saveZoomToProfile() {
+  try {
+    localStorage.setItem(zoomLocalStorageKey(isMobileDevice), String(getEffectiveZoom()));
+  } catch(e) { /* приватный режим браузера и т.п. — не критично */ }
 }
 
 function getWeekDays() {
@@ -5025,11 +5036,25 @@ function initCalendar() {
   // (те же, что и на компьютере) — они не зависят от момента замера, так
   // что сохранённое значение всегда остаётся ровно таким, каким его задал
   // человек.
-  const teacher = getCurrentTeacher();
-  if(teacher) {
-    if(teacher.hourHeight) currentHourHeight = Math.min(Math.max(teacher.hourHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
-    if(teacher.hourHeightMobile) currentHourHeightMobile = Math.min(Math.max(teacher.hourHeightMobile, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
-  }
+  // Зум читаем ТОЛЬКО из localStorage этого устройства (см. saveZoomToProfile
+  // выше) — он больше не хранится в общем профиле учителя, чтобы телефон и
+  // компьютер в одном аккаунте не влияли на зум друг друга.
+  try {
+    const savedDesktop = localStorage.getItem(zoomLocalStorageKey(false));
+    if(savedDesktop) currentHourHeight = Math.min(Math.max(parseFloat(savedDesktop), MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+    const savedMobile = localStorage.getItem(zoomLocalStorageKey(true));
+    if(savedMobile) currentHourHeightMobile = Math.min(Math.max(parseFloat(savedMobile), MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+    // Миграция: если на ЭТОМ устройстве ещё нет локально сохранённого зума,
+    // но в старой (общей) базе он когда-то был записан — используем его один
+    // раз как стартовое значение, чтобы люди не увидели резкий "сброс"
+    // зума после обновления. Дальше это устройство сохраняет зум уже только
+    // у себя и ни с кем больше не делится.
+    const teacher = getCurrentTeacher();
+    if(teacher) {
+      if(!savedDesktop && teacher.hourHeight) currentHourHeight = Math.min(Math.max(teacher.hourHeight, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+      if(!savedMobile && teacher.hourHeightMobile) currentHourHeightMobile = Math.min(Math.max(teacher.hourHeightMobile, MIN_HOUR_HEIGHT), MAX_HOUR_HEIGHT);
+    }
+  } catch(e) { /* не критично */ }
   isMobileDevice = window.innerWidth <= 768;
   renderCalendar();
 }
