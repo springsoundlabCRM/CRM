@@ -6364,7 +6364,11 @@ function renderDetailProfile(){
   // ко всем ученикам аккаунта. Если порядок для этой версии ещё не задан
   // или в нём не хватает/оказался лишний ключ (например, после
   // обновления CRM) — подставляем ключи по умолчанию, ничего не теряя.
-  const PROFILE_CARD_KEYS = ['contact','voice','skills','sub','range','notes'];
+  // Сетка 2×3 заполняется построчно (row1: [0]+[1], row2: [2]+[3], row3:
+  // [4]+[5]) — поэтому левая колонка (позиции 0,2,4) это contact/range/skills,
+  // а правая (позиции 1,3,5) — voice/sub/notes и намеренно не тронута:
+  // слева сверху вниз теперь "Контакт" → "Прогресс диапазона" → "Навыки".
+  const PROFILE_CARD_KEYS = ['contact','voice','range','sub','skills','notes'];
   const cardsByKey = { contact: contactBlock, voice: voiceBlock, skills: skillsBlock, sub: subBlock, range: renderRangeProgressCard(s), notes: notesBlock };
   const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
   DB.settings = DB.settings || {};
