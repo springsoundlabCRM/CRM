@@ -8275,6 +8275,25 @@ function lessonStatusLabel(l){
   if(!isNaN(end.getTime()) && end.getTime() <= Date.now()) return {text:'Проведён', cls:'color:var(--green)'};
   return {text:'Запланирован', cls:'color:var(--amber)'};
 }
+/* Короткое пояснение финансового исхода урока — показывается в истории
+   уроков ученика вместо заглушки "Заметок нет" (только когда у урока и
+   правда нет собственной заметки от преподавателя — место одно и то же,
+   карточка не увеличивается). Для обычных "Проведён"/"Запланирован" ничего
+   не добавляем — там и так всё понятно по статусу в шапке карточки. */
+function lessonHistoryStatusNote(l){
+  if(l.status==='noshow'){
+    if(l.viaSubscription){
+      return l._noshowSubRefunded
+        ? '↩️ Не пришёл — занятие возвращено в абонемент'
+        : '🎫 Не пришёл — занятие всё равно списано с абонемента';
+    }
+    return Number(l.paid||0) > 0
+      ? ('🔒 Не пришёл — удержано '+money(l.paid))
+      : '🚫 Не пришёл — без списания';
+  }
+  if(l.status==='cancelled') return '⤬ Урок отменён, без списания';
+  return null;
+}
 function renderDetailHistory(){
   const s = studentById(currentStudentId); if(!s) return;
   const host = document.getElementById('dtab-history');
@@ -8283,9 +8302,10 @@ function renderDetailHistory(){
     const st = lessonStatusLabel(l);
     const moodIcon = {motivated:'😊',neutral:'😐',tired:'😔'}[l.mood]||'';
     const ratingIcon = {fire:'🔥',good:'✓',hard:'⚠️'}[l.rating]||'';
+    const statusNote = lessonHistoryStatusNote(l);
     return '<div class="lesson-note"><div class="note-date"><span>'+formatRu(l.date)+' · '+l.time+' · '+l.duration+' мин · '+(l.format==='online'?'Онлайн':'Офлайн')+' · <b style="'+st.cls+'">'+st.text+'</b></span>'
       +'<span>'+ratingIcon+' '+moodIcon+'</span></div>'
-      +(l.workedOn ? '<div class="note-text">'+escapeHTML(l.workedOn)+'</div>' : '<div class="note-text" style="color:var(--text3)">Заметок нет</div>')
+      +(l.workedOn ? '<div class="note-text">'+escapeHTML(l.workedOn)+'</div>' : '<div class="note-text" style="color:var(--text3)">'+(statusNote ? escapeHTML(statusNote) : 'Заметок нет')+'</div>')
       +(l.homeworkText ? '<div class="note-text" style="margin-top:4px;color:var(--text3)">ДЗ: '+escapeHTML(l.homeworkText)+'</div>' : '')
       +'</div>';
   }).join('') : '<div class="empty-state">Уроков пока не было</div>';
