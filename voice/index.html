@@ -1506,6 +1506,23 @@
        меняются — просто сетке задаётся один столбец вместо двух, поэтому
        карточка становится вдвое шире (визуально крупнее). */
     .student-grid.student-grid-single{grid-template-columns:1fr!important}
+    /* В этом режиме карточка становится крупнее не только по ширине, но и
+       по высоте — сама карточка, аватар, шрифты, полоса прогресса и отступы
+       увеличены (примерно как в компьютерной версии, см. @media
+       min-width:881px выше), а не просто растянуты в одну колонку с теми
+       же мелкими компактными размерами. */
+    .student-grid.student-grid-single .student-card{padding:18px;border-radius:calc(var(--r2) * 1.3)}
+    .student-grid.student-grid-single .student-header{gap:10px;margin-bottom:14px}
+    .student-grid.student-grid-single .student-header-left{gap:10px}
+    .student-grid.student-grid-single .student-avatar{width:42px;height:42px;font-size:16px}
+    .student-grid.student-grid-single .student-name{font-size:15px;line-height:1.25}
+    .student-grid.student-grid-single .student-meta{font-size:12.5px}
+    .student-grid.student-grid-single .student-time-badge{font-size:12.5px;padding:6px 13px;border-radius:11px}
+    .student-grid.student-grid-single .student-progress-wrap{margin-bottom:12px}
+    .student-grid.student-grid-single .student-progress-label{font-size:12px;margin-bottom:7px}
+    .student-grid.student-grid-single .student-progress-bar{height:7px}
+    .student-grid.student-grid-single .student-tags-row{padding-top:10px}
+    .student-grid.student-grid-single .student-card .tag{font-size:12px;padding:3px 9px;border-radius:8px;margin-top:8px;margin-right:5px;gap:4px}
     .student-card{padding:10px}
     .student-header{gap:6px;margin-bottom:8px}
     .student-header-left{gap:6px}
