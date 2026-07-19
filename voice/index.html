@@ -478,6 +478,7 @@
   .finance-row:hover{background:var(--card2);border-color:var(--border2)}
   .finance-row.is-debt{border-left:3px solid var(--red)}
   .finance-row.is-paid{border-left:3px solid var(--green)}
+  .finance-row.is-neutral{border-left:3px solid var(--border2)}
   /* Строки платежей на вкладке "Финансы" внутри карточки ученика (не
      общий раздел "Финансы" в левом меню — там .finance-row не трогаем)
      должны быть по высоте такими же, как записи на вкладке "История
@@ -515,6 +516,7 @@
   .finance-amount.paid{color:var(--green)}
   .finance-amount.debt{color:var(--red)}
   .finance-amount.partial{color:var(--amber)}
+  .finance-amount.neutral{color:var(--text3)}
   .carryover-badge{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);color:var(--text2);border:1px solid var(--border2);font-size:9px;padding:2px 6px;border-radius:6px;margin-left:6px}
   .detail-panel{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .detail-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
@@ -4088,6 +4090,10 @@ function lessonDebt(l){
   // а сознательно прощённая часть (раз занятие не состоялось), поэтому
   // такой урок нигде не должен всплывать как долг.
   if(l.status==='noshow') return 0;
+  // Отменённый урок ("Отмена" на карточке) — деньги тут вообще ни при чём,
+  // урок просто не состоялся по решению/договорённости, без каких-либо
+  // финансовых последствий. Никогда не считается долгом.
+  if(l.status==='cancelled') return 0;
   const full = Number(l.price||0);
   const paid = Number(l.paid||0);
   return Math.max(0, full-paid);
@@ -5155,6 +5161,11 @@ function paymentTagHTML(l){
     return Number(l.paid||0) > 0
       ? '<span class="tag tag-green">🔒 Удержано '+money(l.paid)+'</span>'
       : '<span class="tag tag-grey">Без удержания</span>';
+  }
+  if(l.status==='cancelled'){
+    // Отменённый урок — деньги тут вообще ни при чём, ни долга,
+    // ни удержания, просто нейтральная пометка.
+    return '<span class="tag tag-grey">⤬ Урок отменён</span>';
   }
   const debt = lessonDebt(l);
   if(debt<=0) return '<span class="tag tag-green">✓ Оплачено</span>';
@@ -8621,6 +8632,14 @@ function renderFinances(){
       amountCls = 'paid';
       amountText = Number(l.paid||0) > 0 ? ('Удержано: '+money(l.paid)) : 'Без удержания';
       leftIcon = '<div style="font-size:20px">🔒</div>';
+    } else if(l.status==='cancelled'){
+      // Отменённый урок ("Отмена" на карточке) — деньги тут вообще ни при
+      // чём, поэтому ни "удержано", ни "без удержания": просто нейтральная
+      // серая строка с пометкой, что урок отменён.
+      rowCls = 'is-neutral';
+      amountCls = 'neutral';
+      amountText = 'Урок отменён';
+      leftIcon = '<div style="font-size:20px">⤬</div>';
     } else {
       rowCls = debt>0 ? 'is-debt' : 'is-paid';
       amountCls = debt>0 ? (l.paid>0?'partial':'debt') : 'paid';
@@ -8639,7 +8658,7 @@ function renderFinances(){
     // Клик по уже оплаченному абонементным списанием уроку не должен вести
     // в модалку "Зафиксировать платёж" (платить тут нечего) — вместо этого
     // ведём на карточку ученика, как и для строк по абонементам выше.
-    const clickAction = (l.viaSubscription || l.status==='noshow')
+    const clickAction = (l.viaSubscription || l.status==='noshow' || l.status==='cancelled')
       ? "openStudent(studentById('"+s.id+"'))"
       : "openModal('payment',{studentId:'"+s.id+"',lessonId:'"+l.id+"'})";
     items.push({key: (l.date||'')+'T'+(l.time||'00:00'), html:
@@ -10572,8 +10591,9 @@ function onNoshowBtnClick(lessonId){
     return;
   }
   // Если у урока не указана стоимость и это не абонемент — удерживать
-  // нечего, модалка с выбором тут не нужна: сразу отмечаем неявку без
-  // списания (та же логика, что и у серой кнопки "Отмена" — см. ниже).
+  // нечего, модалка с выбором тут не нужна: сразу отмечаем неявку (списывать
+  // всё равно нечего, но статус остаётся именно "не пришёл", красным —
+  // в отличие от кнопки "Отмена", которая означает совсем другое событие).
   if(!l.viaSubscription && Number(l.price||0)<=0){
     applyNoshowNoCharge(lessonId);
     return;
@@ -10586,26 +10606,25 @@ function onNoshowBtnClick(lessonId){
   openModal('noshowLesson', {lessonId, returnToDayAttend});
 }
 
-/* Серая кнопка "Отмена" на карточке урока — теперь это быстрый способ
-   отметить неявку без каких-либо списаний (то же самое, что раньше делала
-   зелёная кнопка "Не списывать ничего" внутри модалки "Не пришёл"), без
-   открытия модалки и лишних вопросов — преподаватель уже принял решение
-   самим этим кликом. Повторный тап снимает отметку, как и у остальных
-   кнопок ряда. */
+/* Серая кнопка "Отмена" на карточке урока — это отдельное от "Не пришёл"
+   событие: урок просто отменяется (например, заранее договорились
+   перенести/отменить), без каких-либо денежных вопросов вообще. Никакого
+   удержания/списания тут нет и не может быть — ни "удержано X ₽", ни
+   "без удержания", просто "Урок отменён". Статус и подсветка карточки —
+   отдельные, серые (см. statusColorClass), никак не пересекаются с "Не
+   пришёл" (красный) и его вариантами удержания суммы. Повторный тап
+   снимает отметку, как и у остальных кнопок ряда. */
 function onCancelBtnClick(lessonId){
   const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
-  if(l.status==='noshow'){
-    markAttendance(lessonId, 'noshow');
-    return;
-  }
-  applyNoshowNoCharge(lessonId);
+  const wasCancelled = l.status==='cancelled';
+  markAttendance(lessonId, 'cancelled');
+  if(!wasCancelled) toast('Урок отменён');
 }
 
-/* Общая логика "не пришёл, без списания" — используется и серой кнопкой
-   "Отмена" на карточке, и красной кнопкой "Не пришёл" для уроков без
-   указанной стоимости. Просто помечает урок неявкой, не трогая оплату и
-   абонемент (то же самое, что раньше делала зелёная кнопка "Не списывать
-   ничего" внутри модалки "Не пришёл" — только без модалки и её текста). */
+/* "Не пришёл, без списания" — применяется только к красной кнопке "Не
+   пришёл", когда у урока не указана стоимость (списывать нечего, но статус
+   всё равно должен стать именно "не пришёл", а не "отменён" — это разные
+   вещи). Просто помечает урок неявкой, не трогая оплату и абонемент. */
 function applyNoshowNoCharge(lessonId){
   const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
   applyAttendanceStatus(l, 'noshow');
