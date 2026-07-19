@@ -319,6 +319,7 @@
   .tag-red{background:var(--red-bg);color:var(--red)}
   .tag-purple{background:var(--accent-glow);color:var(--accent)}
   .tag-blue{background:var(--blue-bg);color:var(--blue)}
+  .tag-grey{background:var(--bg3);color:var(--text3)}
   .tag-orange{background:var(--orange-bg);color:var(--orange)}
   /* ===== КАЛЕНДАРЬ ===== */
   .cal-head {
@@ -4088,6 +4089,13 @@ function paymentsOfStudent(id){ return DB.payments.filter(p=>p.studentId===id).s
 
 function lessonDebt(l){
   if(l.viaSubscription) return 0;
+  // Урок с отметкой "Не пришёл" — вопрос оплаты по нему уже закрыт тем
+  // решением, которое приняли в модалке "Не пришёл" (удержать частично,
+  // списать полностью или не списывать вовсе). Остаток между ценой урока
+  // и удержанной суммой — это не "недоплата, которую ученик ещё должен",
+  // а сознательно прощённая часть (раз занятие не состоялось), поэтому
+  // такой урок нигде не должен всплывать как долг.
+  if(l.status==='noshow') return 0;
   const full = Number(l.price||0);
   const paid = Number(l.paid||0);
   return Math.max(0, full-paid);
@@ -5153,6 +5161,14 @@ function initCalendar() {
    ============================================================ */
 function paymentTagHTML(l){
   if(l.viaSubscription) return '<span class="tag tag-amber">🎫 Абонемент</span>';
+  if(l.status==='noshow'){
+    // Как и в Финансах: для неявки вопрос оплаты уже закрыт решением из
+    // модалки "Не пришёл" — показываем удержанную сумму, а не остаток
+    // как незакрытый долг.
+    return Number(l.paid||0) > 0
+      ? '<span class="tag tag-green">🔒 Удержано '+money(l.paid)+'</span>'
+      : '<span class="tag tag-grey">Без удержания</span>';
+  }
   const debt = lessonDebt(l);
   if(debt<=0) return '<span class="tag tag-green">✓ Оплачено</span>';
   if(l.paid>0) return '<span class="tag tag-amber">Частично · долг '+money(debt)+'</span>';
@@ -8603,23 +8619,40 @@ function renderFinances(){
   finalRows.forEach(l=>{
     const s = studentById(l.studentId); if(!s) return;
     const debt = lessonDebt(l);
-    const rowCls = debt>0 ? 'is-debt' : 'is-paid';
-    const amountCls = debt>0 ? (l.paid>0?'partial':'debt') : 'paid';
-    // Урок, списанный с абонемента, уже оплачен заранее (при покупке
-    // абонемента) — вместо суммы показываем пометку "Абонемент", чтобы не
-    // создавалось впечатление, будто деньги получены именно за этот урок.
-    const amountText = l.viaSubscription ? 'Абонемент' : (debt>0 ? (l.paid>0 ? '−'+money(debt)+' (частично)' : '−'+money(debt)) : '+'+money(l.paid));
+    let rowCls, amountCls, amountText, leftIcon;
+    if(l.viaSubscription){
+      rowCls = 'is-paid';
+      amountCls = 'paid';
+      amountText = 'Абонемент';
+      leftIcon = '<div style="font-size:20px">🎫</div>';
+    } else if(l.status==='noshow'){
+      // Неявка: вопрос оплаты уже закрыт решением из модалки "Не пришёл" —
+      // показываем, сколько именно удержано, а не остаток как "долг
+      // (частично)". Если ничего не удержано (l.paid===0) — так и пишем,
+      // без намёка на то, что деньги ещё нужно с кого-то получить.
+      rowCls = 'is-paid';
+      amountCls = 'paid';
+      amountText = Number(l.paid||0) > 0 ? ('Удержано: '+money(l.paid)) : 'Без удержания';
+      leftIcon = '<div style="font-size:20px">🔒</div>';
+    } else {
+      rowCls = debt>0 ? 'is-debt' : 'is-paid';
+      amountCls = debt>0 ? (l.paid>0?'partial':'debt') : 'paid';
+      // Урок, списанный с абонемента, уже оплачен заранее (при покупке
+      // абонемента) — вместо суммы показываем пометку "Абонемент", чтобы не
+      // создавалось впечатление, будто деньги получены именно за этот урок.
+      amountText = debt>0 ? (l.paid>0 ? '−'+money(debt)+' (частично)' : '−'+money(debt)) : '+'+money(l.paid);
+      leftIcon = '<div style="font-size:20px">'+(debt>0?'⚠️':'💸')+'</div>';
+    }
     const carryBadge = l._carry ? '<span class="carryover-badge">↺ Перенос</span>' : '';
     // Слева, вместо иконки денег — тот же значок 🎫, которым абонемент
     // обозначается везде по приложению (бейджи, кнопки, заголовки) — никакой
     // новой иконки, просто переиспользуем существующую.
     // Отдельного текстового ярлыка "Абонемент" рядом с именем больше нет —
     // теперь это видно по иконке слева и по подписи "Абонемент" справа (вместо суммы).
-    const leftIcon = '<div style="font-size:20px">'+(l.viaSubscription?'🎫':(debt>0?'⚠️':'💸'))+'</div>';
     // Клик по уже оплаченному абонементным списанием уроку не должен вести
     // в модалку "Зафиксировать платёж" (платить тут нечего) — вместо этого
     // ведём на карточку ученика, как и для строк по абонементам выше.
-    const clickAction = l.viaSubscription
+    const clickAction = (l.viaSubscription || l.status==='noshow')
       ? "openStudent(studentById('"+s.id+"'))"
       : "openModal('payment',{studentId:'"+s.id+"',lessonId:'"+l.id+"'})";
     items.push({key: (l.date||'')+'T'+(l.time||'00:00'), html:
