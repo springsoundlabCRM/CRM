@@ -6828,7 +6828,7 @@ function saveProfileReorderOrder(){
    ============================================================ */
 function createCardReorder(opts){
   // opts.getGrid()        → HTMLElement|null — контейнер с карточками (data-card-key)
-  // opts.getStorageKey()  → string            — ключ в DB.settings, куда сохраняется порядок
+  // opts.getStorageKey()  → string            — ключ в localStorage ЭТОГО устройства, куда сохраняется порядок
   const DRAG_THRESHOLD = 6;
   const LONGPRESS_MS = 500;
   const LONGPRESS_TOL = 10;
@@ -6878,9 +6878,13 @@ function createCardReorder(opts){
     const grid = opts.getGrid();
     if(grid){
       const order = Array.from(grid.children).map(c=>c.dataset.cardKey).filter(Boolean);
-      DB.settings = DB.settings || {};
-      DB.settings[opts.getStorageKey()] = order;
-      saveDB();
+      // Сохраняем ТОЛЬКО локально, в localStorage этого устройства — а не в
+      // общую базу (Firestore/DB.settings). Иначе порядок, переставленный на
+      // телефоне, синхронизировался бы и на компьютер того же аккаунта (и
+      // наоборот) — а мобильная перестановка карточек аналитики должна
+      // оставаться исключительно локальной настройкой этого телефона.
+      try{ localStorage.setItem(opts.getStorageKey(), JSON.stringify(order)); }
+      catch(e){ /* приватный режим браузера и т.п. — не критично */ }
     }
     mode = false;
     snapshotOrder = null;
@@ -7110,9 +7114,17 @@ function splitAnalyticsRows(){
   row2.style.display = '';
 }
 
+// Ключ для локального (только этого устройства) хранения порядка карточек
+// аналитики — см. подробное объяснение у analyticsReorderEngine/save() выше.
+function analyticsCardOrderLocalStorageKey(forMobile){
+  return 'voiceloft_analytics_card_order_' + (currentUid || 'anon') + '_' + (forMobile ? 'mobile' : 'desktop');
+}
+
 const analyticsReorderEngine = createCardReorder({
   getGrid: ()=>document.querySelector('#page-analytics .an-row-3[data-reorder-row="1"]'),
-  getStorageKey: ()=>'analyticsCardOrder'
+  // Отдельный ключ localStorage на каждое устройство (моб./десктоп) и на
+  // каждый аккаунт — см. analyticsCardOrderLocalStorageKey ниже.
+  getStorageKey: ()=>analyticsCardOrderLocalStorageKey(isMobileDevice)
 });
 
 function analyticsReorderIsOn(){ return analyticsReorderEngine.isOn(); }
@@ -7130,29 +7142,53 @@ function saveAnalyticsReorderMode(){
   toast('Порядок блоков сохранён ✓');
 }
 
-/* Расставляет все 6 карточек аналитики в порядке, сохранённом в
-   DB.settings.analyticsCardOrder — вызывается в начале renderAnalytics(),
+/* Расставляет все 6 карточек аналитики в порядке, сохранённом ЛОКАЛЬНО на
+   этом устройстве (localStorage, отдельно для десктопа и мобилки — см.
+   analyticsCardOrderLocalStorageKey) — вызывается в начале renderAnalytics(),
    поэтому применяется при каждом открытии раздела. Первые 3 карточки итогового
    порядка достаются первому ряду, оставшиеся 3 — второму (см. splitAnalyticsRows).
    Сами карточки (их DOM-узлы с id вроде "funnelCard") не пересоздаются — просто
    физически переставляются, так что все getElementById-ссылки на их содержимое
    продолжают работать как обычно.
-   Для совместимости со старыми сохранениями (раньше был раздельный порядок по
-   рядам — analyticsRow1Order/analyticsRow2Order) при отсутствии нового ключа
-   порядок собирается из старых двух, если они есть. */
+   Раньше порядок хранился в общей базе (DB.settings.analyticsCardOrder), из-за
+   чего перестановка карточек на телефоне применялась и на компьютере того же
+   аккаунта (и наоборот). Теперь у каждого устройства свой собственный порядок:
+   если на этом устройстве ещё никто ничего не переставлял — используется
+   изначальный порядок ANALYTICS_ALL_CARD_KEYS без изменений (для компьютера,
+   на котором нет кнопки настройки этого раздела, это гарантирует, что карточки
+   всегда остаются в исходном, неизменном порядке). */
 function applyAnalyticsCardOrder(){
   const row1 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="1"]');
   const row2 = document.querySelector('#page-analytics .an-row-3[data-reorder-row="2"]');
   if(!row1 || !row2) return;
-  DB.settings = DB.settings || {};
-  let order = Array.isArray(DB.settings.analyticsCardOrder)
-    ? DB.settings.analyticsCardOrder.filter(k=>ANALYTICS_ALL_CARD_KEYS.includes(k))
-    : null;
-  if(!order){
-    const r1 = Array.isArray(DB.settings.analyticsRow1Order) ? DB.settings.analyticsRow1Order.filter(k=>['funnel','retention','leader'].includes(k)) : [];
-    const r2 = Array.isArray(DB.settings.analyticsRow2Order) ? DB.settings.analyticsRow2Order.filter(k=>['skills','attention','summary'].includes(k)) : [];
-    order = r1.concat(r2);
+  let order = null;
+  try{
+    const raw = localStorage.getItem(analyticsCardOrderLocalStorageKey(isMobileDevice));
+    const parsed = raw ? JSON.parse(raw) : null;
+    order = Array.isArray(parsed) ? parsed.filter(k=>ANALYTICS_ALL_CARD_KEYS.includes(k)) : null;
+  }catch(e){ order = null; }
+  if(!order && isMobileDevice){
+    // Миграция ТОЛЬКО для мобильной версии: если раньше (до этого обновления)
+    // порядок уже был сохранён в общей базе — используем его один раз как
+    // стартовый и переносим в localStorage этого телефона, дальше уже не
+    // трогая общую базу. На компьютере такой миграции нарочно нет — он
+    // должен остаться в изначальном порядке, даже если раньше телефон
+    // когда-то менял общий (тогда ещё не разделённый) порядок.
+    DB.settings = DB.settings || {};
+    let legacy = Array.isArray(DB.settings.analyticsCardOrder)
+      ? DB.settings.analyticsCardOrder.filter(k=>ANALYTICS_ALL_CARD_KEYS.includes(k))
+      : null;
+    if(!legacy){
+      const r1 = Array.isArray(DB.settings.analyticsRow1Order) ? DB.settings.analyticsRow1Order.filter(k=>['funnel','retention','leader'].includes(k)) : [];
+      const r2 = Array.isArray(DB.settings.analyticsRow2Order) ? DB.settings.analyticsRow2Order.filter(k=>['skills','attention','summary'].includes(k)) : [];
+      if(r1.length || r2.length) legacy = r1.concat(r2);
+    }
+    if(legacy && legacy.length){
+      order = legacy;
+      try{ localStorage.setItem(analyticsCardOrderLocalStorageKey(true), JSON.stringify(legacy)); }catch(e){ /* не критично */ }
+    }
   }
+  if(!order) order = ANALYTICS_ALL_CARD_KEYS.slice();
   ANALYTICS_ALL_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
   const byKey = {};
   Array.from(row1.children).concat(Array.from(row2.children)).forEach(c=>{ if(c.dataset && c.dataset.cardKey) byKey[c.dataset.cardKey]=c; });
