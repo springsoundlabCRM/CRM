@@ -6355,35 +6355,44 @@ function renderDetailProfile(){
 
   // Шесть карточек вкладки "Профиль" — порядок можно менять вручную
   // (шестерёнка рядом с "Удалить клиента" → drag&drop → "Сохранить").
-  // Порядок ОБЩИЙ для ВСЕХ учеников (текущих и новых) — хранится не в
-  // самом ученике, а глобально в DB.settings, ОТДЕЛЬНО для компьютерной
-  // (DB.settings.profileCardOrderDesktop) и мобильной
-  // (DB.settings.profileCardOrderMobile) версии, поэтому перестановка на
-  // одной версии никак не влияет на другую (даже до первого сохранения —
-  // см. запасной вариант ниже), но при этом одинаково применяется сразу
-  // ко всем ученикам аккаунта. Если порядок для этой версии ещё не задан
-  // или в нём не хватает/оказался лишний ключ (например, после
-  // обновления CRM) — подставляем ключи по умолчанию, ничего не теряя.
-  // Сетка 2×3 заполняется построчно (row1: [0]+[1], row2: [2]+[3], row3:
-  // [4]+[5]) — поэтому левая колонка (позиции 0,2,4) это contact/range/skills,
-  // а правая (позиции 1,3,5) — voice/sub/notes и намеренно не тронута:
-  // слева сверху вниз теперь "Контакт" → "Прогресс диапазона" → "Навыки".
+  // Порядок ОБЩИЙ для ВСЕХ учеников (текущих и новых) — но при этом хранится
+  // НЕ в общей базе (Firestore/DB.settings), а ЛОКАЛЬНО в localStorage этого
+  // конкретного устройства (см. profileCardOrderLocalStorageKey ниже),
+  // отдельно для компьютерной и мобильной версии. Раньше оба порядка лежали
+  // в одном и том же синхронизируемом объекте DB.settings — и хотя ключи
+  // назывались по-разному (profileCardOrderDesktop/Mobile), сама запись в
+  // Firestore пересылала на сервер весь DB целиком, а он один на все
+  // устройства аккаунта. Из-за этого при почти одновременном сохранении на
+  // телефоне и компьютере более позднее сохранение могло переписать (затереть)
+  // ещё не долетевшее до сервера изменение с другого устройства — то есть
+  // порядок на одном устройстве иногда неожиданно "перескакивал" из-за
+  // действий на другом. Теперь порядок каждого устройства живёт только в его
+  // собственном localStorage и никогда не покидает это устройство, поэтому
+  // телефон и компьютер полностью независимы друг от друга.
   const PROFILE_CARD_KEYS = ['contact','voice','range','sub','skills','notes'];
   const cardsByKey = { contact: contactBlock, voice: voiceBlock, skills: skillsBlock, sub: subBlock, range: renderRangeProgressCard(s), notes: notesBlock };
-  const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
-  DB.settings = DB.settings || {};
-  let rawOrder = DB.settings[profileOrderField];
+  let rawOrder = null;
+  try{
+    const raw = localStorage.getItem(profileCardOrderLocalStorageKey(isMobileDevice));
+    rawOrder = raw ? JSON.parse(raw) : null;
+  }catch(e){ rawOrder = null; }
   if(!Array.isArray(rawOrder)){
-    // Запасной вариант для старых баз: ищем у любого ученика ранее
-    // сохранённый (ещё "личный") порядок, но СТРОГО для той же версии
-    // (десктоп/мобилка) — специально НЕ используем общее старое поле
-    // s.profileCardOrder (единое на оба устройства), иначе телефон при
-    // первом же открытии "унаследует" ещё не сохранённый отдельно
-    // порядок компьютера (и наоборот), а это ровно то, чего быть не
-    // должно: телефон и компьютер обязаны быть полностью независимы
-    // друг от друга с самого первого раза, даже до первого сохранения.
-    const legacyStudent = (DB.students||[]).find(st=>Array.isArray(st[profileOrderField]));
-    if(legacyStudent) rawOrder = legacyStudent[profileOrderField];
+    // Запасной вариант (миграция) для тех, кто уже настраивал порядок ДО
+    // этого обновления: старое значение могло быть сохранено в общей базе
+    // (DB.settings.profileCardOrderDesktop/Mobile) или, ещё раньше, прямо в
+    // объекте конкретного ученика. Используем его один раз как стартовое —
+    // строго для той же версии (десктоп/мобилка) — и сразу же переносим в
+    // localStorage этого устройства (см. ниже), дальше уже не трогая общую базу.
+    const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
+    if(DB.settings && Array.isArray(DB.settings[profileOrderField])){
+      rawOrder = DB.settings[profileOrderField];
+    } else {
+      const legacyStudent = (DB.students||[]).find(st=>Array.isArray(st[profileOrderField]));
+      if(legacyStudent) rawOrder = legacyStudent[profileOrderField];
+    }
+    if(Array.isArray(rawOrder)){
+      try{ localStorage.setItem(profileCardOrderLocalStorageKey(isMobileDevice), JSON.stringify(rawOrder)); }catch(e){ /* не критично */ }
+    }
   }
   let order = Array.isArray(rawOrder) ? rawOrder.filter(k=>PROFILE_CARD_KEYS.includes(k)) : [];
   PROFILE_CARD_KEYS.forEach(k=>{ if(!order.includes(k)) order.push(k); });
@@ -6780,20 +6789,24 @@ function finishProfileCardDrag(st){
    карточек (тот, что человек только что расставил перетаскиванием)
    ГЛОБАЛЬНО в DB.settings, то есть сразу для ВСЕХ учеников (текущих и
    новых), и выключает режим редактирования. */
+// Ключ для локального (только этого устройства) хранения порядка карточек
+// вкладки "Профиль" — см. подробное объяснение выше, в renderStudentProfile.
+function profileCardOrderLocalStorageKey(forMobile){
+  return 'voiceloft_profile_card_order_' + (currentUid || 'anon') + '_' + (forMobile ? 'mobile' : 'desktop');
+}
+
 function saveProfileReorderOrder(){
   const grid = document.querySelector('#dtab-profile .profile-grid');
   const s = studentById(currentStudentId);
   if(grid && s){
     const order = Array.from(grid.children).map(c=>c.dataset.cardKey).filter(Boolean);
-    // Сохраняем отдельно для той версии (десктоп/мобилка), на которой
-    // сейчас реально расставили карточки — вторая версия при этом не трогается.
-    // Хранится в DB.settings (глобально на весь аккаунт), а НЕ в конкретном
-    // ученике — поэтому применяется сразу ко всем ученикам, а не только к тому,
-    // в чьей карточке была нажата "Сохранить".
-    const profileOrderField = isMobileDevice ? 'profileCardOrderMobile' : 'profileCardOrderDesktop';
-    DB.settings = DB.settings || {};
-    DB.settings[profileOrderField] = order;
-    saveDB();
+    // Сохраняем ТОЛЬКО локально, в localStorage этого устройства (телефон и
+    // компьютер — разные ключи, см. profileCardOrderLocalStorageKey) — а НЕ
+    // в общую базу (Firestore/DB.settings), чтобы порядок на одном
+    // устройстве никогда не мог перезаписать или "перескочить" из-за
+    // сохранения на другом устройстве того же аккаунта.
+    try{ localStorage.setItem(profileCardOrderLocalStorageKey(isMobileDevice), JSON.stringify(order)); }
+    catch(e){ /* приватный режим браузера и т.п. — не критично */ }
   }
   profileReorderMode = false;
   // Изменения только что были явно сохранены — снимок исходного порядка
