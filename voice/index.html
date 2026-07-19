@@ -5174,7 +5174,7 @@ function attendRowHTML(l){
   return '<div class="attend-row" onclick="event.stopPropagation()">'
     +'<button class="attend-btn done'+(d?' active':'')+'" onclick="markAttendance(\''+l.id+'\',\'done\')">✓ Пришёл</button>'
     +'<button class="attend-btn noshow'+(n?' active':'')+'" onclick="onNoshowBtnClick(\''+l.id+'\')">✗ Не пришёл</button>'
-    +'<button class="attend-btn cancelled'+(c?' active':'')+'" onclick="markAttendance(\''+l.id+'\',\'cancelled\')">⤬ Отмена</button>'
+    +'<button class="attend-btn cancelled'+(c?' active':'')+'" onclick="onCancelBtnClick(\''+l.id+'\')">⤬ Отмена</button>'
     +'</div>';
 }
 function lessonCardHTML(l, opts){
@@ -10571,12 +10571,53 @@ function onNoshowBtnClick(lessonId){
     markAttendance(lessonId, 'noshow');
     return;
   }
+  // Если у урока не указана стоимость и это не абонемент — удерживать
+  // нечего, модалка с выбором тут не нужна: сразу отмечаем неявку без
+  // списания (та же логика, что и у серой кнопки "Отмена" — см. ниже).
+  if(!l.viaSubscription && Number(l.price||0)<=0){
+    applyNoshowNoCharge(lessonId);
+    return;
+  }
   // Если сейчас открыт список уроков конкретного дня (модалка "Отметить
   // посещение за другой день") — запоминаем дату, чтобы вернуться туда
   // после закрытия модалки "Не пришёл".
   const modalBg = document.getElementById('modal-bg');
   const returnToDayAttend = (dayAttendSelectedISO && modalBg && !modalBg.classList.contains('hidden')) ? dayAttendSelectedISO : null;
   openModal('noshowLesson', {lessonId, returnToDayAttend});
+}
+
+/* Серая кнопка "Отмена" на карточке урока — теперь это быстрый способ
+   отметить неявку без каких-либо списаний (то же самое, что раньше делала
+   зелёная кнопка "Не списывать ничего" внутри модалки "Не пришёл"), без
+   открытия модалки и лишних вопросов — преподаватель уже принял решение
+   самим этим кликом. Повторный тап снимает отметку, как и у остальных
+   кнопок ряда. */
+function onCancelBtnClick(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  if(l.status==='noshow'){
+    markAttendance(lessonId, 'noshow');
+    return;
+  }
+  applyNoshowNoCharge(lessonId);
+}
+
+/* Общая логика "не пришёл, без списания" — используется и серой кнопкой
+   "Отмена" на карточке, и красной кнопкой "Не пришёл" для уроков без
+   указанной стоимости. Просто помечает урок неявкой, не трогая оплату и
+   абонемент (то же самое, что раньше делала зелёная кнопка "Не списывать
+   ничего" внутри модалки "Не пришёл" — только без модалки и её текста). */
+function applyNoshowNoCharge(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  applyAttendanceStatus(l, 'noshow');
+  saveDB();
+  toast('Отмечено: не пришёл, без списания');
+  refreshAllVisible();
+  if(currentStudentId===l.studentId && !document.getElementById('page-student-detail').classList.contains('hidden')){
+    renderDetailHistory();
+  }
+  if(dayAttendSelectedISO && !document.getElementById('modal-bg').classList.contains('hidden')){
+    renderDayAttendLessonsList();
+  }
 }
 
 function buildNoshowLessonModal(ctx){
@@ -10601,14 +10642,10 @@ function buildNoshowLessonModal(ctx){
         +'<div class="del-option-title">↩️ Вернуть занятие в абонемент</div>'
         +'<div class="del-option-sub">Ученик предупредил заранее — занятие вернётся на баланс абонемента</div>'
       +'</div>';
-  } else if(price<=0){
-    optionsHtml =
-      '<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:12px">У этого урока не указана стоимость — списывать нечего, просто отметьте статус.</div>'
-      +'<div class="del-option del-option-safe" onclick="confirmNoshowNoCharge(\''+l.id+'\')">'
-        +'<div class="del-option-title">🚫 Отметить неявку без списания</div>'
-        +'<div class="del-option-sub">Ученик предупредил заранее, деньги ни при чём</div>'
-      +'</div>';
   } else {
+    // Ветка с price<=0 больше не нужна: такие уроки теперь отмечаются
+    // неявкой без списания сразу по клику "Не пришёл" (см. onNoshowBtnClick)
+    // — модалка для них просто не открывается. Здесь всегда price>0.
     optionsHtml =
       '<div class="input-group" style="margin-bottom:12px">'
         +'<label class="input-label">Сумма к удержанию (₽) — например, внесённая предоплата</label>'
@@ -10621,10 +10658,6 @@ function buildNoshowLessonModal(ctx){
       +'<div class="del-option del-option-danger" onclick="confirmNoshowFull(\''+l.id+'\')">'
         +'<div class="del-option-title">❗ Списать урок полностью — '+money(price)+'</div>'
         +'<div class="del-option-sub">Урок считается оплаченным полностью, как если бы ученик пришёл</div>'
-      +'</div>'
-      +'<div class="del-option del-option-safe" onclick="confirmNoshowNoCharge(\''+l.id+'\')">'
-        +'<div class="del-option-title">🚫 Не списывать ничего</div>'
-        +'<div class="del-option-sub">Ученик предупредил заранее — просто отметить неявку</div>'
       +'</div>';
   }
 
@@ -10633,19 +10666,7 @@ function buildNoshowLessonModal(ctx){
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
     +'</div>'
-    +'<div style="margin-top:12px">'+optionsHtml+'</div>'
-    +'<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:2px" onclick="closeModal()">Отмена</button>';
-}
-
-function confirmNoshowNoCharge(lessonId){
-  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
-  const returnTo = modalCtx.returnToDayAttend;
-  applyAttendanceStatus(l, 'noshow');
-  saveDB();
-  doCloseModal();
-  toast('Отмечено: не пришёл, без списания');
-  refreshAllVisible();
-  syncDayAttendIfOpen(returnTo);
+    +'<div style="margin-top:12px">'+optionsHtml+'</div>';
 }
 
 function confirmNoshowFull(lessonId){
