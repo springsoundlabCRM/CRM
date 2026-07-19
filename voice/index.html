@@ -662,6 +662,14 @@
   .del-option-safe:hover{background:rgba(52,211,153,.22)}
   .del-option-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
   .del-option-sub{font-size:11.5px;color:var(--text3);margin-top:4px;line-height:1.45}
+  /* ---------- Таймер 24 часов в модалке "Не пришёл" ---------- */
+  .noshow-timer{border-radius:10px;padding:12px 14px;text-align:center;border:1px solid transparent}
+  .noshow-timer.active{background:var(--green-bg);border-color:rgba(52,211,153,.3)}
+  .noshow-timer.expired{background:var(--red-bg);border-color:rgba(248,113,113,.3)}
+  .noshow-timer-time{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+  .noshow-timer.active .noshow-timer-time{color:var(--green)}
+  .noshow-timer.expired .noshow-timer-time{color:var(--red)}
+  .noshow-timer-label{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4}
   .note-date{font-size:12.5px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
   .note-text{font-size:13.5px;color:var(--text2);line-height:1.6}
   .tab-row{display:flex;gap:2px;background:transparent;border-radius:9px;padding:3px;margin-bottom:20px;flex-wrap:wrap;position:relative}
@@ -4084,6 +4092,21 @@ function lessonDebt(l){
   const paid = Number(l.paid||0);
   return Math.max(0, full-paid);
 }
+/* Момент, когда урок был поставлен в расписание (в мс) — используется для
+   отсчёта 24-часового окна "предупредил заранее / не предупредил" при
+   отметке "Не пришёл". У новых уроков это createdAtTs (Date.now() в момент
+   сохранения формы). У старых уроков, созданных до появления этого поля,
+   точного времени постановки нет — приближённо берём дату и время самого
+   урока (лучше, чем ничего, и не ломает старые записи). */
+function lessonBookedTs(l){
+  if(l.createdAtTs) return l.createdAtTs;
+  const ts = Date.parse((l.date||todayISO())+'T'+(l.time||'00:00')+':00');
+  return isNaN(ts) ? Date.now() : ts;
+}
+/* Дедлайн (в мс) — ровно сутки с момента постановки урока. До этого момента
+   предоплату можно вернуть, после — по умолчанию не возвращается (см.
+   модалку "Не пришёл", buildNoshowLessonModal). */
+function noshowDeadlineTs(l){ return lessonBookedTs(l) + 24*60*60*1000; }
 function studentPaymentTag(studentId){
   const sub = activeSubscriptionOf(studentId);
   if(sub) return 'sub';
@@ -5147,7 +5170,7 @@ function attendRowHTML(l){
   const d=l.status==='done', n=l.status==='noshow', c=l.status==='cancelled';
   return '<div class="attend-row" onclick="event.stopPropagation()">'
     +'<button class="attend-btn done'+(d?' active':'')+'" onclick="markAttendance(\''+l.id+'\',\'done\')">✓ Пришёл</button>'
-    +'<button class="attend-btn noshow'+(n?' active':'')+'" onclick="markAttendance(\''+l.id+'\',\'noshow\')">✗ Не пришёл</button>'
+    +'<button class="attend-btn noshow'+(n?' active':'')+'" onclick="onNoshowBtnClick(\''+l.id+'\')">✗ Не пришёл</button>'
     +'<button class="attend-btn cancelled'+(c?' active':'')+'" onclick="markAttendance(\''+l.id+'\',\'cancelled\')">⤬ Отмена</button>'
     +'</div>';
 }
@@ -9487,7 +9510,7 @@ function saveLessonForm(){
   // закончился и статус нужно автоматически перевести в "Активный" (если он
   // всё ещё "Пробный"). Первый урок любого нового ученика остаётся пробным.
   const existingLessonsCount = lessonsOfStudent(studentId).length;
-  let lesson = { id:uid('l'), studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status:'planned', plan, workedOn:'', createdAt: todayISO() };
+  let lesson = { id:uid('l'), studentId, teacherId: DB.currentTeacherId, date, time, duration, format, status:'planned', plan, workedOn:'', createdAt: todayISO(), createdAtTs: Date.now() };
   if(sub){
     lesson.viaSubscription = true; lesson.subscriptionId = sub.id; lesson.price = sub.pricePerLesson; lesson.paid = sub.pricePerLesson;
     sub.usedLessons += 1;
@@ -9785,7 +9808,7 @@ function buildSubHistoryModal(ctx){
   ctx = ctx||{};
   const s = studentById(ctx.studentId);
   const hist = subHistoryOf(ctx.studentId);
-  const typeLabel = {purchase:'🎫 Покупка', topup:'➕ Пополнение', deduct:'➖ Списан урок', delete:'🗑 Удалён'};
+  const typeLabel = {purchase:'🎫 Покупка', topup:'➕ Пополнение', deduct:'➖ Списан урок', refund:'↩️ Возврат занятия', delete:'🗑 Удалён'};
   const rows = hist.length ? hist.map(h=>
     '<div class="lesson-note"><div class="note-date">'+formatRu(h.date)+' · '+(typeLabel[h.type]||h.type)+'</div>'
     +'<div class="note-text">'+(h.lessonsDelta? (h.lessonsDelta>0?'+':'')+h.lessonsDelta+' уроков · ' : '')+(h.amount?money(h.amount):'')+(h.note?' — '+escapeHTML(h.note):'')+'</div></div>'
@@ -10220,6 +10243,7 @@ const modalBuilders = {
   dayAttend: buildDayAttendModal,
   financePeriod: buildFinancePeriodModal,
   deleteLesson: buildDeleteLessonModal,
+  noshowLesson: buildNoshowLessonModal,
   deleteLessonConfirm: buildDeleteLessonConfirmModal,
   deleteHomework: buildDeleteHomeworkModal,
   deleteRepertoire: buildDeleteRepertoireModal,
@@ -10325,6 +10349,7 @@ function openModal(type, ctx){
   if(type==='calPicker') renderCalPickerCalendar();
   if(type==='dayAttend') renderDayAttendCalendar();
   if(type==='financePeriod') renderFinPeriodMonths();
+  if(type==='noshowLesson') startNoshowCountdown(modalCtx.lessonId);
 }
 // Флаг: было ли нажатие мыши (mousedown) именно на фоне модалки,
 // а не начато внутри окна (например, при выделении текста мышкой).
@@ -10340,6 +10365,7 @@ function handleModalBgMouseDown(e){
   modalBgMouseDownOnBg = (e.target && e.target.id === 'modal-bg');
 }
 function finalizeModalClose(){
+  stopNoshowCountdown();
   const modalBg = document.getElementById('modal-bg');
   const modalContent = document.getElementById('modal-content');
   modalBg.classList.add('hidden');
@@ -10428,7 +10454,9 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
    ============================================================ */
 function markAttendance(lessonId, status){
   const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
-  l.status = (l.status===status) ? 'planned' : status;
+  const prevStatus = l.status;
+  const newStatus = (l.status===status) ? 'planned' : status;
+  applyAttendanceStatus(l, newStatus);
   saveDB();
   refreshAllVisible();
   if(currentStudentId===l.studentId && !document.getElementById('page-student-detail').classList.contains('hidden')){
@@ -10439,6 +10467,290 @@ function markAttendance(lessonId, status){
   if(dayAttendSelectedISO && !document.getElementById('modal-bg').classList.contains('hidden')){
     renderDayAttendLessonsList();
   }
+}
+
+/* Общая функция смены статуса урока (используется и обычным тапом по
+   кнопкам "Пришёл"/"Отмена"/повторным тапом по "Не пришёл", и всеми
+   сценариями модалки "Не пришёл" ниже). Сначала откатывает финансовые
+   последствия ПРЕЖНЕГО статуса (если это был "done" или "noshow" —
+   у них могли быть автоматически созданные платежи/списания с
+   абонемента), затем применяет новый статус. Отдельно новый статус
+   "done" сразу же включает автооплату урока — остальные последствия
+   (для "noshow") применяются вызывающим кодом уже ПОСЛЕ этой функции,
+   так как зависят от выбора преподавателя в модалке. */
+function applyAttendanceStatus(l, newStatus){
+  if(l.status!==newStatus && (l.status==='done' || l.status==='noshow')){
+    revertAttendanceSideEffects(l);
+  }
+  l.status = newStatus;
+  if(newStatus==='done'){
+    applyAutoPaymentOnAttendance(l);
+  }
+}
+
+/* Откатывает то, что было автоматически сделано с финансами/абонементом
+   при предыдущей отметке посещаемости — вызывается ПЕРЕД тем, как статус
+   урока меняется на что-то другое. Использует метки (_autoPaymentId и т.д.),
+   которые сама же и проставляет ниже, поэтому откатывает только то, что
+   создала сама (ручные правки преподавателя в Финансах эта функция не трогает). */
+function revertAttendanceSideEffects(l){
+  if(l._autoPaymentId){
+    DB.payments = DB.payments.filter(p=>p.id!==l._autoPaymentId);
+    l.paid = Math.max(0, Number(l.paid||0) - Number(l._autoPaymentAmount||0));
+    l._autoPaymentId = null; l._autoPaymentAmount = 0;
+  }
+  if(l._noshowPaymentId){
+    DB.payments = DB.payments.filter(p=>p.id!==l._noshowPaymentId);
+    l.paid = Math.max(0, Number(l.paid||0) - Number(l._noshowPaymentAmount||0));
+    l._noshowPaymentId = null; l._noshowPaymentAmount = 0;
+  }
+  if(l._noshowSubRefunded){
+    const sub = DB.subscriptions.find(su=>su.id===l.subscriptionId);
+    if(sub){
+      sub.usedLessons += 1;
+      if(sub.usedLessons >= sub.totalLessons) sub.active = false;
+      DB.subHistory.push({ id:uid('h'), studentId:l.studentId, subscriptionId:sub.id, type:'deduct', lessonsDelta:-1, amount:0, date: todayISO(), note:'Урок снова списан с абонемента (статус изменён) '+formatRu(l.date) });
+    }
+    l._noshowSubRefunded = false;
+  }
+}
+
+/* Автооплата при отметке "Пришёл": если у урока есть стоимость и она ещё
+   не покрыта полностью (обычный неоплаченный/частично оплаченный урок,
+   без абонемента) — автоматически доплачивает разницу и фиксирует это
+   отдельной записью в Финансах. Если преподаватель потом обнаружит, что
+   ученик оплатил не всё — можно вручную отредактировать оплату урока. */
+function applyAutoPaymentOnAttendance(l){
+  if(l.viaSubscription) return; // урок по абонементу уже считается оплаченным
+  const price = Number(l.price||0);
+  const already = Number(l.paid||0);
+  if(price<=0 || already>=price) return;
+  const diff = price - already;
+  const pay = { id:uid('p'), studentId:l.studentId, lessonId:l.id, date: todayISO(), amount:diff, type:'lesson', note:'Автооплата при отметке «Пришёл» '+formatRu(l.date) };
+  DB.payments.push(pay);
+  l.paid = price;
+  l._autoPaymentId = pay.id;
+  l._autoPaymentAmount = diff;
+}
+
+/* Если сейчас открыта модалка "Отметить посещение за другой день" и мы
+   только что закрыли модалку "Не пришёл", открытую поверх неё — возвращаем
+   пользователя обратно в список уроков того же дня, а не оставляем его
+   на пустом экране. */
+function syncDayAttendIfOpen(returnToDayAttend){
+  if(!returnToDayAttend) return;
+  openModal('dayAttend');
+  selectDayAttendDate(returnToDayAttend);
+}
+
+/* ---------- Кнопка "Не пришёл": модалка со списанием/возвратом ---------- */
+let noshowCountdownIntervalId = null;
+
+function onNoshowBtnClick(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  if(l.status==='noshow'){
+    // Повторный тап по уже активной кнопке — просто снимаем отметку,
+    // без повторного опроса (как и у кнопок "Пришёл"/"Отмена").
+    markAttendance(lessonId, 'noshow');
+    return;
+  }
+  // Если сейчас открыт список уроков конкретного дня (модалка "Отметить
+  // посещение за другой день") — запоминаем дату, чтобы вернуться туда
+  // после закрытия модалки "Не пришёл".
+  const modalBg = document.getElementById('modal-bg');
+  const returnToDayAttend = (dayAttendSelectedISO && modalBg && !modalBg.classList.contains('hidden')) ? dayAttendSelectedISO : null;
+  openModal('noshowLesson', {lessonId, returnToDayAttend});
+}
+
+/* Текст и цвет блока-таймера в модалке "Не пришёл" — обновляется раз в
+   секунду, пока модалка открыта (см. startNoshowCountdown). */
+function noshowTimerParts(l){
+  const deadline = noshowDeadlineTs(l);
+  const left = deadline - Date.now();
+  if(left > 0){
+    const h = Math.floor(left/3600000);
+    const m = Math.floor((left%3600000)/60000);
+    const s = Math.floor((left%60000)/1000);
+    const pad = n=>String(n).padStart(2,'0');
+    return {
+      expired:false,
+      timeStr: pad(h)+':'+pad(m)+':'+pad(s),
+      label:'До конца суток с момента постановки на урок — можно вернуть предоплату'
+    };
+  }
+  const over = -left;
+  const h = Math.floor(over/3600000);
+  return {
+    expired:true,
+    timeStr: (h<1?'меньше часа':(h+' ч')),
+    label:'Прошло больше суток с момента постановки на урок — по умолчанию предоплата не возвращается'
+  };
+}
+function noshowTimerHTML(l){
+  const p = noshowTimerParts(l);
+  return '<div class="noshow-timer '+(p.expired?'expired':'active')+'" id="noshowTimerBox">'
+    +'<div class="noshow-timer-time">'+(p.expired?'⏱ Срок вышел':'⏳ '+p.timeStr)+'</div>'
+    +'<div class="noshow-timer-label">'+p.label+'</div>'
+    +'</div>';
+}
+function startNoshowCountdown(lessonId){
+  stopNoshowCountdown();
+  noshowCountdownIntervalId = setInterval(function(){
+    const l = DB.lessons.find(x=>x.id===lessonId);
+    const box = document.getElementById('noshowTimerBox');
+    if(!l || !box){ stopNoshowCountdown(); return; }
+    const p = noshowTimerParts(l);
+    box.className = 'noshow-timer '+(p.expired?'expired':'active');
+    box.innerHTML = '<div class="noshow-timer-time">'+(p.expired?'⏱ Срок вышел':'⏳ '+p.timeStr)+'</div>'
+      +'<div class="noshow-timer-label">'+p.label+'</div>';
+  }, 1000);
+}
+function stopNoshowCountdown(){
+  if(noshowCountdownIntervalId){ clearInterval(noshowCountdownIntervalId); noshowCountdownIntervalId = null; }
+}
+
+function buildNoshowLessonModal(ctx){
+  ctx = ctx||{};
+  const l = DB.lessons.find(x=>x.id===ctx.lessonId);
+  if(!l) return '<div class="modal-title">Урок не найден <button class="modal-close" onclick="closeModal()">×</button></div>';
+  const s = studentById(l.studentId);
+  const price = Number(l.price||0);
+  const paid = Number(l.paid||0);
+
+  let optionsHtml = '';
+  if(l.viaSubscription){
+    const sub = DB.subscriptions.find(su=>su.id===l.subscriptionId);
+    const left = sub ? Math.max(0, sub.totalLessons - sub.usedLessons) : 0;
+    optionsHtml =
+      '<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:12px">Этот урок оплачен абонементом'+(sub?' (осталось <b style="color:var(--text)">'+left+'</b> из '+sub.totalLessons+' занятий)':'')+'. При постановке на урок занятие уже списано с абонемента — можно оставить как есть или вернуть его на баланс, если ученик предупредил заранее.</div>'
+      +'<div class="del-option del-option-danger" onclick="confirmNoshowSubKeep(\''+l.id+'\')">'
+        +'<div class="del-option-title">🎫 Оставить списанным с абонемента</div>'
+        +'<div class="del-option-sub">Ученик не пришёл и не предупредил — занятие сгорает, как и было списано при постановке</div>'
+      +'</div>'
+      +'<div class="del-option del-option-safe" onclick="confirmNoshowSubRefund(\''+l.id+'\')">'
+        +'<div class="del-option-title">↩️ Вернуть занятие в абонемент</div>'
+        +'<div class="del-option-sub">Ученик предупредил заранее — занятие вернётся на баланс абонемента</div>'
+      +'</div>';
+  } else if(price<=0){
+    optionsHtml =
+      '<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:12px">У этого урока не указана стоимость — списывать нечего, просто отметьте статус.</div>'
+      +'<div class="del-option del-option-safe" onclick="confirmNoshowNoCharge(\''+l.id+'\')">'
+        +'<div class="del-option-title">🚫 Отметить неявку без списания</div>'
+        +'<div class="del-option-sub">Ученик предупредил заранее, деньги ни при чём</div>'
+      +'</div>';
+  } else {
+    optionsHtml =
+      '<div class="input-group" style="margin-bottom:12px">'
+        +'<label class="input-label">Сумма к удержанию (₽) — например, внесённая предоплата</label>'
+        +'<input class="input" id="noshowAmountInput" type="number" min="0" max="'+price+'" value="'+paid+'" placeholder="0">'
+      +'</div>'
+      +'<div class="del-option del-option-danger" onclick="confirmNoshowAmount(\''+l.id+'\')">'
+        +'<div class="del-option-title">💰 Удержать указанную сумму</div>'
+        +'<div class="del-option-sub">Зафиксировать в Финансах, что эта сумма (например, предоплата) удержана и не возвращается</div>'
+      +'</div>'
+      +'<div class="del-option del-option-danger" onclick="confirmNoshowFull(\''+l.id+'\')">'
+        +'<div class="del-option-title">❗ Списать урок полностью — '+money(price)+'</div>'
+        +'<div class="del-option-sub">Урок считается оплаченным полностью, как если бы ученик пришёл</div>'
+      +'</div>'
+      +'<div class="del-option del-option-safe" onclick="confirmNoshowNoCharge(\''+l.id+'\')">'
+        +'<div class="del-option-title">🚫 Не списывать ничего</div>'
+        +'<div class="del-option-sub">Ученик предупредил заранее — просто отметить неявку</div>'
+      +'</div>';
+  }
+
+  return '<div class="modal-title">❌ Ученик не пришёл <button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:12px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
+      +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
+    +'</div>'
+    + noshowTimerHTML(l)
+    +'<div style="margin-top:12px">'+optionsHtml+'</div>'
+    +'<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:2px" onclick="closeModal()">Отмена</button>';
+}
+
+function confirmNoshowNoCharge(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  const returnTo = modalCtx.returnToDayAttend;
+  applyAttendanceStatus(l, 'noshow');
+  saveDB();
+  doCloseModal();
+  toast('Отмечено: не пришёл, без списания');
+  refreshAllVisible();
+  syncDayAttendIfOpen(returnTo);
+}
+
+function confirmNoshowFull(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  const returnTo = modalCtx.returnToDayAttend;
+  applyAttendanceStatus(l, 'noshow');
+  const price = Number(l.price||0);
+  const already = Number(l.paid||0);
+  if(price>already){
+    const diff = price-already;
+    const pay = { id:uid('p'), studentId:l.studentId, lessonId:l.id, date: todayISO(), amount:diff, type:'lesson', note:'Урок списан полностью — неявка '+formatRu(l.date) };
+    DB.payments.push(pay);
+    l.paid = price;
+    l._noshowPaymentId = pay.id; l._noshowPaymentAmount = diff;
+  }
+  saveDB();
+  doCloseModal();
+  toast('Урок списан полностью ✓');
+  refreshAllVisible();
+  syncDayAttendIfOpen(returnTo);
+}
+
+function confirmNoshowAmount(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  const returnTo = modalCtx.returnToDayAttend;
+  const price = Number(l.price||0);
+  const input = document.getElementById('noshowAmountInput');
+  let amt = Number(input && input.value);
+  if(isNaN(amt)) amt = Number(l.paid||0);
+  amt = Math.max(0, price>0 ? Math.min(price, amt) : amt);
+  applyAttendanceStatus(l, 'noshow');
+  const already = Number(l.paid||0);
+  const diff = amt - already;
+  if(diff !== 0){
+    const pay = { id:uid('p'), studentId:l.studentId, lessonId:l.id, date: todayISO(), amount:diff, type:'lesson',
+      note: diff>0 ? ('Удержана предоплата за неявку '+formatRu(l.date)) : ('Возврат предоплаты — неявка '+formatRu(l.date)) };
+    DB.payments.push(pay);
+    l.paid = amt;
+    l._noshowPaymentId = pay.id; l._noshowPaymentAmount = diff;
+  }
+  saveDB();
+  doCloseModal();
+  toast('Сумма зафиксирована: '+money(amt));
+  refreshAllVisible();
+  syncDayAttendIfOpen(returnTo);
+}
+
+function confirmNoshowSubKeep(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  const returnTo = modalCtx.returnToDayAttend;
+  applyAttendanceStatus(l, 'noshow');
+  saveDB();
+  doCloseModal();
+  toast('Занятие списано с абонемента');
+  refreshAllVisible();
+  syncDayAttendIfOpen(returnTo);
+}
+
+function confirmNoshowSubRefund(lessonId){
+  const l = DB.lessons.find(x=>x.id===lessonId); if(!l) return;
+  const returnTo = modalCtx.returnToDayAttend;
+  applyAttendanceStatus(l, 'noshow');
+  const sub = DB.subscriptions.find(su=>su.id===l.subscriptionId);
+  if(sub && !l._noshowSubRefunded){
+    sub.usedLessons = Math.max(0, sub.usedLessons - 1);
+    if(sub.usedLessons < sub.totalLessons) sub.active = true;
+    DB.subHistory.push({ id:uid('h'), studentId:l.studentId, subscriptionId:sub.id, type:'refund', lessonsDelta:1, amount:0, date: todayISO(), note:'Возврат занятия в абонемент (предупредил заранее) '+formatRu(l.date) });
+    l._noshowSubRefunded = true;
+  }
+  saveDB();
+  doCloseModal();
+  toast('Занятие возвращено в абонемент ✓');
+  refreshAllVisible();
+  syncDayAttendIfOpen(returnTo);
 }
 
 function deleteLesson(lessonId){
