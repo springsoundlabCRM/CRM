@@ -1500,6 +1500,12 @@
 
     /* Карточки учеников — 2 в ряд на телефоне, компактнее */
     .student-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px;margin-bottom:16px}
+    /* Альтернативный режим отображения (переключается через "Настройки" в
+       нижнем меню на телефоне, см. studentsGridMode в JS) — одна большая
+       карточка в ряд, от края до края. Сама карточка и её содержимое не
+       меняются — просто сетке задаётся один столбец вместо двух, поэтому
+       карточка становится вдвое шире (визуально крупнее). */
+    .student-grid.student-grid-single{grid-template-columns:1fr!important}
     .student-card{padding:10px}
     .student-header{gap:6px;margin-bottom:8px}
     .student-header-left{gap:6px}
@@ -3111,6 +3117,9 @@
       </div>
 
       <div class="content">
+        <div class="dash-kpi-mode-row" id="studentsGridModeRow">
+          <div class="dash-kpi-mode-picker" id="studentsGridModePicker"></div>
+        </div>
         <div class="tab-row" id="studentFilterTabs">
           <div class="tab active" data-f="all" onclick="setStudentFilter('all',this)">Все ученики</div>
           <div class="tab" data-f="active" onclick="setStudentFilter('active',this)">Активные</div>
@@ -5771,6 +5780,79 @@ window.addEventListener('resize', function(){ updateAllTabSliders(); });
 /* ============================================================
    УЧЕНИКИ
    ============================================================ */
+/* ---------- Режим отображения карточек учеников на мобильной версии ----------
+   Тот же принцип, что и у переключателей на дашборде (шторка настройки,
+   открываемая кнопкой "Настройки" нижнего меню, пока человек в разделе
+   "Ученики"). Значения: 'double' — как сейчас, две карточки в ряд;
+   'single' — одна карточка в ряд, от края до края (крупнее), содержимое
+   карточки при этом не меняется — см. CSS .student-grid.student-grid-single
+   внутри медиа-запроса max-width:600px.
+   В отличие от dashTodayCards/dashKpiCompact (которые хранятся в общей базе
+   DB.settings и одинаковы на всех устройствах аккаунта), этот режим — чисто
+   локальная настройка ТЕЛЕФОНА: хранится в localStorage этого устройства и
+   никогда не отправляется на сервер, поэтому выбор на телефоне никак не
+   затрагивает компьютер (на компьютере эта сетка вообще не завязана на
+   media-запрос max-width:600px, так что переключатель там ни на что и не
+   повлиял бы, но независимость соблюдаем явно, по той же схеме, что и у
+   зума календаря/порядка карточек аналитики). */
+let studentsGridMode = 'double';
+let studentsGridEditMode = false;
+let _studentsGridModeBeforeEdit = null;
+let _studentsGridModeLoaded = false;
+
+function studentsGridModeLocalStorageKey(){
+  return 'voiceloft_students_grid_mode_' + (currentUid || 'anon') + '_mobile';
+}
+function loadStudentsGridModeOnce(){
+  if(_studentsGridModeLoaded) return;
+  _studentsGridModeLoaded = true;
+  try{
+    const raw = localStorage.getItem(studentsGridModeLocalStorageKey());
+    if(raw==='single' || raw==='double') studentsGridMode = raw;
+  }catch(e){ /* приватный режим браузера и т.п. — не критично */ }
+}
+function studentsGridSettingsIsOn(){ return studentsGridEditMode; }
+function enterStudentsGridSettingsMode(){
+  studentsGridEditMode = true;
+  _studentsGridModeBeforeEdit = studentsGridMode;
+  renderStudentsGridModePicker();
+}
+function saveStudentsGridMode(){
+  try{ localStorage.setItem(studentsGridModeLocalStorageKey(), studentsGridMode); }
+  catch(e){ /* не критично */ }
+  studentsGridEditMode = false;
+  renderStudentsGridModePicker();
+  toast('Настройка отображения сохранена ✓');
+}
+function cancelStudentsGridMode(){
+  studentsGridMode = _studentsGridModeBeforeEdit || 'double';
+  studentsGridEditMode = false;
+  applyStudentsGridMode();
+  renderStudentsGridModePicker();
+}
+function setStudentsGridMode(mode){
+  studentsGridMode = mode;
+  applyStudentsGridMode();
+  renderStudentsGridModePicker();
+}
+function applyStudentsGridMode(){
+  const g = document.getElementById('student-cards');
+  if(g) g.classList.toggle('student-grid-single', studentsGridMode==='single');
+}
+// Рисует (или прячет) переключатель "2 в ряд"/"1 в ряд" над сеткой карточек
+// учеников — виден только пока открыта шторка настройки раздела.
+function renderStudentsGridModePicker(){
+  const row = document.getElementById('studentsGridModeRow');
+  const picker = document.getElementById('studentsGridModePicker');
+  if(!row || !picker) return;
+  if(!studentsGridEditMode){ row.classList.remove('show'); picker.innerHTML=''; return; }
+  row.classList.add('show');
+  const opts = [['double','2 в ряд'],['single','1 в ряд (крупно)']];
+  picker.innerHTML = opts.map(function(o){
+    return '<span class="dash-mode-btn'+(studentsGridMode===o[0]?' active':'')+'" onclick="setStudentsGridMode(\''+o[0]+'\')">'+o[1]+'</span>';
+  }).join('');
+}
+
 function setStudentFilter(f, el){
   studentFilter=f;
   document.querySelectorAll('#studentFilterTabs .tab').forEach(t=>t.classList.remove('active'));
@@ -5781,6 +5863,8 @@ function setStudentFilter(f, el){
 function renderStudents(){
   const g=document.getElementById('student-cards');
   if(!g) return;
+  loadStudentsGridModeOnce();
+  applyStudentsGridMode();
   let list = allStudentsOfTeacher();
   if(studentFilter==='all') list = list.filter(s=>s.status!=='inactive');
   else list = list.filter(s=>s.status===studentFilter);
@@ -7244,6 +7328,17 @@ function trySectionSettingsAction(){
     updateSectionSettingsIndicator();
     return true;
   }
+  if(currentPageName === 'students'){
+    if(studentsGridSettingsIsOn()) return true; // режим уже включён — шторка сверху уже открыта, повторный тап ничего не делает
+    enterStudentsGridSettingsMode();
+    showSettingsEditBar(
+      'Настройка отображения карточек',
+      function(){ saveStudentsGridMode(); updateSectionSettingsIndicator(); },
+      function(){ cancelStudentsGridMode(); updateSectionSettingsIndicator(); }
+    );
+    updateSectionSettingsIndicator();
+    return true;
+  }
   // Для остальных разделов настройка ещё не реализована — bnItemClick
   // в этом случае просто покажет подсказку "скоро появится" и никуда
   // не перейдёт (страница общих настроек теперь открывается только
@@ -7261,7 +7356,8 @@ function updateSectionSettingsIndicator(){
   const onAnalytics = currentPageName === 'analytics' && typeof analyticsReorderIsOn==='function' && analyticsReorderIsOn();
   const onProfileTab = currentPageName === 'student-detail' && currentDetailTab === 'profile' && profileReorderMode;
   const onDashboard = currentPageName === 'dashboard' && typeof dashTodaySettingsIsOn==='function' && dashTodaySettingsIsOn();
-  item.classList.toggle('settings-editing', onAnalytics || onProfileTab || onDashboard);
+  const onStudents = currentPageName === 'students' && typeof studentsGridSettingsIsOn==='function' && studentsGridSettingsIsOn();
+  item.classList.toggle('settings-editing', onAnalytics || onProfileTab || onDashboard || onStudents);
 }
 
 /* ============================================================
