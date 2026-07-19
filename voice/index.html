@@ -8622,16 +8622,13 @@ function renderFinances(){
       if(l.status==='noshow' && !l._noshowSubRefunded){
         // Ученик не пришёл, но занятие всё равно оставлено списанным с
         // абонемента (решение "Оставить списанным с абонемента" в модалке
-        // "Не пришёл") — визуально помечаем это красным: и саму иконку
-        // 🎫 (маленькой красной точкой-индикатором в углу, т.к. цвет самого
-        // эмодзи через CSS не меняется), и надпись "Абонемент" красным
-        // текстом, чтобы сразу было видно: списано, но занятие не состоялось.
+        // "Не пришёл") — визуально помечаем это красным: рамка строки и
+        // надпись "Абонемент" красным текстом, чтобы сразу было видно —
+        // списано, но занятие не состоялось. Саму иконку 🎫 не трогаем.
         rowCls = 'is-debt';
         amountCls = 'debt';
         amountText = 'Абонемент';
-        leftIcon = '<div style="font-size:20px;position:relative;display:inline-block">🎫'
-          +'<span style="position:absolute;top:-2px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--red);border:1.5px solid var(--card)"></span>'
-          +'</div>';
+        leftIcon = '<div style="font-size:20px">🎫</div>';
       } else {
         rowCls = 'is-paid';
         amountCls = 'paid';
