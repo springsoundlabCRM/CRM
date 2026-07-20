@@ -16,8 +16,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VoiceLoft CRM">
-<meta name="theme-color" content="#0c0c0e" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f0f14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0f0f6" media="(prefers-color-scheme: light)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="VoiceLoft CRM">
 <meta name="apple-touch-fullscreen" content="yes">
@@ -28,43 +28,36 @@
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   :root{
-    /* ---- Design tokens: приглушённая нейтральная палитра в духе
-       Linear/Notion — низкоконтрастные границы, почти чёрный фон (не
-       чисто чёрный), один спокойный акцентный цвет вместо "радуги",
-       текст разбит на чёткую иерархию (основной/вторичный/третичный
-       серый), никаких ярких заливок и свечений у карточек. ---- */
-    --bg:#0c0c0e;--bg2:#0c0c0e;--bg3:#1a1a1d;--card:#131316;--card2:#1c1c1f;
-    --border:#232326;--border2:#2c2c30;--text:#eaeaec;--text2:#a1a1aa;--text3:#71717a;
-    --accent:#5b5bd6;--accent2:#4c4cc4;--accent-glow:rgba(91,91,214,0.14);
-    --green:#3ecf8e;--green-bg:rgba(62,207,142,0.12);--green-glow:rgba(62,207,142,0.35);
-    --amber:#e0a72e;--amber-bg:rgba(224,167,46,0.12);--amber-glow:rgba(224,167,46,0.35);
-    --red:#ef5350;--red-bg:rgba(239,83,80,0.12);--red-glow:rgba(239,83,80,0.35);
-    --blue:#4f8ef7;--blue-bg:rgba(79,142,247,0.12);
-    --orange:#e8823c;--orange-bg:rgba(232,130,60,0.13);
-    --pink:#d874a8;--pink-bg:rgba(216,116,168,0.12);
-    --wa:#3ecf8e;
-    --r:8px;--r2:10px;--font:'Inter',system-ui,sans-serif;
+    --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--card:#1a1a24;--card2:#22222e;
+    --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#ffffff;--text3:#ffffff;
+    --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.15);
+    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-glow:rgba(52,211,153,0.4);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-glow:rgba(251,191,36,0.4);
+    --red:#f87171;--red-bg:rgba(248,113,113,0.12);--red-glow:rgba(248,113,113,0.4);
+    --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);
+    --orange:#fb923c;--orange-bg:rgba(251,146,60,0.14);
+    --pink:#f472b6;--pink-bg:rgba(244,114,182,0.12);
+    --wa:#34d399;
+    --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
     --bottom-nav-h:44px;
     /* Затемнение фона под выезжающей панелью/шторкой урока и т.п.
        На тёмной теме — темнее (интерфейс и так тёмный, слабое затемнение
        плохо отделяет панель от фона), на светлой — как было раньше. */
-    --drawer-backdrop:rgba(4,4,6,.6);
-    --sheet-backdrop:rgba(4,4,6,.75);
+    --drawer-backdrop:rgba(4,4,10,.55);
+    --sheet-backdrop:rgba(4,4,10,.72);
   }
   body.light-theme{
-    --drawer-backdrop:rgba(4,4,6,.32);
-    --sheet-backdrop:rgba(4,4,6,.55);
-    /* Светлая тема — чистый белый фон, тёплый нейтральный серый вместо
-       фиолетового отлива, тонкие малоконтрастные границы (Notion-style). */
-    --bg:#ffffff;--bg2:#ffffff;--bg3:#f7f7f8;--card:#ffffff;--card2:#fafafa;
-    --border:#e9e9eb;--border2:#dcdce0;--text:#191919;--text2:#6b6b6f;--text3:#9a9a9e;
-    --accent:#5b5bd6;--accent2:#4c4cc4;--accent-glow:rgba(91,91,214,0.10);
-    --green:#2f9e5c;--green-bg:rgba(47,158,92,0.10);--green-glow:rgba(47,158,92,0.3);
-    --amber:#b7791f;--amber-bg:rgba(183,121,31,0.10);--amber-glow:rgba(183,121,31,0.3);
-    --red:#d1453d;--red-bg:rgba(209,69,61,0.10);--red-glow:rgba(209,69,61,0.3);
-    --blue:#3a72e0;--blue-bg:rgba(58,114,224,0.10);
-    --orange:#c9682f;--orange-bg:rgba(201,104,47,0.10);
-    --pink:#c15a92;--pink-bg:rgba(193,90,146,0.10);
+    --drawer-backdrop:rgba(4,4,10,.32);
+    --sheet-backdrop:rgba(4,4,10,.55);
+    --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
+    --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
+    --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
+    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-glow:rgba(5,150,105,0.35);
+    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-glow:rgba(217,119,6,0.35);
+    --red:#dc2626;--red-bg:rgba(220,38,38,0.1);--red-glow:rgba(220,38,38,0.35);
+    --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
+    --orange:#ea580c;--orange-bg:rgba(234,88,12,0.1);
+    --pink:#db2777;--pink-bg:rgba(219,39,119,0.1);
   }
   html, body {
     height: 100%;
@@ -80,29 +73,28 @@
     right: 0;
     bottom: 0;
     overscroll-behavior: none;
-    background: #0c0c0e;
+    background: #0f0f14;
     display: flex;
     flex-direction: column;
   }
   body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;padding-top:env(safe-area-inset-top,0px)}
   .app{display:flex;width:100%;flex:1 1 auto;min-height:0;overflow:hidden}
-  .sidebar{width:212px;min-width:212px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-  .logo{padding:16px 16px 14px;border-bottom:1px solid var(--border)}
+  .sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+  .logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
   .logo-mark{display:flex;align-items:center;gap:9px}
-  .logo-icon{width:26px;height:26px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
-  .logo-text{font-size:13.5px;font-weight:600;letter-spacing:-0.1px}
+  .logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .logo-text{font-size:15px;font-weight:600;letter-spacing:-0.3px}
   .logo-sub{font-size:10px;color:var(--text3);margin-top:1px}
-  .nav{padding:8px 8px;flex:1;overflow-y:auto}
-  .nav-item{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:12.5px;font-weight:500;transition:background .12s,color .12s;margin-bottom:1px;position:relative}
+  .nav{padding:12px 10px;flex:1;overflow-y:auto}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:2px}
   .nav-item:hover{background:var(--bg3);color:var(--text)}
-  .nav-item.active{background:var(--bg3);color:var(--text);font-weight:600}
-  .nav-item.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:14px;border-radius:2px;background:var(--accent)}
-  .nav-item .icon{font-size:14px;width:16px;text-align:center;opacity:.85}
-  .nav-badge{margin-left:auto;background:var(--bg3);color:var(--text2);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;border:1px solid var(--border2)}
-  .sidebar-footer{padding:10px 10px 12px;border-top:1px solid var(--border)}
+  .nav-item.active{background:var(--accent-glow);color:var(--accent)}
+  .nav-item .icon{font-size:16px;width:18px;text-align:center}
+  .nav-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px}
+  .sidebar-footer{padding:10px 12px 14px;border-top:1px solid var(--border)}
   .sb-user-block{display:flex;align-items:center;gap:9px;cursor:pointer;border-radius:var(--r);padding:7px 8px;transition:background .15s;position:relative}
   .sb-user-block:hover{background:var(--bg3)}
-  .sb-av{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;border:1px solid var(--border2)}
+  .sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#ec4899);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;border:1px solid rgba(167,139,250,.35)}
   .sb-av img{width:100%;height:100%;object-fit:cover}
   .sb-info{flex:1;min-width:0}
   .sb-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -116,7 +108,7 @@
   .settings-row-label{font-size:13px;font-weight:500}
   .settings-row-sub{font-size:11px;color:var(--text3);margin-top:2px}
   .settings-avatar-block{display:flex;align-items:center;gap:14px}
-  .settings-av{width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;border:2px solid var(--border2)}
+  .settings-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#ec4899);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;border:2px solid var(--border2)}
   .settings-av img{width:100%;height:100%;object-fit:cover}
   .settings-av-actions{display:flex;flex-direction:column;gap:6px}
   .tgl{position:relative;width:36px;height:20px;flex-shrink:0}
@@ -125,7 +117,7 @@
   .tgl-s::before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s}
   .tgl input:checked+.tgl-s{background:var(--accent)}
   .tgl input:checked+.tgl-s::before{transform:translateX(16px)}
-  .logout-btn{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:var(--red-bg);border:1px solid rgba(239,83,80,.25);border-radius:var(--r);color:var(--red);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font)}
+  .logout-btn{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:var(--red-bg);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);color:var(--red);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font)}
   .logout-btn:hover{background:var(--red);color:#fff}
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;height:100%}
   /* Все страницы кроме расписания — flex-колонка с прокруткой */
@@ -162,7 +154,7 @@
      высота остаётся 0 — там вкладка не прокручивается целиком (карточки
      сами скроллятся внутри себя), поэтому распорка там не нужна. */
   #page-student-detail .content::after{content:'';display:block;flex-shrink:0;height:0}
-  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;min-height:52px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;row-gap:8px}
+  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 24px;min-height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;row-gap:8px}
   /* Кнопки верхней панели расписания — точно как в оригинале SSL CRM */
   .tb-btn{
     padding:6px 11px;border-radius:var(--r);border:1px solid var(--border);
@@ -182,7 +174,7 @@
   /* Иконка-календарик (мобильная, дублирует открытие пикера периода) — скрыта на десктопе */
   .schedule-picker-btn{display:none!important}
   #calPeriodLabelMobile{display:none}
-  .topbar-title{font-size:14px;font-weight:600;flex:1;letter-spacing:-0.1px}
+  .topbar-title{font-size:15px;font-weight:600;flex:1}
   .topbar-subtitle{font-size:11px;color:var(--text3);font-weight:400;margin-left:8px}
   .dash-actions{display:flex;gap:10px}
   /* ===== Только компьютерная версия (от 881px): дата вместо приветствия "Добрый вечер",
@@ -220,13 +212,13 @@
     #dashTriColumn>div{display:flex;flex-direction:column;min-height:0}
     #todayLessons,#notifList,#bdayList{flex:0 0 auto;min-height:0;overflow-y:auto;padding-right:4px}
   }
-  .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .12s;font-family:var(--font);white-space:nowrap}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff}
   .btn-primary:hover{background:var(--accent2)}
   .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
   .btn-ghost:hover{background:var(--bg3);color:var(--text)}
-  .btn-wa{background:var(--green-bg);color:var(--green);border:1px solid rgba(62,207,142,.3)}
-  .btn-wa:hover{background:var(--green);color:#0c0c0e}
+  .btn-wa{background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+  .btn-wa:hover{background:var(--green);color:#0f0f14}
   .btn-sm{padding:4px 9px;font-size:11px}
   /* Кнопка "Задать ДЗ" внутри карточки ученика (вкладка "Задания") — на
      компьютере крупнее, чем обычная btn-sm, т.к. это основное действие
@@ -237,18 +229,21 @@
      же причине и по тому же принципу, что и .btn-hw-add выше: это
      основное действие раздела, а обычный .btn-sm был слишком мелким. */
   .btn-payment-add{padding:11px 20px;font-size:13.5px;font-weight:600;gap:8px}
-  .btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,83,80,.3)}
-  .btn-danger:hover{background:var(--red);color:#fff}
-  .btn-blue{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(79,142,247,.35)}
+  .btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+  .btn-danger:hover{background:var(--red);color:#1a1a24}
+  .btn-blue{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(96,165,250,.35)}
   .btn-blue:hover{background:var(--blue);color:#fff}
   .btn:disabled{opacity:.4;cursor:not-allowed}
-  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden}
-  /* Раньше у каждой карточки в углу был декоративный цветной "флажок" —
-     убран для более плоского, спокойного вида: цвет теперь виден только
-     в самих цифрах/иконках, а не в фоновых заливках карточки. */
-  .stat-label{font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:500;letter-spacing:.2px}
-  .stat-value{font-size:22px;font-weight:600;letter-spacing:-0.5px;line-height:1}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;position:relative;overflow:hidden}
+  .stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 var(--r2) 0 60px;opacity:.07}
+  .stat-card.purple::before{background:var(--accent)}
+  .stat-card.green::before{background:var(--green)}
+  .stat-card.amber::before{background:var(--amber)}
+  .stat-card.blue::before{background:var(--blue)}
+  .stat-card.red::before{background:var(--red)}
+  .stat-label{font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+  .stat-value{font-size:26px;font-weight:600;letter-spacing:-1px;line-height:1}
   .stat-delta{font-size:11px;margin-top:6px}
   .delta-up{color:var(--green)}
   .delta-down{color:var(--red)}
@@ -261,7 +256,7 @@
   .section-link i{font-size:8px;margin-left:4px;transition:transform .15s}
   /* Сегментированный переключатель "1 / 3 / Все" — режим отображения списка
      "Сегодня" на мобильной версии дашборда, появляется в шапке блока только
-     пока включена настройка раздела (кнопка-шестерёнка в шапке дашборда).
+     пока включена настройка раздела (через нижнюю кнопку "Настройки").
      Позиционируется абсолютно строго по центру шапки блока (а не как обычный
      flex-элемент между заголовком и ссылкой "Развернуть") — иначе при выборе
      режима "Все" ссылка справа исчезает, и обычный flex со space-between
@@ -664,10 +659,10 @@
   .lesson-note{background:var(--bg3);border-radius:8px;padding:16px 14px;margin-bottom:10px;border-left:3px solid var(--border2)}
   .del-option{cursor:pointer;border-radius:10px;padding:13px 14px;margin-bottom:10px;transition:all .15s;border:1px solid transparent;border-left-width:3px;border-left-style:solid}
   .del-option:active{transform:scale(.98)}
-  .del-option-danger{background:var(--red-bg);border-color:rgba(239,83,80,.3);border-left-color:var(--red)}
-  .del-option-danger:hover{background:rgba(239,83,80,.22)}
-  .del-option-safe{background:var(--green-bg);border-color:rgba(62,207,142,.3);border-left-color:var(--green)}
-  .del-option-safe:hover{background:rgba(62,207,142,.22)}
+  .del-option-danger{background:var(--red-bg);border-color:rgba(248,113,113,.3);border-left-color:var(--red)}
+  .del-option-danger:hover{background:rgba(248,113,113,.22)}
+  .del-option-safe{background:var(--green-bg);border-color:rgba(52,211,153,.3);border-left-color:var(--green)}
+  .del-option-safe:hover{background:rgba(52,211,153,.22)}
   .del-option-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
   .del-option-sub{font-size:11.5px;color:var(--text3);margin-top:4px;line-height:1.45}
   .note-date{font-size:12.5px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
@@ -692,12 +687,12 @@
   .fin-period-month.is-today{border-color:var(--border2)}
   .fin-period-month.is-selected{background:var(--accent);color:#fff}
   /* Плавающий индикатор активной вкладки — "перетекает" между кнопками вместо мгновенной смены цвета */
-  .tab-slider{position:absolute;top:3px;bottom:3px;left:0;border-radius:6px;background:var(--bg3);
-    border:1px solid var(--border2);z-index:0;pointer-events:none;opacity:0;
+  .tab-slider{position:absolute;top:3px;bottom:3px;left:0;border-radius:7px;background:var(--accent-glow);
+    border:1px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.3);z-index:0;pointer-events:none;opacity:0;
     transition:transform .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),opacity .15s}
-  .tab{position:relative;z-index:1;padding:6px 13px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);transition:background .12s,border-color .12s,color .12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid transparent}
-  .tab.active{color:var(--text);font-weight:600;border-color:transparent}
-  .tab:hover:not(.active){color:var(--text);background:var(--bg3)}
+  .tab{position:relative;z-index:1;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text);transition:background .15s,border-color .15s,color .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid var(--border2)}
+  .tab.active{color:var(--text);border-color:transparent}
+  .tab:hover:not(.active){background:transparent;border-color:var(--accent)}
   .tab.tab-delete:hover{color:var(--red);border-color:var(--red)}
   .tab.tab-report:hover{color:var(--accent);border-color:var(--accent)}
   .tab.tab-report i{margin-right:5px}
@@ -708,7 +703,7 @@
   .tab.tab-reorder.reorder-on{color:var(--accent);border-color:var(--accent)}
   #profileReorderSaveBtn{padding:6px 14px;font-size:12px;align-self:center}
   .lesson-sub-banner{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;
-    background:var(--green-bg);border:1px solid rgba(62,207,142,.35);border-radius:10px;
+    background:var(--green-bg);border:1px solid rgba(52,211,153,.35);border-radius:10px;
     color:var(--green);font-size:12.5px;font-weight:600;padding:10px 12px;margin-bottom:14px}
   .notif{display:flex;gap:16px;padding:12px 12px 12px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px}
   .notif-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
@@ -717,9 +712,9 @@
      стартует заново (без обратного сжатия) */
   .notif-dot[style*="var(--red)"]{animation:notifPulseGlow 2.2s ease-out infinite}
   @keyframes notifPulseGlow{
-    0%{box-shadow:0 0 0 0 rgba(239,83,80,.9)}
-    70%{box-shadow:0 0 0 11px rgba(239,83,80,0)}
-    100%{box-shadow:0 0 0 11px rgba(239,83,80,0)}
+    0%{box-shadow:0 0 0 0 rgba(248,113,113,.9)}
+    70%{box-shadow:0 0 0 11px rgba(248,113,113,0)}
+    100%{box-shadow:0 0 0 11px rgba(248,113,113,0)}
   }
   .notif-text{font-size:12px;line-height:1.5}
   .mini-chart{height:60px;display:flex;align-items:flex-end;gap:4px;margin:12px 0 4px}
@@ -854,7 +849,7 @@
   .rep-status-dd .autocomplete-item.active{background:var(--accent);color:#fff}
   .rep-status-dd .autocomplete-item.active .autocomplete-name{color:#fff}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
-  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:22px;width:440px;max-width:90vw;max-height:86vh;overflow-y:auto;overflow-x:hidden}
+  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:90vw;max-height:86vh;overflow-y:auto;overflow-x:hidden}
   #modal-content.modal-danger{border-color:var(--red)}
   #modal-content.modal-wide{width:540px}
   .modal-title{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -1082,7 +1077,7 @@
     gap:4px;
   }
   .modal-close{
-    cursor:pointer;background:var(--red-bg);border:1px solid rgba(239,83,80,.35);
+    cursor:pointer;background:var(--red-bg);border:1px solid rgba(248,113,113,.35);
     color:var(--red);font-size:18px;font-weight:600;line-height:1;
     width:28px;height:28px;border-radius:8px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
@@ -1096,7 +1091,7 @@
      уроки) удаление выглядело по-разному — то крестик, то отдельная
      кнопка со своим цветом. Теперь везде один и тот же вид. */
   .btn-delete-icon{
-    cursor:pointer;background:var(--red-bg);border:1px solid rgba(239,83,80,.35);
+    cursor:pointer;background:var(--red-bg);border:1px solid rgba(248,113,113,.35);
     color:var(--red);font-size:13px;line-height:1;
     width:28px;height:28px;border-radius:8px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
@@ -1124,8 +1119,8 @@
      этого поле вылезало за свою половину строки и наезжало на соседнее —
      сейчас это исправлено на уровне самого класса, для всех форм сразу. */
   .input-group{margin-bottom:14px;min-width:0}
-  .input-label{font-size:11.5px;font-weight:500;color:var(--text3);margin-bottom:5px;display:block;letter-spacing:.1px}
-  .input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s,box-shadow .15s}
+  .input-label{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.4px}
+  .input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s}
   /* Стрелочка у <select> — раньше это была "родная" браузерная стрелка,
      прижатая вплотную к самому краю поля (не туда же, куда браузер ставит
      иконки даты/времени). Теперь рисуем свою стрелку с тем же отступом
@@ -1146,7 +1141,7 @@
     text-overflow:ellipsis;
     white-space:nowrap;
   }
-  .input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .input:focus{border-color:var(--accent)}
   .input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .topup-row{align-items:start}
   .topup-row .input-label{font-size:9.5px;letter-spacing:.2px;white-space:nowrap;margin-bottom:8px}
@@ -1233,12 +1228,12 @@
   .attend-row{display:flex;gap:6px;margin-top:8px}
   .attend-btn{flex:1;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);border-radius:6px;font-size:10px;padding:4px 0;cursor:pointer;text-align:center;transition:all .15s;font-family:var(--font)}
   .attend-btn:hover{color:var(--text)}
-  .attend-btn.done.active{background:var(--green-bg);color:var(--green);border-color:rgba(62,207,142,.4)}
-  .attend-btn.noshow.active{background:var(--red-bg);color:var(--red);border-color:rgba(239,83,80,.4)}
+  .attend-btn.done.active{background:var(--green-bg);color:var(--green);border-color:rgba(52,211,153,.4)}
+  .attend-btn.noshow.active{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.4)}
   .attend-btn.cancelled.active{background:var(--bg3);color:var(--text3);border-color:var(--border2);opacity:.7}
   .wa-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:var(--green-bg);color:var(--green);border:none;cursor:pointer;font-size:12px;flex-shrink:0}
-  .wa-icon-btn:hover{background:var(--green);color:#0c0c0e}
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:200;display:flex;align-items:center;gap:8px;animation:toastin .2s ease-out}
+  .wa-icon-btn:hover{background:var(--green);color:#0f0f14}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:12px 18px;border-radius:10px;font-size:12px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;gap:8px;animation:toastin .2s ease-out}
   @keyframes toastin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .teacher-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;margin-bottom:6px;border:1px solid transparent;transition:all .15s}
   .teacher-row:hover{background:var(--bg3)}
@@ -1320,12 +1315,13 @@
      нижнем углу БОЛЬШЕ НЕ ИСПОЛЬЗУЕТСЯ — она визуально накладывалась на
      пункт "Настройки" в нижнем быстром меню (bottom-nav), из-за чего в
      одном и том же углу экрана оказывались две кнопки почти друг на друге.
-     Настройка ТЕКУЩЕГО открытого раздела (например, перестановка карточек
-     в "Аналитике") теперь живёт в отдельной кнопке-шестерёнке прямо в
-     шапке раздела (.section-gear-btn, см. openSectionSettings() в JS) —
-     она одинаково доступна и на компьютере, и на телефоне. Пункт
-     "Настройки" и в боковом меню, и в нижнем быстром меню теперь всегда
-     означает одно и то же — переход в общий раздел настроек аккаунта. */
+     Вместо неё за настройку ТЕКУЩЕГО открытого раздела (например,
+     перестановку карточек в "Аналитике") теперь отвечает обычный,
+     стандартный пункт "Настройки" в нижнем быстром меню — см. bnItemClick
+     и trySectionSettingsAction() в JS. Он остаётся ровно тем же самым
+     элементом интерфейса, просто на страницах с настройкой раздела у него
+     другое действие, отличное от пункта "Настройки" в боковом выезжающем
+     меню (тот всегда ведёт в общий раздел настроек аккаунта). */
 
   /* ---------- Верхняя шторка настройки раздела (settings-edit-bar) ----------
      Появляется сверху при включении режима редактирования текущего раздела
@@ -1337,7 +1333,7 @@
      быстрого меню) — тот же принцип оформления. */
   .settings-edit-bar{
     display:none;position:fixed;left:0;right:0;top:0;z-index:75;
-    background:var(--accent);border-bottom:1px solid rgba(91,91,214,.3);
+    background:var(--accent);border-bottom:1px solid rgba(167,139,250,.3);
     color:#fff;font-size:11.5px;font-weight:500;padding:6px 12px;
     padding-top:calc(6px + env(safe-area-inset-top));
     align-items:center;justify-content:space-between;gap:10px;
@@ -1366,17 +1362,11 @@
   }
   .bn-item .bn-icon{font-size:18px;line-height:1}
   .bn-item.active{color:var(--accent)}
-  /* Оставлено для обратной совместимости — правило подсветки самого
-     пункта нижнего меню больше не используется (см. .section-gear-btn.active
-     ниже): настройка раздела теперь отдельная кнопка-шестерёнка в шапке
-     страницы, а не перегруженный пункт "Настройки". */
+  /* Пункт "Настройки" нижнего меню подсвечивается так же, как активный
+     раздел, пока включён режим настройки текущей страницы (перестановка
+     карточек и т.п.) — это единственный визуальный признак "идёт
+     редактирование", вместо прежней отдельной перекрашиваемой кнопки. */
   .bn-item.settings-editing{color:var(--accent)}
-  /* Кнопка-шестерёнка "Настроить раздел" в шапке страницы (дашборд,
-     аналитика, ученики) — подсвечивается акцентным цветом, пока включён
-     режим редактирования этого раздела. Одинаково работает и выглядит
-     на десктопе и на телефоне — в отличие от прежней схемы, где
-     настройка раздела была доступна только через нижнее меню телефона. */
-  .section-gear-btn.active{color:var(--accent)!important;background:var(--accent-glow)!important;border-color:var(--accent)!important}
   .bn-more-sheet{
     display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;
     background:var(--bg2);border-top:1px solid var(--border2);
@@ -1391,7 +1381,7 @@
   .bn-sheet-item .icon{font-size:18px;width:22px;text-align:center}
 
   /* ---------- Режим редактирования "Быстрого меню" ---------- */
-  .bottom-nav.edit-mode{background:var(--card2);box-shadow:0 -4px 18px rgba(91,91,214,.18) inset;gap:0}
+  .bottom-nav.edit-mode{background:var(--card2);box-shadow:0 -4px 18px rgba(167,139,250,.18) inset;gap:0}
   .bn-edit-item{
     display:flex;align-items:center;gap:1px;flex:1;min-width:0;
     -webkit-tap-highlight-color:transparent;user-select:none;
@@ -1417,7 +1407,7 @@
   .bn-move-arrow.bn-move-disabled{opacity:.2;pointer-events:none}
   .qm-edit-bar{
     display:none;position:fixed;left:0;right:0;top:0;z-index:46;
-    background:var(--accent);border-bottom:1px solid rgba(91,91,214,.3);
+    background:var(--accent);border-bottom:1px solid rgba(167,139,250,.3);
     color:#fff;font-size:11.5px;font-weight:500;padding:10px 12px;
     padding-top:calc(10px + env(safe-area-inset-top));
     align-items:center;justify-content:space-between;gap:10px;
@@ -2319,7 +2309,7 @@
   .voice-tool-btn.voice-save-btn{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   .voice-tool-btn.voice-save-btn:hover{filter:brightness(1.08)}
   .voice-tool-btn.voice-reset-btn{background:var(--card);border-color:var(--border2);color:var(--text2);font-weight:600}
-  .voice-tool-btn.voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(239,83,80,.3)}
+  .voice-tool-btn.voice-reset-btn:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   @media (max-width:640px){
     .voice-basic-row{grid-template-columns:1fr}
     .voice-basic-col{grid-column:1}
@@ -2377,7 +2367,7 @@
   .note-pop-close{width:26px;height:26px;flex-shrink:0;border-radius:50%;background:var(--card2);
     border:1px solid var(--border2);color:var(--text2);font-size:13px;line-height:1;
     display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;padding:0}
-  .note-pop-close:hover{background:var(--red-bg);color:var(--red);border-color:rgba(239,83,80,.3)}
+  .note-pop-close:hover{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.3)}
   /* Прокручиваемая область с октавами — сама шапка и крестик остаются
      на месте, если список нот не помещается по высоте */
   .note-pop-body{flex:1;min-height:0;overflow-y:auto}
@@ -2533,7 +2523,7 @@
      осталось так же темно, как и раньше). */
   .tour-dim{position:fixed;inset:0;background:rgba(6,6,10,.15);z-index:9991;transition:opacity .2s}
   .tour-spot{position:fixed;z-index:9992;border-radius:14px;
-    box-shadow:0 0 0 6px rgba(91,91,214,.22),0 0 0 2000px rgba(6,6,10,.66),0 0 24px rgba(91,91,214,.35);
+    box-shadow:0 0 0 6px rgba(167,139,250,.22),0 0 0 2000px rgba(6,6,10,.66),0 0 24px rgba(167,139,250,.35);
     border:2px solid var(--accent);pointer-events:none;
     transition:top .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1),width .28s cubic-bezier(.4,0,.2,1),height .28s cubic-bezier(.4,0,.2,1),opacity .2s}
   .tour-spot.tour-spot-hidden{opacity:0;box-shadow:0 0 0 2000px rgba(6,6,10,.66)}
@@ -3059,7 +3049,6 @@
       <div class="topbar">
         <div id="dashGreetWrap"><span class="topbar-title" id="greetTitle">Добрый день 👋</span><span class="topbar-subtitle" id="todayLabel"></span></div>
         <div class="dash-actions">
-          <button class="btn btn-ghost section-gear-btn" id="dashSectionGearBtn" onclick="openSectionSettings()" title="Настроить вид дашборда"><i class="fa-solid fa-gear"></i></button>
           <button class="btn btn-ghost" onclick="openModal('lesson')">Урок</button>
           <button class="btn btn-primary" onclick="openModal('student')">Ученик</button>
         </div>
@@ -3153,7 +3142,6 @@
     <div id="page-students" class="hidden">
       <div class="topbar">
         <div class="topbar-title">Ученики <span class="topbar-subtitle" id="studentsCountLabel">0 активных</span></div>
-        <button class="btn btn-ghost section-gear-btn" id="studentsSectionGearBtn" onclick="openSectionSettings()" title="Настроить отображение карточек"><i class="fa-solid fa-gear"></i></button>
         <input class="input" style="width:200px;padding:7px 12px" id="studentSearch" placeholder="🔍 Поиск..." oninput="renderStudents()">
         <button class="btn btn-primary" onclick="openModal('student')">Добавить</button>
       </div>
@@ -3265,7 +3253,7 @@
 
     <!-- АНАЛИТИКА (бывший раздел "Прогресс") -->
     <div id="page-analytics" class="hidden">
-      <div class="topbar"><div class="topbar-title">Аналитика <span class="topbar-subtitle">полная картина по ученикам и доходам</span></div><button class="btn btn-ghost section-gear-btn" id="analyticsSectionGearBtn" onclick="openSectionSettings()" title="Настроить порядок карточек"><i class="fa-solid fa-gear"></i></button></div>
+      <div class="topbar"><div class="topbar-title">Аналитика <span class="topbar-subtitle">полная картина по ученикам и доходам</span></div></div>
       <div class="content">
 
         <div id="analyticsScaleWrap">
@@ -3349,7 +3337,7 @@
               <div class="settings-av-actions">
                 <label class="btn btn-ghost btn-sm" for="settingsAvatarFile" style="cursor:pointer">📷 Загрузить</label>
                 <input type="file" id="settingsAvatarFile" accept="image/*" style="display:none" onchange="handleSettingsAvatar(event)">
-                <button class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(239,83,80,.25)" onclick="removeSettingsAvatar()">Удалить</button>
+                <button class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.25)" onclick="removeSettingsAvatar()">Удалить</button>
               </div>
             </div>
           </div>
@@ -3679,10 +3667,10 @@ const MN = ['Январь','Февраль','Март','Апрель','Май','
 const MNSh = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const GRADIENTS = [
-  '#5b5bd6','#3ecf8e',
-  '#d874a8','#4f8ef7',
-  '#e0a72e','#ef5350',
-  '#3fa9c9','#8a63d2'
+  'linear-gradient(135deg,#a78bfa,#7c3aed)','linear-gradient(135deg,#34d399,#059669)',
+  'linear-gradient(135deg,#f472b6,#db2777)','linear-gradient(135deg,#60a5fa,#2563eb)',
+  'linear-gradient(135deg,#fbbf24,#d97706)','linear-gradient(135deg,#f87171,#dc2626)',
+  'linear-gradient(135deg,#38bdf8,#0ea5e9)','linear-gradient(135deg,#c084fc,#9333ea)'
 ];
 
 function uid(prefix){ return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
@@ -3958,7 +3946,7 @@ function seedEmptyTeacher(){
 
 function seedDB(){
   const teacherId = uid('t');
-  DB.teachers.push({ id:teacherId, name:'Анна Ковалёва', role:'Преподаватель эстрады', initials:'АК', avatar:'var(--accent)' });
+  DB.teachers.push({ id:teacherId, name:'Анна Ковалёва', role:'Преподаватель эстрады', initials:'АК', avatar:'linear-gradient(135deg,#a78bfa,#ec4899)' });
   DB.currentTeacherId = teacherId;
 
   const today = new Date();
@@ -4977,7 +4965,7 @@ function renderCalendar() {
       // полоска слева — статус-цвет в полную силу, а фон всей карточки — тот же
       // самый цвет, только бледнее (ниже непрозрачность), чтобы карточка и
       // полоска явно читались как один и тот же цвет, но с разным "весом".
-      const STATUS_COLORS = { done:'#3ecf8e', planned:'#5b5bd6', noshow:'#ef5350', cancelled:'#5a5a63' };
+      const STATUS_COLORS = { done:'#34d399', planned:'#a78bfa', noshow:'#f87171', cancelled:'#5a5a72' };
       const statusColor = STATUS_COLORS[ev.status] || STATUS_COLORS.planned;
       evEl.style.borderLeft = '4px solid ' + statusColor;
       evEl.style.background = statusColor + '24'; // ~14% непрозрачности — бледный тон того же цвета
@@ -5384,7 +5372,7 @@ const MOBILE_VISIBLE_CARDS_DEFAULT = 3; // сколько карточек по�
 let dashTodayExpanded = false;
 
 /* ---------- Режим отображения списка "Сегодня" на мобильной версии ----------
-   Настраивается через кнопку-шестерёнку в шапке дашборда (см. openSectionSettings),
+   Настраивается через нижнюю кнопку "Настройки" (см. trySectionSettingsAction),
    которая открывает шторку "Настройка отображения «Сегодня»" сверху экрана и
    показывает в шапке блока сегментированный переключатель "1 / 3 / Все".
    Значения: '1' — только 1 карточка по умолчанию, '3' — 3 карточки (значение
@@ -5699,7 +5687,7 @@ function renderDashboardPulse(myStudents, active, now){
   // Доля активных учеников от всех (без учёта архивных)
   const activePct = myStudents.length>0 ? (active.length/myStudents.length)*100 : 0;
   const ringAct = document.getElementById('ringActive');
-  const pctAct = setRing(ringAct, activePct, 'var(--blue)', 'rgba(79,142,247,.35)');
+  const pctAct = setRing(ringAct, activePct, 'var(--blue)', 'rgba(96,165,250,.35)');
   document.getElementById('ringActiveVal').textContent = pctAct+'%';
   document.getElementById('ringActiveSub').textContent = active.length+' из '+myStudents.length+' учеников';
 
@@ -6279,13 +6267,17 @@ function renderBottomNav(){
 function bnItemClick(e, key){
   if(quickMenuEditMode) return;
   if(!key) { enterQuickMenuEditMode(); return; }
-  // Пункт "Настройки" нижнего быстрого меню теперь всегда означает одно
-  // и то же — переход в общие настройки аккаунта, точно как одноимённый
-  // пункт бокового меню. Настройка ТЕКУЩЕГО раздела (перестановка карточек
-  // дашборда/аналитики/учеников и т.п.) больше не спрятана внутри этого
-  // пункта навигации — для неё есть отдельная кнопка-шестерёнка прямо в
-  // шапке соответствующего раздела (см. openSectionSettings), одинаково
-  // доступная и на телефоне, и на компьютере.
+  // Пункт "Настройки" нижнего меню — в отличие от одноимённого пункта
+  // в боковом выезжающем меню (тот всегда и только он ведёт в общие
+  // настройки аккаунта) — никогда не открывает страницу общих настроек.
+  // Он либо включает настройку ИМЕННО того раздела, где сейчас находится
+  // человек (например, перестановку карточек в "Аналитике"), либо, если
+  // для текущего раздела такой настройки ещё нет, просто показывает
+  // подсказку, что она скоро появится — но никуда не переходит.
+  if(key === 'settings'){
+    if(!trySectionSettingsAction()) toast('Настройки этого раздела скоро появятся');
+    return;
+  }
   showPage(key);
 }
 
@@ -7383,22 +7375,20 @@ function applyAnalyticsCardOrder(){
 }
 
 /* ============================================================
-   КНОПКА-ШЕСТЕРЁНКА "НАСТРОИТЬ РАЗДЕЛ" В ШАПКЕ СТРАНИЦЫ
+   ПУНКТ "НАСТРОЙКИ" НИЖНЕГО БЫСТРОГО МЕНЮ — НАСТРОЙКА ТЕКУЩЕГО РАЗДЕЛА
    ------------------------------------------------------------
-   Раньше эта функциональность была спрятана внутри пункта "Настройки"
-   нижнего быстрого меню (только на телефоне) и работала иначе, чем
-   одноимённый пункт бокового меню — то есть один и тот же ярлык "⚙️
-   Настройки" в двух местах интерфейса делал разные вещи. Это и создавало
-   путаницу в навигации.
-   Теперь у навигации ОДНО значение везде: "Настройки" (и в боковом меню,
-   и в нижнем быстром меню) — это всегда переход в общие настройки
-   аккаунта. А настройка конкретного раздела (перестановка карточек
-   дашборда/аналитики/учеников, блоков профиля ученика) вынесена в
-   отдельную, явную кнопку-шестерёнку прямо в шапке этого раздела —
-   одинаково видимую и на компьютере, и на телефоне, а не только в
-   нижнем меню мобильной версии.
-   openSectionSettings() вызывается именно этой кнопкой. ============ */
-function openSectionSettings(){
+   В отличие от одноимённого пункта в левом выезжающем меню (там —
+   переход в общие настройки аккаунта), этот, нижний пункт "Настройки"
+   всегда привязан к тому разделу, где сейчас находится человек: дашборд,
+   расписание, ученики и т.д. Первый тап включает настройку текущего
+   раздела (например, перестановку карточек) и опускает сверху шторку с
+   кнопками "Отмена"/"Сохранить" (см. showSettingsEditBar ниже) — именно
+   ими закрывается режим редактирования, повторный тап по самому пункту
+   меню, пока режим активен, ничего не делает. Никакой отдельной кнопки
+   для этого больше нет — специально, чтобы не накладывать один элемент
+   интерфейса на другой в правом нижнем углу.
+   ============================================================ */
+function trySectionSettingsAction(){
   if(currentPageName === 'dashboard'){
     if(dashTodaySettingsIsOn()) return true; // режим уже включён — шторка сверху уже открыта, повторный тап ничего не делает
     enterDashTodaySettingsMode();
@@ -7443,28 +7433,25 @@ function openSectionSettings(){
     updateSectionSettingsIndicator();
     return true;
   }
+  // Для остальных разделов настройка ещё не реализована — bnItemClick
+  // в этом случае просто покажет подсказку "скоро появится" и никуда
+  // не перейдёт (страница общих настроек теперь открывается только
+  // через боковое выезжающее меню).
   return false;
 }
-// Старое имя оставлено псевдонимом на случай, если где-то в проекте
-// (например, во внешних заметках или будущих правках) ещё встретится
-// вызов по прежнему названию — функционально это то же самое.
-function trySectionSettingsAction(){ return openSectionSettings(); }
 
-/* Подсвечивает кнопку-шестерёнку "Настроить" в шапке раздела акцентным
-   цветом, пока активен режим редактирования этого раздела — единственный
-   визуальный признак того, что режим включён. */
+/* Подсвечивает пункт "Настройки" нижнего меню акцентным цветом, пока
+   активен режим редактирования текущего раздела — единственный визуальный
+   признак того, что режим включён (кнопка при этом остаётся на своём
+   обычном месте, ничего поверх неё не появляется). */
 function updateSectionSettingsIndicator(){
-  document.querySelectorAll('.section-gear-btn').forEach(b=>b.classList.remove('active'));
+  const item = document.querySelector('.bn-item[data-page="settings"]');
+  if(!item) return;
   const onAnalytics = currentPageName === 'analytics' && typeof analyticsReorderIsOn==='function' && analyticsReorderIsOn();
   const onProfileTab = currentPageName === 'student-detail' && currentDetailTab === 'profile' && profileReorderMode;
   const onDashboard = currentPageName === 'dashboard' && typeof dashTodaySettingsIsOn==='function' && dashTodaySettingsIsOn();
   const onStudents = currentPageName === 'students' && typeof studentsGridSettingsIsOn==='function' && studentsGridSettingsIsOn();
-  let activeId = null;
-  if(onDashboard) activeId = 'dashSectionGearBtn';
-  else if(onAnalytics) activeId = 'analyticsSectionGearBtn';
-  else if(onStudents) activeId = 'studentsSectionGearBtn';
-  else if(onProfileTab) activeId = 'profileReorderBtn';
-  if(activeId){ const el = document.getElementById(activeId); if(el) el.classList.add('active','settings-editing'); }
+  item.classList.toggle('settings-editing', onAnalytics || onProfileTab || onDashboard || onStudents);
 }
 
 /* ============================================================
@@ -11432,7 +11419,7 @@ function renderTrialBanner(){
   if(!footer) return;
   const el = document.createElement('div');
   el.id = 'trialBanner';
-  el.style.cssText = 'margin:0 12px 8px;padding:9px 10px;border-radius:9px;background:var(--green-bg);border:1px solid rgba(62,207,142,.35);color:var(--green);font-size:11.5px;font-weight:600;text-align:center;line-height:1.4';
+  el.style.cssText = 'margin:0 12px 8px;padding:9px 10px;border-radius:9px;background:var(--green-bg);border:1px solid rgba(52,211,153,.35);color:var(--green);font-size:11.5px;font-weight:600;text-align:center;line-height:1.4';
   el.textContent = '🚀 Пробный период: осталось '+window.__trialDaysLeft+' '+pluralDays(window.__trialDaysLeft);
   // Вставляем сразу над sidebar-footer (там, где имя, роль и аватарка преподавателя) —
   // и на десктопе, и на мобильной версии, т.к. используется один и тот же элемент .sidebar
@@ -11701,7 +11688,7 @@ document.addEventListener('click', function(e){
   try {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
-      const dark = '#0c0c0e', light = '#ffffff';
+      const dark = '#0f0f14', light = '#f0f0f6';
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       metaTheme.content = prefersDark ? dark : light;
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
