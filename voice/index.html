@@ -2635,19 +2635,23 @@ body{background:var(--bg)}
 /* ---- сайдбар / навигация ---- */
 .sidebar{background:var(--bg2);border-right:1px solid var(--border)}
 .logo{padding:18px 16px 16px;border-bottom:1px solid var(--border)}
-.logo-icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(155deg,var(--accent),var(--accent2));box-shadow:0 2px 6px rgba(79,70,229,.28);font-size:14px}
+.logo-icon{width:26px;height:26px;border-radius:6px;background:var(--text);box-shadow:none;font-size:13px}
+.logo-icon span{filter:none}
+body.light-theme .logo-icon{background:#111114}
 .logo-text{font-size:14px;font-weight:700;letter-spacing:-0.02em;color:var(--text)}
 .logo-sub{font-size:9.5px;color:var(--text3);letter-spacing:.02em;text-transform:uppercase}
 .nav{padding:14px 8px}
 .nav-item{border-radius:7px;padding:7px 9px;font-size:12.5px;font-weight:500;color:var(--text2);gap:8px;margin-bottom:1px}
 .nav-item .icon{font-size:14px;opacity:.85}
+.nav-ico{width:15px;text-align:center;font-size:13px;color:var(--text3);flex-shrink:0}
+.nav-item.active .nav-ico,.nav-item:hover .nav-ico{color:currentColor}
 .nav-item:hover{background:var(--bg3);color:var(--text)}
 .nav-item.active{background:var(--accent-glow);color:var(--accent);font-weight:600}
 .nav-item.active .icon{opacity:1}
 .nav-badge{background:var(--accent);font-weight:700;font-size:9.5px;padding:1px 6px}
 .sidebar-footer{border-top:1px solid var(--border)}
 .sb-user-block:hover{background:var(--bg3)}
-.sb-av{box-shadow:none;border:1px solid var(--border2);background:linear-gradient(155deg,var(--accent),var(--accent2))}
+.sb-av{box-shadow:none;border:1px solid var(--border2);background:var(--text2)}
 .sb-name{color:var(--text);font-weight:600}
 
 /* ---- топбар ---- */
@@ -2672,12 +2676,8 @@ body{background:var(--bg)}
 /* ---- карточки KPI на дашборде ---- */
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-xs);transition:box-shadow .18s,transform .18s;padding:16px 16px 14px}
 .stat-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
-.stat-card::before{width:100%;height:3px;left:0;top:0;border-radius:12px 12px 0 0;opacity:.9}
-.stat-card.purple::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
-.stat-card.green::before{background:var(--green)}
-.stat-card.amber::before{background:var(--amber)}
-.stat-card.blue::before{background:var(--blue)}
-.stat-card.red::before{background:var(--red)}
+.stat-card::before{display:none}
+.stat-card.purple,.stat-card.green,.stat-card.amber,.stat-card.blue,.stat-card.red{background:var(--card)}
 .stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
 .stat-value{font-size:24px;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin-top:4px}
 .stat-delta{font-size:11.5px;margin-top:4px}
@@ -2712,7 +2712,64 @@ body{background:var(--bg)}
 /* ---- лёгкое выравнивание акцентного действия при наведении на бейдж часов ---- */
 .dash-mode-btn.active,.fin-period-btn.active,.cal-period-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(79,70,229,.3)}
 
-.settings-av{background:linear-gradient(155deg,var(--accent),var(--accent2));border:2px solid var(--border)}
+.settings-av{background:var(--text2);border:2px solid var(--border)}
+
+/* ---- ПОЛНЫЙ ОТКАЗ ОТ КОЛЬЦЕВЫХ ДИАГРАММ НА ДАШБОРДЕ И В АНАЛИТИКЕ ----
+   У Attio нет декоративных "колец прогресса" — только плоские цифры и
+   списки. Убираем conic-gradient-круг, оставляем крупное число + подпись. */
+.kpi-ring-grid{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-xs)}
+.kpi-ring-card{background:transparent;border:none;border-radius:0;box-shadow:none;flex:1;padding:16px 20px}
+.kpi-ring-card:not(:last-child){border-right:1px solid var(--border)}
+.kpi-ring-card:hover{background:var(--bg3);border-color:var(--border)}
+.kpi-ring-card.split-card,.kpi-ring-card.goal-card{display:block}
+.goal-card-left{padding-right:0;gap:0;display:block}
+.kpi-ring{all:unset;display:block}
+.kpi-ring::before{display:none}
+.kpi-ring-val{font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);display:block;line-height:1.15}
+.kpi-ring-info{margin-top:2px}
+.kpi-ring-title{font-size:11.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:0}
+.kpi-ring-sub{font-size:11px;margin-top:1px}
+.kpi-ring-extra{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:10px;margin-top:10px}
+@media (max-width:900px){.kpi-ring-grid{flex-wrap:wrap}.kpi-ring-card{flex:1 1 33%;min-width:140px}}
+
+.donut-wrap{all:unset;display:flex;flex-direction:column;align-items:center;gap:2px}
+.donut-wrap::before{display:none}
+.donut-center{position:static}
+.donut-wrap-lg .donut-center b{font-size:36px}
+
+/* ---- линейный, а не радужный прогресс на карточке ученика ---- */
+.student-progress-fill{background:var(--accent)!important}
+
+/* ---- УЧЕНИКИ: на десктопе — плотный список-таблица вместо плитки карточек,
+   как записи (records) в Attio, а не "плитка визиток". Мобильная сетка
+   (карточки) ниже определённой ширины остаётся прежней — там ряд был бы
+   слишком тесным. ---- */
+@media (min-width:901px){
+  .student-grid:not(.student-grid-single){display:flex;flex-direction:column;gap:0;
+    background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-xs)}
+  .student-grid:not(.student-grid-single) .student-card{flex-direction:row;align-items:center;
+    border:none;border-radius:0;border-bottom:1px solid var(--border);padding:11px 18px;height:auto;box-shadow:none}
+  .student-grid:not(.student-grid-single) .student-card:last-child{border-bottom:none}
+  .student-grid:not(.student-grid-single) .student-card:hover{background:var(--bg3);transform:none;box-shadow:none}
+  .student-grid:not(.student-grid-single) .student-header{margin-bottom:0;flex:0 0 250px;min-width:0}
+  .student-grid:not(.student-grid-single) .student-progress-wrap{margin-bottom:0;flex:1;display:flex;
+    align-items:center;gap:10px;padding:0 24px;min-width:0}
+  .student-grid:not(.student-grid-single) .student-progress-label{margin-bottom:0;flex-shrink:0;white-space:nowrap}
+  .student-grid:not(.student-grid-single) .student-progress-bar{flex:1;max-width:180px}
+  .student-grid:not(.student-grid-single) .student-tags-row{margin-top:0;padding-top:0;flex:0 0 auto;
+    justify-content:flex-end;flex-wrap:nowrap}
+  .student-grid:not(.student-grid-single) .tag{margin-top:0}
+  .student-grid:not(.student-grid-single) .student-time-badge{background:transparent;border:none;color:var(--text3);
+    font-weight:600;padding:0}
+}
+@media (min-width:901px){
+  .student-list-head{display:flex;align-items:center;padding:0 18px;margin-bottom:6px;
+    font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+  .student-list-head span:first-child{flex:0 0 250px}
+  .student-list-head span:nth-child(2){flex:1;padding:0 24px}
+  .student-list-head span:last-child{flex:0 0 auto}
+}
+@media (max-width:900px){.student-list-head{display:none}}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -3126,14 +3183,14 @@ body{background:var(--bg)}
       </div>
     </div>
     <nav class="nav">
-      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">🏠</span> Дашборд</div>
-      <div class="nav-item" data-page="schedule" onclick="showPage('schedule')"><span class="icon">📅</span> Расписание</div>
-      <div class="nav-item" data-page="students" onclick="showPage('students')"><span class="icon">🎓</span> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
-      <div class="nav-item" data-page="finances" onclick="showPage('finances')"><span class="icon">💰</span> Финансы</div>
-      <div class="nav-item" data-page="homework" onclick="showPage('homework')"><span class="icon">📝</span> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
-      <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><span class="icon">📊</span> Аналитика</div>
-      <div class="nav-item" data-page="settings" onclick="showPage('settings')"><span class="icon">⚙️</span> Настройки</div>
-      <div class="nav-item" data-page="help" onclick="showPage('help')"><span class="icon">📖</span> Справка</div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><i class="fa-solid fa-grip nav-ico"></i> Дашборд</div>
+      <div class="nav-item" data-page="schedule" onclick="showPage('schedule')"><i class="fa-solid fa-calendar-days nav-ico"></i> Расписание</div>
+      <div class="nav-item" data-page="students" onclick="showPage('students')"><i class="fa-solid fa-user-group nav-ico"></i> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
+      <div class="nav-item" data-page="finances" onclick="showPage('finances')"><i class="fa-solid fa-wallet nav-ico"></i> Финансы</div>
+      <div class="nav-item" data-page="homework" onclick="showPage('homework')"><i class="fa-solid fa-list-check nav-ico"></i> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
+      <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><i class="fa-solid fa-chart-simple nav-ico"></i> Аналитика</div>
+      <div class="nav-item" data-page="settings" onclick="showPage('settings')"><i class="fa-solid fa-gear nav-ico"></i> Настройки</div>
+      <div class="nav-item" data-page="help" onclick="showPage('help')"><i class="fa-solid fa-circle-question nav-ico"></i> Справка</div>
     </nav>
     <div class="sidebar-footer">
       <div class="sb-user-block" onclick="doLogout()" title="Выйти из аккаунта">
@@ -3151,7 +3208,7 @@ body{background:var(--bg)}
     <!-- DASHBOARD -->
     <div id="page-dashboard">
       <div class="topbar">
-        <div id="dashGreetWrap"><span class="topbar-title" id="greetTitle">Добрый день 👋</span><span class="topbar-subtitle" id="todayLabel"></span></div>
+        <div id="dashGreetWrap"><span class="topbar-title" id="greetTitle">Добрый день</span><span class="topbar-subtitle" id="todayLabel"></span></div>
         <div class="dash-actions">
           <button class="btn btn-ghost" onclick="openModal('lesson')">Урок</button>
           <button class="btn btn-primary" onclick="openModal('student')">Ученик</button>
@@ -3262,6 +3319,7 @@ body{background:var(--bg)}
           <div class="tab" data-f="inactive" onclick="setStudentFilter('inactive',this)">Неактивные</div>
           <div class="tab tab-report" title="Выгрузить базу учеников" onclick="openModal('exportAllChoice')"><i class="fa-solid fa-file-arrow-down"></i> Выгрузить базу</div>
         </div>
+        <div class="student-list-head" id="studentListHead"><span>Ученик</span><span>Прогресс</span><span>Статус</span></div>
         <div class="student-grid" id="student-cards"></div>
       </div>
     </div>
@@ -3771,10 +3829,10 @@ const MN = ['Январь','Февраль','Март','Апрель','Май','
 const MNSh = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const GRADIENTS = [
-  'linear-gradient(135deg,#a78bfa,#7c3aed)','linear-gradient(135deg,#34d399,#059669)',
-  'linear-gradient(135deg,#f472b6,#db2777)','linear-gradient(135deg,#60a5fa,#2563eb)',
-  'linear-gradient(135deg,#fbbf24,#d97706)','linear-gradient(135deg,#f87171,#dc2626)',
-  'linear-gradient(135deg,#38bdf8,#0ea5e9)','linear-gradient(135deg,#c084fc,#9333ea)'
+  '#6a6bf5','#0d9457',
+  '#c22b7c','#1e64e0',
+  '#c2760a','#d92d3c',
+  '#0f83c9','#7c5cf0'
 ];
 
 function uid(prefix){ return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
@@ -5344,7 +5402,7 @@ function renderDashboard(){
   // "Посещаемость" и "Цель по доходу" без перезагрузки страницы.
   dashboardMonthKey = now.getFullYear()+'-'+now.getMonth();
   const hour=now.getHours();
-  const greet = hour<6?'Доброй ночи 🌙': hour<12?'Доброе утро ☀️': hour<18?'Добрый день 👋':'Добрый вечер 🌆';
+  const greet = hour<6?'Доброй ночи': hour<12?'Доброе утро': hour<18?'Добрый день':'Добрый вечер';
   document.getElementById('greetTitle').textContent = greet;
   document.getElementById('todayLabel').textContent = weekdayInRu(now)+', '+now.getDate()+' '+MN[now.getMonth()].toLowerCase()+' '+now.getFullYear();
 
@@ -6144,9 +6202,9 @@ function renderStudents(){
 function studentHomeworkTagHTML(studentId){
   const hw = homeworkOfStudent(studentId);
   if(!hw.length) return '';
-  if(hw.some(h=>h.status==='progress')) return '<span class="tag tag-orange">🔥 ДЗ в процессе</span>';
-  if(hw.some(h=>h.status==='todo')) return '<span class="tag tag-blue">📌 Новое ДЗ</span>';
-  if(hw.some(h=>h.status==='done')) return '<span class="tag tag-green">✓ ДЗ сдано</span>';
+  if(hw.some(h=>h.status==='progress')) return '<span class="tag tag-orange"><i class="fa-solid fa-arrow-rotate-right"></i> ДЗ в процессе</span>';
+  if(hw.some(h=>h.status==='todo')) return '<span class="tag tag-blue"><i class="fa-regular fa-bookmark"></i> Новое ДЗ</span>';
+  if(hw.some(h=>h.status==='done')) return '<span class="tag tag-green"><i class="fa-solid fa-check"></i> ДЗ сдано</span>';
   return '';
 }
 
@@ -8456,7 +8514,7 @@ function buildStudentDangerModal(ctx){
     + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px">'
       + '<div><div style="font-size:13px;font-weight:600">Удалить карточку ученика</div>'
       + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Полностью удалит ученика «'+escapeHTML(s.name)+'», а также все его уроки, платежи, абонементы, задания и репертуар.</div></div>'
-      + '<button class="btn" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')">🗑 Удалить</button>'
+      + '<button class="btn" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
     + '</div>';
 }
 
@@ -9461,7 +9519,7 @@ function buildLessonModal(ctx){
     +'</div>'
     +'</div>' /* /.drawer-form-scroll */
     +'<div class="drawer-form-footer">'
-    + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="deleteLesson(\''+lesson.id+'\')">🗑 Удалить урок</button>' : '')
+    + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="deleteLesson(\''+lesson.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить урок</button>' : '')
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>'
     +'</div>';
 }
@@ -9939,7 +9997,7 @@ function buildDeleteSubscriptionModal(ctx){
   const s = studentById(sub.studentId);
   const left = Math.max(0, sub.totalLessons - sub.usedLessons);
   const refund = left * (sub.pricePerLesson||0);
-  return '<div class="modal-title">🗑 Удаление абонемента <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удаление абонемента <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:14px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+sub.usedLessons+' из '+sub.totalLessons+' уроков использовано · осталось '+left+'</div>'
@@ -9987,7 +10045,7 @@ function buildSubHistoryModal(ctx){
   ctx = ctx||{};
   const s = studentById(ctx.studentId);
   const hist = subHistoryOf(ctx.studentId);
-  const typeLabel = {purchase:'🎫 Покупка', topup:'➕ Пополнение', deduct:'➖ Списан урок', refund:'↩️ Возврат занятия', delete:'🗑 Удалён'};
+  const typeLabel = {purchase:'🎫 Покупка', topup:'➕ Пополнение', deduct:'➖ Списан урок', refund:'↩️ Возврат занятия', delete:'<i class="fa-solid fa-trash-can"></i> Удалён'};
   const rows = hist.length ? hist.map(h=>
     '<div class="lesson-note"><div class="note-date">'+formatRu(h.date)+' · '+(typeLabel[h.type]||h.type)+'</div>'
     +'<div class="note-text">'+(h.lessonsDelta? (h.lessonsDelta>0?'+':'')+h.lessonsDelta+' уроков · ' : '')+(h.amount?money(h.amount):'')+(h.note?' — '+escapeHTML(h.note):'')+'</div></div>'
@@ -10297,7 +10355,7 @@ function buildDeleteLessonModal(ctx){
   const s = studentById(l.studentId);
   const sub = DB.subscriptions.find(su=>su.id===l.subscriptionId);
   const left = sub ? Math.max(0, sub.totalLessons - sub.usedLessons) : 0;
-  return '<div class="modal-title">🗑 Удаление урока <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удаление урока <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
@@ -10322,7 +10380,7 @@ function buildDeleteLessonConfirmModal(ctx){
   const l = DB.lessons.find(x=>x.id===ctx.lessonId);
   if(!l) return '<div class="modal-title">Урок не найден <button class="modal-close" onclick="closeModal()">×</button></div>';
   const s = studentById(l.studentId);
-  return '<div class="modal-title">🗑 Удалить урок? <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удалить урок? <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
@@ -10330,7 +10388,7 @@ function buildDeleteLessonConfirmModal(ctx){
     +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Урок будет удалён из расписания. Это действие нельзя отменить.</div>'
     +'<div style="display:flex;gap:8px">'
       +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
-      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteLessonPlain(\''+l.id+'\')">🗑 Удалить</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteLessonPlain(\''+l.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
     +'</div>';
 }
 
@@ -10341,7 +10399,7 @@ function buildDeleteHomeworkModal(ctx){
   const h = DB.homework.find(x=>x.id===ctx.hwId);
   if(!h) return '<div class="modal-title">Задание не найдено <button class="modal-close" onclick="closeModal()">×</button></div>';
   const s = studentById(h.studentId);
-  return '<div class="modal-title">🗑 Удалить задание? <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удалить задание? <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:12.5px;color:var(--text2);margin-top:4px;line-height:1.4">'+escapeHTML(h.title)+'</div>'
@@ -10349,7 +10407,7 @@ function buildDeleteHomeworkModal(ctx){
     +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Это действие нельзя отменить.</div>'
     +'<div style="display:flex;gap:8px">'
       +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
-      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteHomework(\''+h.id+'\')">🗑 Удалить</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteHomework(\''+h.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
     +'</div>';
 }
 
@@ -10357,7 +10415,7 @@ function buildDeleteRepertoireModal(ctx){
   ctx = ctx||{};
   const r = DB.repertoire.find(x=>x.id===ctx.repId);
   if(!r) return '<div class="modal-title">Песня не найдена <button class="modal-close" onclick="closeModal()">×</button></div>';
-  return '<div class="modal-title">🗑 Удалить песню? <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удалить песню? <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+escapeHTML(r.title)+'</div>'
       +'<div style="font-size:12.5px;color:var(--text2);margin-top:4px;line-height:1.4">'+escapeHTML(r.artist||'')+'</div>'
@@ -10365,7 +10423,7 @@ function buildDeleteRepertoireModal(ctx){
     +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Это действие нельзя отменить.</div>'
     +'<div style="display:flex;gap:8px">'
       +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
-      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="deleteRepertoire(\''+r.id+'\')">🗑 Удалить</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
     +'</div>';
 }
 
