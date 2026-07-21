@@ -55,7 +55,8 @@
     --sheet-backdrop:rgba(20,20,30,.45);
     --bg:#f6f6f8;--bg2:#ffffff;--bg3:#f0f0f3;--card:#ffffff;--card2:#fafafb;
     --border:#e7e7ec;--border2:#dadade;--text:#17171c;--text2:#4b4b57;--text3:#8d8d99;
-    --accent:#4f46e5;--accent2:#6366f1;--accent-glow:rgba(79,70,229,0.08);
+    --accent:#1c1c22;--accent2:#3a3a44;--accent-glow:rgba(28,28,34,0.06);
+    --link:#3762e0;
     --green:#0d9457;--green-bg:rgba(13,148,87,0.09);--green-glow:rgba(13,148,87,0.3);
     --amber:#c2760a;--amber-bg:rgba(194,118,10,0.1);--amber-glow:rgba(194,118,10,0.3);
     --red:#d92d3c;--red-bg:rgba(217,45,60,0.09);--red-glow:rgba(217,45,60,0.3);
@@ -2655,10 +2656,18 @@ body.light-theme .logo-icon{background:#111114}
 .sb-name{color:var(--text);font-weight:600}
 
 /* ---- топбар ---- */
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;min-height:60px}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;min-height:60px}
 .topbar-title{font-size:16px;font-weight:700;letter-spacing:-0.01em;color:var(--text)}
 .topbar-subtitle{font-size:12px;font-weight:400;color:var(--text3);margin-left:8px}
-.content{padding:22px 24px;background:var(--bg)}
+.content{padding:28px 32px;background:var(--bg)}
+.stat-grid{gap:16px;margin-bottom:28px}
+.section-head{margin-bottom:16px}
+.section-title{font-size:11.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+#dashTriColumn{gap:24px!important}
+.kpi-ring-grid{margin-bottom:28px!important}
+.stat-card{padding:18px 18px 16px}
+.stat-value{font-size:26px;margin-top:6px}
+.stat-label{font-size:10.5px}
 
 /* ---- кнопки ---- */
 .btn{border-radius:7px;padding:7px 13px;font-size:12.5px;font-weight:500;letter-spacing:-0.005em;box-shadow:var(--shadow-xs);border:1px solid transparent}
@@ -2828,7 +2837,7 @@ body.light-theme .logo-icon{background:#111114}
   window.dispatchEvent(new Event('fb-ready'));
 </script>
 </head>
-<body>
+<body class="light-theme">
 <script>
   // Надёжный фикс высоты для iOS/Android: меряем реальную видимую высоту
   // (а не layout viewport) и держим её синхронизированной всегда.
@@ -11713,7 +11722,7 @@ window.addEventListener('pageshow', function(){ checkDashboardMonthRollover(); }
 
 async function initApp(prefetchedDbSnap){
   await loadDB(prefetchedDbSnap);
-  if(!DB.theme) DB.theme = 'dark';
+  if(!DB.theme) DB.theme = 'light';
   applyTheme();
   renderSidebar();
   insertHamburgers();
