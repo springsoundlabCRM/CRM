@@ -16,8 +16,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VoiceLoft CRM">
-<meta name="theme-color" content="#0a0a0c" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f6f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f0f14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0f0f6" media="(prefers-color-scheme: light)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="VoiceLoft CRM">
 <meta name="apple-touch-fullscreen" content="yes">
@@ -28,21 +28,17 @@
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   :root{
-    --bg:#0a0a0c;--bg2:#121214;--bg3:#1a1a1e;--card:#131315;--card2:#18181b;
-    --border:#232326;--border2:#2d2d31;--text:#eeeef1;--text2:#c7c7cf;--text3:#8b8b95;
-    --accent:#6a6bf5;--accent2:#8b8cf9;--accent-glow:rgba(106,107,245,0.14);
-    --green:#3dd68c;--green-bg:rgba(61,214,140,0.12);--green-glow:rgba(61,214,140,0.4);
-    --amber:#f5a524;--amber-bg:rgba(245,165,36,0.12);--amber-glow:rgba(245,165,36,0.4);
-    --red:#f2555a;--red-bg:rgba(242,85,90,0.12);--red-glow:rgba(242,85,90,0.4);
-    --blue:#4c8dff;--blue-bg:rgba(76,141,255,0.12);
-    --orange:#ff9046;--orange-bg:rgba(255,144,70,0.14);
-    --pink:#f062a8;--pink-bg:rgba(240,98,168,0.12);
-    --wa:#3dd68c;
-    --shadow-xs:0 1px 2px rgba(0,0,0,.16);
-    --shadow-sm:0 2px 8px rgba(0,0,0,.22);
-    --shadow-md:0 8px 24px rgba(0,0,0,.30);
-    --shadow-lg:0 16px 48px rgba(0,0,0,.40);
-    --r:8px;--r2:12px;--font:'Inter','SF Pro Display',-apple-system,system-ui,sans-serif;
+    --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--card:#1a1a24;--card2:#22222e;
+    --border:#2a2a38;--border2:#333344;--text:#e8e8f0;--text2:#ffffff;--text3:#ffffff;
+    --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.15);
+    --green:#34d399;--green-bg:rgba(52,211,153,0.12);--green-glow:rgba(52,211,153,0.4);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--amber-glow:rgba(251,191,36,0.4);
+    --red:#f87171;--red-bg:rgba(248,113,113,0.12);--red-glow:rgba(248,113,113,0.4);
+    --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);
+    --orange:#fb923c;--orange-bg:rgba(251,146,60,0.14);
+    --pink:#f472b6;--pink-bg:rgba(244,114,182,0.12);
+    --wa:#34d399;
+    --r:10px;--r2:14px;--font:'Inter',system-ui,sans-serif;
     --bottom-nav-h:44px;
     /* Затемнение фона под выезжающей панелью/шторкой урока и т.п.
        На тёмной теме — темнее (интерфейс и так тёмный, слабое затемнение
@@ -51,22 +47,17 @@
     --sheet-backdrop:rgba(4,4,10,.72);
   }
   body.light-theme{
-    --drawer-backdrop:rgba(20,20,30,.28);
-    --sheet-backdrop:rgba(20,20,30,.45);
-    --bg:#f6f6f8;--bg2:#ffffff;--bg3:#f0f0f3;--card:#ffffff;--card2:#fafafb;
-    --border:#e7e7ec;--border2:#dadade;--text:#17171c;--text2:#4b4b57;--text3:#8d8d99;
-    --accent:#1c1c22;--accent2:#3a3a44;--accent-glow:rgba(28,28,34,0.06);
-    --link:#3762e0;
-    --green:#0d9457;--green-bg:rgba(13,148,87,0.09);--green-glow:rgba(13,148,87,0.3);
-    --amber:#c2760a;--amber-bg:rgba(194,118,10,0.1);--amber-glow:rgba(194,118,10,0.3);
-    --red:#d92d3c;--red-bg:rgba(217,45,60,0.09);--red-glow:rgba(217,45,60,0.3);
-    --blue:#1e64e0;--blue-bg:rgba(30,100,224,0.09);
-    --orange:#d9660a;--orange-bg:rgba(217,102,10,0.1);
-    --pink:#c22b7c;--pink-bg:rgba(194,43,124,0.09);
-    --shadow-xs:0 1px 2px rgba(20,20,43,.04);
-    --shadow-sm:0 1px 3px rgba(20,20,43,.06),0 1px 2px rgba(20,20,43,.04);
-    --shadow-md:0 4px 16px rgba(20,20,43,.08);
-    --shadow-lg:0 12px 32px rgba(20,20,43,.12);
+    --drawer-backdrop:rgba(4,4,10,.32);
+    --sheet-backdrop:rgba(4,4,10,.55);
+    --bg:#f0f0f6;--bg2:#ffffff;--bg3:#e8e8f0;--card:#ffffff;--card2:#f0f0f8;
+    --border:#c6c6d6;--border2:#a3a3ba;--text:#14141c;--text2:#33333f;--text3:#52526a;
+    --accent:#7c3aed;--accent2:#a78bfa;--accent-glow:rgba(124,58,237,0.1);
+    --green:#059669;--green-bg:rgba(5,150,105,0.1);--green-glow:rgba(5,150,105,0.35);
+    --amber:#d97706;--amber-bg:rgba(217,119,6,0.1);--amber-glow:rgba(217,119,6,0.35);
+    --red:#dc2626;--red-bg:rgba(220,38,38,0.1);--red-glow:rgba(220,38,38,0.35);
+    --blue:#2563eb;--blue-bg:rgba(37,99,235,0.1);
+    --orange:#ea580c;--orange-bg:rgba(234,88,12,0.1);
+    --pink:#db2777;--pink-bg:rgba(219,39,119,0.1);
   }
   html, body {
     height: 100%;
@@ -82,7 +73,7 @@
     right: 0;
     bottom: 0;
     overscroll-behavior: none;
-    background: #0a0a0c;
+    background: #0f0f14;
     display: flex;
     flex-direction: column;
   }
@@ -227,7 +218,7 @@
   .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
   .btn-ghost:hover{background:var(--bg3);color:var(--text)}
   .btn-wa{background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,.3)}
-  .btn-wa:hover{background:var(--green);color:#0a0a0c}
+  .btn-wa:hover{background:var(--green);color:#0f0f14}
   .btn-sm{padding:4px 9px;font-size:11px}
   /* Кнопка "Задать ДЗ" внутри карточки ученика (вкладка "Задания") — на
      компьютере крупнее, чем обычная btn-sm, т.к. это основное действие
@@ -1241,7 +1232,7 @@
   .attend-btn.noshow.active{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.4)}
   .attend-btn.cancelled.active{background:var(--bg3);color:var(--text3);border-color:var(--border2);opacity:.7}
   .wa-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:var(--green-bg);color:var(--green);border:none;cursor:pointer;font-size:12px;flex-shrink:0}
-  .wa-icon-btn:hover{background:var(--green);color:#0a0a0c}
+  .wa-icon-btn:hover{background:var(--green);color:#0f0f14}
   .toast{position:fixed;bottom:24px;right:24px;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:12px 18px;border-radius:10px;font-size:12px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;gap:8px;animation:toastin .2s ease-out}
   @keyframes toastin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .teacher-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;margin-bottom:6px;border:1px solid transparent;transition:all .15s}
@@ -2618,167 +2609,6 @@
   .help-acc-body-in b{color:var(--text)}
   .help-step-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
     border-radius:50%;background:var(--accent-glow);color:var(--accent);font-size:10px;font-weight:700;margin-right:6px}
-
-/* ==========================================================================
-   ATTIO-STYLE REDESIGN — визуальный слой поверх исходных правил.
-   Ничего не меняет в разметке/JS, только внешний вид: палитра, типографика,
-   карточки, кнопки, таблицы/строки, модалки, вкладки, сайдбар, скроллбары.
-   ========================================================================== */
-
-/* ---- база ---- */
-body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;letter-spacing:-0.005em}
-body{background:var(--bg)}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
-::-webkit-scrollbar-thumb:hover{background:var(--text3)}
-*{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
-
-/* ---- сайдбар / навигация ---- */
-.sidebar{background:var(--bg2);border-right:1px solid var(--border)}
-.logo{padding:18px 16px 16px;border-bottom:1px solid var(--border)}
-.logo-icon{width:26px;height:26px;border-radius:6px;background:var(--text);box-shadow:none;font-size:13px}
-.logo-icon span{filter:none}
-body.light-theme .logo-icon{background:#111114}
-.logo-text{font-size:14px;font-weight:700;letter-spacing:-0.02em;color:var(--text)}
-.logo-sub{font-size:9.5px;color:var(--text3);letter-spacing:.02em;text-transform:uppercase}
-.nav{padding:14px 8px}
-.nav-item{border-radius:7px;padding:7px 9px;font-size:12.5px;font-weight:500;color:var(--text2);gap:8px;margin-bottom:1px}
-.nav-item .icon{font-size:14px;opacity:.85}
-.nav-ico{width:15px;text-align:center;font-size:13px;color:var(--text3);flex-shrink:0}
-.nav-item.active .nav-ico,.nav-item:hover .nav-ico{color:currentColor}
-.nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:var(--accent-glow);color:var(--accent);font-weight:600}
-.nav-item.active .icon{opacity:1}
-.nav-badge{background:var(--accent);font-weight:700;font-size:9.5px;padding:1px 6px}
-.sidebar-footer{border-top:1px solid var(--border)}
-.sb-user-block:hover{background:var(--bg3)}
-.sb-av{box-shadow:none;border:1px solid var(--border2);background:var(--text2)}
-.sb-name{color:var(--text);font-weight:600}
-
-/* ---- топбар ---- */
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;min-height:60px}
-.topbar-title{font-size:16px;font-weight:700;letter-spacing:-0.01em;color:var(--text)}
-.topbar-subtitle{font-size:12px;font-weight:400;color:var(--text3);margin-left:8px}
-.content{padding:28px 32px;background:var(--bg)}
-.stat-grid{gap:16px;margin-bottom:28px}
-.section-head{margin-bottom:16px}
-.section-title{font-size:11.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
-#dashTriColumn{gap:24px!important}
-.kpi-ring-grid{margin-bottom:28px!important}
-.stat-card{padding:18px 18px 16px}
-.stat-value{font-size:26px;margin-top:6px}
-.stat-label{font-size:10.5px}
-
-/* ---- кнопки ---- */
-.btn{border-radius:7px;padding:7px 13px;font-size:12.5px;font-weight:500;letter-spacing:-0.005em;box-shadow:var(--shadow-xs);border:1px solid transparent}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(79,70,229,.25),0 1px 0 rgba(255,255,255,.06) inset}
-.btn-primary:hover{background:var(--accent2);box-shadow:0 2px 8px rgba(79,70,229,.35)}
-.btn-primary:active{transform:translateY(1px)}
-.btn-ghost{background:var(--card);color:var(--text2);border:1px solid var(--border2);box-shadow:var(--shadow-xs)}
-.btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--text3)}
-.btn-blue{background:var(--blue);color:#fff}
-.btn-blue:hover{filter:brightness(1.08)}
-.btn-danger,.btn-danger:hover{background:var(--red);color:#fff}
-.btn-wa{background:var(--wa);color:#0a0a0c}
-.btn-sm{padding:5px 10px;font-size:11.5px;border-radius:6px}
-
-/* ---- карточки KPI на дашборде ---- */
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-xs);transition:box-shadow .18s,transform .18s;padding:16px 16px 14px}
-.stat-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
-.stat-card::before{display:none}
-.stat-card.purple,.stat-card.green,.stat-card.amber,.stat-card.blue,.stat-card.red{background:var(--card)}
-.stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
-.stat-value{font-size:24px;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin-top:4px}
-.stat-delta{font-size:11.5px;margin-top:4px}
-
-/* ---- карточки учеников / строки / общие поверхности ---- */
-.student-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-xs);transition:box-shadow .18s,transform .18s,border-color .18s}
-.student-card:hover{box-shadow:var(--shadow-md);border-color:var(--border2);transform:translateY(-2px)}
-.finance-row{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-xs);transition:box-shadow .15s,border-color .15s}
-.finance-row:hover{box-shadow:var(--shadow-sm);border-color:var(--border2)}
-.detail-card,.hw-card,.an-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-xs)}
-
-/* ---- вкладки ---- */
-.tab-row{background:var(--bg3);border-radius:9px;padding:3px}
-.tab{border:1px solid transparent;color:var(--text3);font-weight:500}
-.tab.active{background:var(--card);color:var(--text);border-color:var(--border);box-shadow:var(--shadow-xs);font-weight:600}
-
-/* ---- инпуты ---- */
-.input,select.input,textarea.input{background:var(--card);border:1px solid var(--border2);border-radius:7px;font-size:12.5px;transition:border-color .15s,box-shadow .15s}
-.input:focus,select.input:focus,textarea.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);outline:none}
-
-/* ---- модалки ---- */
-.modal-bg{background:rgba(10,10,15,.55);backdrop-filter:blur(6px)}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-lg)}
-.modal-title{font-size:15px;font-weight:700;letter-spacing:-0.01em;border-bottom:1px solid var(--border)}
-.modal-close{border-radius:7px}
-
-/* ---- бейджи/статусы ---- */
-.carryover-badge,.nav-badge,.hw-card-label{border-radius:6px;font-weight:600}
-
-/* ---- скроллбары в шторках/тонких зонах уже переопределены выше глобально ---- */
-
-/* ---- лёгкое выравнивание акцентного действия при наведении на бейдж часов ---- */
-.dash-mode-btn.active,.fin-period-btn.active,.cal-period-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(79,70,229,.3)}
-
-.settings-av{background:var(--text2);border:2px solid var(--border)}
-
-/* ---- ПОЛНЫЙ ОТКАЗ ОТ КОЛЬЦЕВЫХ ДИАГРАММ НА ДАШБОРДЕ И В АНАЛИТИКЕ ----
-   У Attio нет декоративных "колец прогресса" — только плоские цифры и
-   списки. Убираем conic-gradient-круг, оставляем крупное число + подпись. */
-.kpi-ring-grid{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-xs)}
-.kpi-ring-card{background:transparent;border:none;border-radius:0;box-shadow:none;flex:1;padding:16px 20px}
-.kpi-ring-card:not(:last-child){border-right:1px solid var(--border)}
-.kpi-ring-card:hover{background:var(--bg3);border-color:var(--border)}
-.kpi-ring-card.split-card,.kpi-ring-card.goal-card{display:block}
-.goal-card-left{padding-right:0;gap:0;display:block}
-.kpi-ring{all:unset;display:block}
-.kpi-ring::before{display:none}
-.kpi-ring-val{font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);display:block;line-height:1.15}
-.kpi-ring-info{margin-top:2px}
-.kpi-ring-title{font-size:11.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:0}
-.kpi-ring-sub{font-size:11px;margin-top:1px}
-.kpi-ring-extra{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:10px;margin-top:10px}
-@media (max-width:900px){.kpi-ring-grid{flex-wrap:wrap}.kpi-ring-card{flex:1 1 33%;min-width:140px}}
-
-.donut-wrap{all:unset;display:flex;flex-direction:column;align-items:center;gap:2px}
-.donut-wrap::before{display:none}
-.donut-center{position:static}
-.donut-wrap-lg .donut-center b{font-size:36px}
-
-/* ---- линейный, а не радужный прогресс на карточке ученика ---- */
-.student-progress-fill{background:var(--accent)!important}
-
-/* ---- УЧЕНИКИ: на десктопе — плотный список-таблица вместо плитки карточек,
-   как записи (records) в Attio, а не "плитка визиток". Мобильная сетка
-   (карточки) ниже определённой ширины остаётся прежней — там ряд был бы
-   слишком тесным. ---- */
-@media (min-width:901px){
-  .student-grid:not(.student-grid-single){display:flex;flex-direction:column;gap:0;
-    background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-xs)}
-  .student-grid:not(.student-grid-single) .student-card{flex-direction:row;align-items:center;
-    border:none;border-radius:0;border-bottom:1px solid var(--border);padding:11px 18px;height:auto;box-shadow:none}
-  .student-grid:not(.student-grid-single) .student-card:last-child{border-bottom:none}
-  .student-grid:not(.student-grid-single) .student-card:hover{background:var(--bg3);transform:none;box-shadow:none}
-  .student-grid:not(.student-grid-single) .student-header{margin-bottom:0;flex:0 0 250px;min-width:0}
-  .student-grid:not(.student-grid-single) .student-progress-wrap{margin-bottom:0;flex:1;display:flex;
-    align-items:center;gap:10px;padding:0 24px;min-width:0}
-  .student-grid:not(.student-grid-single) .student-progress-label{margin-bottom:0;flex-shrink:0;white-space:nowrap}
-  .student-grid:not(.student-grid-single) .student-progress-bar{flex:1;max-width:180px}
-  .student-grid:not(.student-grid-single) .student-tags-row{margin-top:0;padding-top:0;flex:0 0 auto;
-    justify-content:flex-end;flex-wrap:nowrap}
-  .student-grid:not(.student-grid-single) .tag{margin-top:0}
-  .student-grid:not(.student-grid-single) .student-time-badge{background:transparent;border:none;color:var(--text3);
-    font-weight:600;padding:0}
-}
-@media (min-width:901px){
-  .student-list-head{display:flex;align-items:center;padding:0 18px;margin-bottom:6px;
-    font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
-  .student-list-head span:first-child{flex:0 0 250px}
-  .student-list-head span:nth-child(2){flex:1;padding:0 24px}
-  .student-list-head span:last-child{flex:0 0 auto}
-}
-@media (max-width:900px){.student-list-head{display:none}}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -2837,7 +2667,7 @@ body.light-theme .logo-icon{background:#111114}
   window.dispatchEvent(new Event('fb-ready'));
 </script>
 </head>
-<body class="light-theme">
+<body>
 <script>
   // Надёжный фикс высоты для iOS/Android: меряем реальную видимую высоту
   // (а не layout viewport) и держим её синхронизированной всегда.
@@ -3192,14 +3022,14 @@ body.light-theme .logo-icon{background:#111114}
       </div>
     </div>
     <nav class="nav">
-      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><i class="fa-solid fa-grip nav-ico"></i> Дашборд</div>
-      <div class="nav-item" data-page="schedule" onclick="showPage('schedule')"><i class="fa-solid fa-calendar-days nav-ico"></i> Расписание</div>
-      <div class="nav-item" data-page="students" onclick="showPage('students')"><i class="fa-solid fa-user-group nav-ico"></i> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
-      <div class="nav-item" data-page="finances" onclick="showPage('finances')"><i class="fa-solid fa-wallet nav-ico"></i> Финансы</div>
-      <div class="nav-item" data-page="homework" onclick="showPage('homework')"><i class="fa-solid fa-list-check nav-ico"></i> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
-      <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><i class="fa-solid fa-chart-simple nav-ico"></i> Аналитика</div>
-      <div class="nav-item" data-page="settings" onclick="showPage('settings')"><i class="fa-solid fa-gear nav-ico"></i> Настройки</div>
-      <div class="nav-item" data-page="help" onclick="showPage('help')"><i class="fa-solid fa-circle-question nav-ico"></i> Справка</div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">🏠</span> Дашборд</div>
+      <div class="nav-item" data-page="schedule" onclick="showPage('schedule')"><span class="icon">📅</span> Расписание</div>
+      <div class="nav-item" data-page="students" onclick="showPage('students')"><span class="icon">🎓</span> Ученики <span class="nav-badge" id="navStudentsBadge">0</span></div>
+      <div class="nav-item" data-page="finances" onclick="showPage('finances')"><span class="icon">💰</span> Финансы</div>
+      <div class="nav-item" data-page="homework" onclick="showPage('homework')"><span class="icon">📝</span> Задания <span class="nav-badge" id="navHwBadge">0</span></div>
+      <div class="nav-item" data-page="analytics" onclick="showPage('analytics')"><span class="icon">📊</span> Аналитика</div>
+      <div class="nav-item" data-page="settings" onclick="showPage('settings')"><span class="icon">⚙️</span> Настройки</div>
+      <div class="nav-item" data-page="help" onclick="showPage('help')"><span class="icon">📖</span> Справка</div>
     </nav>
     <div class="sidebar-footer">
       <div class="sb-user-block" onclick="doLogout()" title="Выйти из аккаунта">
@@ -3217,7 +3047,7 @@ body.light-theme .logo-icon{background:#111114}
     <!-- DASHBOARD -->
     <div id="page-dashboard">
       <div class="topbar">
-        <div id="dashGreetWrap"><span class="topbar-title" id="greetTitle">Добрый день</span><span class="topbar-subtitle" id="todayLabel"></span></div>
+        <div id="dashGreetWrap"><span class="topbar-title" id="greetTitle">Добрый день 👋</span><span class="topbar-subtitle" id="todayLabel"></span></div>
         <div class="dash-actions">
           <button class="btn btn-ghost" onclick="openModal('lesson')">Урок</button>
           <button class="btn btn-primary" onclick="openModal('student')">Ученик</button>
@@ -3328,7 +3158,6 @@ body.light-theme .logo-icon{background:#111114}
           <div class="tab" data-f="inactive" onclick="setStudentFilter('inactive',this)">Неактивные</div>
           <div class="tab tab-report" title="Выгрузить базу учеников" onclick="openModal('exportAllChoice')"><i class="fa-solid fa-file-arrow-down"></i> Выгрузить базу</div>
         </div>
-        <div class="student-list-head" id="studentListHead"><span>Ученик</span><span>Прогресс</span><span>Статус</span></div>
         <div class="student-grid" id="student-cards"></div>
       </div>
     </div>
@@ -3838,10 +3667,10 @@ const MN = ['Январь','Февраль','Март','Апрель','Май','
 const MNSh = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const GRADIENTS = [
-  '#6a6bf5','#0d9457',
-  '#c22b7c','#1e64e0',
-  '#c2760a','#d92d3c',
-  '#0f83c9','#7c5cf0'
+  'linear-gradient(135deg,#a78bfa,#7c3aed)','linear-gradient(135deg,#34d399,#059669)',
+  'linear-gradient(135deg,#f472b6,#db2777)','linear-gradient(135deg,#60a5fa,#2563eb)',
+  'linear-gradient(135deg,#fbbf24,#d97706)','linear-gradient(135deg,#f87171,#dc2626)',
+  'linear-gradient(135deg,#38bdf8,#0ea5e9)','linear-gradient(135deg,#c084fc,#9333ea)'
 ];
 
 function uid(prefix){ return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
@@ -5136,7 +4965,7 @@ function renderCalendar() {
       // полоска слева — статус-цвет в полную силу, а фон всей карточки — тот же
       // самый цвет, только бледнее (ниже непрозрачность), чтобы карточка и
       // полоска явно читались как один и тот же цвет, но с разным "весом".
-      const STATUS_COLORS = { done:'#3dd68c', planned:'#6a6bf5', noshow:'#f2555a', cancelled:'#6a6a76' };
+      const STATUS_COLORS = { done:'#34d399', planned:'#a78bfa', noshow:'#f87171', cancelled:'#5a5a72' };
       const statusColor = STATUS_COLORS[ev.status] || STATUS_COLORS.planned;
       evEl.style.borderLeft = '4px solid ' + statusColor;
       evEl.style.background = statusColor + '24'; // ~14% непрозрачности — бледный тон того же цвета
@@ -5411,7 +5240,7 @@ function renderDashboard(){
   // "Посещаемость" и "Цель по доходу" без перезагрузки страницы.
   dashboardMonthKey = now.getFullYear()+'-'+now.getMonth();
   const hour=now.getHours();
-  const greet = hour<6?'Доброй ночи': hour<12?'Доброе утро': hour<18?'Добрый день':'Добрый вечер';
+  const greet = hour<6?'Доброй ночи 🌙': hour<12?'Доброе утро ☀️': hour<18?'Добрый день 👋':'Добрый вечер 🌆';
   document.getElementById('greetTitle').textContent = greet;
   document.getElementById('todayLabel').textContent = weekdayInRu(now)+', '+now.getDate()+' '+MN[now.getMonth()].toLowerCase()+' '+now.getFullYear();
 
@@ -6211,9 +6040,9 @@ function renderStudents(){
 function studentHomeworkTagHTML(studentId){
   const hw = homeworkOfStudent(studentId);
   if(!hw.length) return '';
-  if(hw.some(h=>h.status==='progress')) return '<span class="tag tag-orange"><i class="fa-solid fa-arrow-rotate-right"></i> ДЗ в процессе</span>';
-  if(hw.some(h=>h.status==='todo')) return '<span class="tag tag-blue"><i class="fa-regular fa-bookmark"></i> Новое ДЗ</span>';
-  if(hw.some(h=>h.status==='done')) return '<span class="tag tag-green"><i class="fa-solid fa-check"></i> ДЗ сдано</span>';
+  if(hw.some(h=>h.status==='progress')) return '<span class="tag tag-orange">🔥 ДЗ в процессе</span>';
+  if(hw.some(h=>h.status==='todo')) return '<span class="tag tag-blue">📌 Новое ДЗ</span>';
+  if(hw.some(h=>h.status==='done')) return '<span class="tag tag-green">✓ ДЗ сдано</span>';
   return '';
 }
 
@@ -8523,7 +8352,7 @@ function buildStudentDangerModal(ctx){
     + '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:10px">'
       + '<div><div style="font-size:13px;font-weight:600">Удалить карточку ученика</div>'
       + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Полностью удалит ученика «'+escapeHTML(s.name)+'», а также все его уроки, платежи, абонементы, задания и репертуар.</div></div>'
-      + '<button class="btn" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
+      + '<button class="btn" style="background:var(--red);color:#fff;white-space:nowrap" onclick="deleteStudentCard(\''+s.id+'\')">🗑 Удалить</button>'
     + '</div>';
 }
 
@@ -9528,7 +9357,7 @@ function buildLessonModal(ctx){
     +'</div>'
     +'</div>' /* /.drawer-form-scroll */
     +'<div class="drawer-form-footer">'
-    + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="deleteLesson(\''+lesson.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить урок</button>' : '')
+    + (isEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center" onclick="deleteLesson(\''+lesson.id+'\')">🗑 Удалить урок</button>' : '')
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;padding:15px;font-size:14px;font-weight:600" onclick="saveLessonForm()">'+(isEdit?'Сохранить изменения':'Сохранить урок')+'</button>'
     +'</div>';
 }
@@ -10006,7 +9835,7 @@ function buildDeleteSubscriptionModal(ctx){
   const s = studentById(sub.studentId);
   const left = Math.max(0, sub.totalLessons - sub.usedLessons);
   const refund = left * (sub.pricePerLesson||0);
-  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удаление абонемента <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title">🗑 Удаление абонемента <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:14px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+sub.usedLessons+' из '+sub.totalLessons+' уроков использовано · осталось '+left+'</div>'
@@ -10054,7 +9883,7 @@ function buildSubHistoryModal(ctx){
   ctx = ctx||{};
   const s = studentById(ctx.studentId);
   const hist = subHistoryOf(ctx.studentId);
-  const typeLabel = {purchase:'🎫 Покупка', topup:'➕ Пополнение', deduct:'➖ Списан урок', refund:'↩️ Возврат занятия', delete:'<i class="fa-solid fa-trash-can"></i> Удалён'};
+  const typeLabel = {purchase:'🎫 Покупка', topup:'➕ Пополнение', deduct:'➖ Списан урок', refund:'↩️ Возврат занятия', delete:'🗑 Удалён'};
   const rows = hist.length ? hist.map(h=>
     '<div class="lesson-note"><div class="note-date">'+formatRu(h.date)+' · '+(typeLabel[h.type]||h.type)+'</div>'
     +'<div class="note-text">'+(h.lessonsDelta? (h.lessonsDelta>0?'+':'')+h.lessonsDelta+' уроков · ' : '')+(h.amount?money(h.amount):'')+(h.note?' — '+escapeHTML(h.note):'')+'</div></div>'
@@ -10364,7 +10193,7 @@ function buildDeleteLessonModal(ctx){
   const s = studentById(l.studentId);
   const sub = DB.subscriptions.find(su=>su.id===l.subscriptionId);
   const left = sub ? Math.max(0, sub.totalLessons - sub.usedLessons) : 0;
-  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удаление урока <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title">🗑 Удаление урока <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
@@ -10389,7 +10218,7 @@ function buildDeleteLessonConfirmModal(ctx){
   const l = DB.lessons.find(x=>x.id===ctx.lessonId);
   if(!l) return '<div class="modal-title">Урок не найден <button class="modal-close" onclick="closeModal()">×</button></div>';
   const s = studentById(l.studentId);
-  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удалить урок? <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title">🗑 Удалить урок? <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:11.5px;color:var(--text3);margin-top:3px">'+formatRu(l.date)+' · '+l.time+'</div>'
@@ -10397,7 +10226,7 @@ function buildDeleteLessonConfirmModal(ctx){
     +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Урок будет удалён из расписания. Это действие нельзя отменить.</div>'
     +'<div style="display:flex;gap:8px">'
       +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
-      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteLessonPlain(\''+l.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteLessonPlain(\''+l.id+'\')">🗑 Удалить</button>'
     +'</div>';
 }
 
@@ -10408,7 +10237,7 @@ function buildDeleteHomeworkModal(ctx){
   const h = DB.homework.find(x=>x.id===ctx.hwId);
   if(!h) return '<div class="modal-title">Задание не найдено <button class="modal-close" onclick="closeModal()">×</button></div>';
   const s = studentById(h.studentId);
-  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удалить задание? <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title">🗑 Удалить задание? <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(s?escapeHTML(s.name):'Ученик')+'</div>'
       +'<div style="font-size:12.5px;color:var(--text2);margin-top:4px;line-height:1.4">'+escapeHTML(h.title)+'</div>'
@@ -10416,7 +10245,7 @@ function buildDeleteHomeworkModal(ctx){
     +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Это действие нельзя отменить.</div>'
     +'<div style="display:flex;gap:8px">'
       +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
-      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteHomework(\''+h.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="finalizeDeleteHomework(\''+h.id+'\')">🗑 Удалить</button>'
     +'</div>';
 }
 
@@ -10424,7 +10253,7 @@ function buildDeleteRepertoireModal(ctx){
   ctx = ctx||{};
   const r = DB.repertoire.find(x=>x.id===ctx.repId);
   if(!r) return '<div class="modal-title">Песня не найдена <button class="modal-close" onclick="closeModal()">×</button></div>';
-  return '<div class="modal-title"><i class="fa-solid fa-trash-can"></i> Удалить песню? <button class="modal-close" onclick="closeModal()">×</button></div>'
+  return '<div class="modal-title">🗑 Удалить песню? <button class="modal-close" onclick="closeModal()">×</button></div>'
     +'<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:16px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+escapeHTML(r.title)+'</div>'
       +'<div style="font-size:12.5px;color:var(--text2);margin-top:4px;line-height:1.4">'+escapeHTML(r.artist||'')+'</div>'
@@ -10432,7 +10261,7 @@ function buildDeleteRepertoireModal(ctx){
     +'<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-bottom:16px">Это действие нельзя отменить.</div>'
     +'<div style="display:flex;gap:8px">'
       +'<button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Отмена</button>'
-      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="deleteRepertoire(\''+r.id+'\')"><i class="fa-solid fa-trash-can"></i> Удалить</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;background:var(--red);color:#fff" onclick="deleteRepertoire(\''+r.id+'\')">🗑 Удалить</button>'
     +'</div>';
 }
 
@@ -11722,7 +11551,7 @@ window.addEventListener('pageshow', function(){ checkDashboardMonthRollover(); }
 
 async function initApp(prefetchedDbSnap){
   await loadDB(prefetchedDbSnap);
-  if(!DB.theme) DB.theme = 'light';
+  if(!DB.theme) DB.theme = 'dark';
   applyTheme();
   renderSidebar();
   insertHamburgers();
@@ -11859,7 +11688,7 @@ document.addEventListener('click', function(e){
   try {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
-      const dark = '#0a0a0c', light = '#f6f6f8';
+      const dark = '#0f0f14', light = '#f0f0f6';
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       metaTheme.content = prefersDark ? dark : light;
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
